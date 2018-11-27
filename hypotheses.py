@@ -305,6 +305,8 @@ hypothesis: {
     dv: 'time'
     model: compare 
     prediction:'microtask':1 != 'micortask':0
+    exploratory: True # Unless there is exploratory data analysis
+    visualize: True # by default, there will be visualizations as part of the output
 }
 # Hypothesis and compare do similar things/backend but the "language" is different
 # Predictions are necessary for hypothesis
