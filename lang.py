@@ -83,7 +83,7 @@ data-check: {
     expected: 'NORMAL' || 'POSITIVE SKEW' || 'NEGATIVE SKEW' || 'SKEW"
 }
 
-## IF THERE IS MISSIN DATA - COULD EXPRESS/CHECK INTERACTIONS
+## IF THERE IS MISSING DATA - COULD EXPRESS/CHECK INTERACTIONS
 # more "experiment-minded"
 hypothesis: {
     iv: 'condition_col'
