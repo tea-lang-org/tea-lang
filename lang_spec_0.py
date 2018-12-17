@@ -65,16 +65,17 @@ load data: {
 # univariate analyses
 explore summary: {
     variable: 'age'
-    characteristics: 'distribution', 'residuals', 
+    characteristics: 'distribution', 
                     'mean', 'median', 'stdev', 'variance', 'histogram', 'outliers'
     characteristics: 'distribution', 'mean'
 }
 
+# bivariate analyses
 3. [Exploratory analysis] Comparing properties for categorical variables
 explore/test comparison: {
     groups: 'gender'
     outcome: 'NFC'
-    characteristics: 'homoscedasticity', 'multicollinearity', 
+    characteristics: 'homoscedasticity', 'multicollinearity', 'residuals', 
     filter/select: 'task' is 'arithmetic' 
     #'intercorrelation matrix' -- as output?
 }
