@@ -1,4 +1,18 @@
-from tea_eval import *
+from typing import Dict
+from collections import OrderedDict
+from .ast import Dataset, Variable, DataType, UnivariateTest
+from .eval import evaluate, pretty_print
+
+
+## TODO: Min? Max? 
+univariate_stats = {'mean': UnivariateTest.mean, 
+                    'median': UnivariateTest.median,
+                    'standard deviation': UnivariateTest.std_dev,
+                    'variance': UnivariateTest.variance, 
+                    'kurtosis': UnivariateTest.kurtosis,
+                    'skew': UnivariateTest.skew,
+                    'normality': UnivariateTest.normality,
+                    'frequency': UnivariateTest.frequency}
 
 # Helper -- should make private? 
 def get_dataset(dataset_name: str) -> Dataset: 
@@ -39,6 +53,7 @@ def load_data(source: str, vars: Dict[str, Dict[str, list]] = None) -> Dataset:
 def explore_summary(dataset: str, vars: Dict[str, Dict[str, list]]):
         # TODO: do some error handling should the dictionary fields be mispelled, etc
 
+        result = list
         data = get_dataset(dataset)
         variable = data.get_variable(vars['variable'])
         var = variable[0]
@@ -56,8 +71,11 @@ def explore_summary(dataset: str, vars: Dict[str, Dict[str, list]]):
                 raise Exception(f"{p} is not a supported property of data")
             
             statistic = univariate_stats[p]
-            pretty_print(p, evaluate(data, statistic(var), var, var_data))
+            result.append(p, evaluate(data, statistic(var), var, var_data))
             # pretty_print(p, evaluate(data, var, statistic(var)))
+        
+        pretty_print(result)
+        return result
 
 
 def groups(dataset: Dataset, variable: Variable, sub_groups: Dict[str, Relation]=None): 
@@ -69,32 +87,3 @@ def groups(dataset: Dataset, variable: Variable, sub_groups: Dict[str, Relation]
             # calculate the values
     else: 
         pass
-
-
-        
-
-
-############ TEST PROGRAM ###########
-dataset1 = load_data('mini_test.csv', {
-    'education': {
-        'type': 'ordinal', 
-        'categories': ['high school', 'college', 'PhD']
-    }, 
-    'age': {
-        'type': 'ratio'
-    }
-})
-
-explore_summary('dataset1', {
-    'variable': 'age',
-    'characteristics': ['mean', 'median', 'standard deviation', 'variance']
-})
-
-explore_summary('dataset1', {
-    'variable': 'education',
-    'characteristics': ['frequency']
-    # 'characteristics': ['mean', 'median', 'standard deviation', 'variance']
-})
-
-# test comparison()
-

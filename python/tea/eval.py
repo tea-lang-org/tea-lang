@@ -1,21 +1,9 @@
-from tea_ast import *
+from .ast import *
 
 from scipy import stats # Stats library used
 import numpy as np # Use some stats from numpy instead
  
 #  'kurtosis', 'mean', 'minmax', 'nobs', 'skewness', 'variance'
-
-
-## TODO: Min? Max? 
-univariate_stats = {'mean': UnivariateTest.mean, 
-                    'median': UnivariateTest.median,
-                    'standard deviation': UnivariateTest.std_dev,
-                    'variance': UnivariateTest.variance, 
-                    'kurtosis': UnivariateTest.kurtosis,
-                    'skew': UnivariateTest.skew,
-                    'normality': UnivariateTest.normality,
-                    'frequency': UnivariateTest.frequency}
-
 
 def evaluate(dataset: Dataset, statistic: Test, var: Variable, var_data: pd.Series): 
     if isinstance(statistic, UnivariateTest): 
@@ -32,6 +20,12 @@ def evaluate_univariate(dataset: Dataset, statistic: Test, var: Variable, var_da
     if isinstance(statistic, Mean): 
         # output = stats.describe(var_dat) #.dropna())
         # return getattr(output, 'mean')
+         if (var.data_type == DataType.INTERVAL or var.data_type == DataType.RATIO):
+            return Mean(var)
+        elif (var.data_type == DataType.ORDINAL): 
+            return Mean_Ordinal(var)
+        else: 
+            raise Exception ('Cannot take mean of NOMINAL data!')
         return np.mean(var_data)
     elif isinstance(statistic, Median): 
         return np.median(var_data)
@@ -103,8 +97,11 @@ def evaluate_bivariate(dataset: Dataset, statistic: Test, var: Variable, var_dat
 
 
 # Prints/Returns to the user some nice representation of the statistic calculated
-def pretty_print(stat_name: str, statistic): 
-    print(stat_name, statistic)
+def pretty_print(statistic_results: list): 
+    
+    for stat in statistic_results: 
+        print(stat)
+        # print(stat_name, statistic)
 
 
 
