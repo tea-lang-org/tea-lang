@@ -9,9 +9,6 @@ from typing import Dict, Union
 from collections import OrderedDict
 from pandas.api.types import CategoricalDtype
 
-
-BASE_PATH = os.getcwd()
-
 class Node(object):
     pass
 
@@ -21,36 +18,32 @@ class DataType(Enum):
     INTERVAL = 2 # for CALCULATIONS, INTERVAL vs. RATIO data is not important distinction
     RATIO = 3 # for INTERPRETATIONS, important distinction
 
-@attr.s(init=False)
+@attr.s
 class Variable(Node): 
-    # data_type: DataType
-    # order: list
-    # categories: list
+    name = attr.ib()  
+    dtype = attr.ib()
+    categories = attr.ib(default=None)
+    drange = attr.ib(default=None)
 
-    def __init__(self, var_name: str, var_type: DataType, var_categories: OrderedDict): 
-        self.name = var_name
-        self.data_type = var_type
-        self.categories = var_categories
-
-    def set_type(self, new_type): 
-        if (new_type == 'ordinal'): 
-            self.data_type = DataType.ORDINAL
-        elif (new_type == 'nominal'): 
-            self.data_type = DataType.NOMINAL
-        elif (new_type == 'interval'): 
-            self.data_type = DataType.INTERVAL
-        elif (new_type == 'ratio'): 
-            self.data_type = DataType.RATIO
-        else: 
-            raise Exception('Variables must be specified as being ordinal, nominal, interval, or ratio')
+    # def set_type(self, new_type): 
+    #     if (new_type == 'ordinal'): 
+    #         self.data_type = DataType.ORDINAL
+    #     elif (new_type == 'nominal'): 
+    #         self.data_type = DataType.NOMINAL
+    #     elif (new_type == 'interval'): 
+    #         self.data_type = DataType.INTERVAL
+    #     elif (new_type == 'ratio'): 
+    #         self.data_type = DataType.RATIO
+    #     else: 
+    #         raise Exception('Variables must be specified as being ordinal, nominal, interval, or ratio')
     
-    def set_order(self, new_order): 
-        self.order = new_order
+    # def set_order(self, new_order): 
+    #     self.order = new_order
 
-    def set_categories(self, new_categories): 
-        self.categories = new_categories
+    # def set_categories(self, new_categories): 
+    #     self.categories = new_categories
 
-        
+
 @attr.s(auto_attribs=True)
 class Mean(Node): 
     var: Node 
@@ -116,18 +109,18 @@ class BinaryRelation(object):
 class LessThanEqual(BinaryRelation):
     pass
 
-class LessThan(Relation):
+class LessThan(BinaryRelation):
     pass
 
-class GreaterThanEqual(Relation):
+class GreaterThanEqual(BinaryRelation):
     pass
 
-class GreaterThan(Relation):
+class GreaterThan(BinaryRelation):
     pass
 
-class Equal(Relation):
+class Equal(BinaryRelation):
     pass
 
-class NotEqual(Relation):
+class NotEqual(BinaryRelation):
     pass
 
