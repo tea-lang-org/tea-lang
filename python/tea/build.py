@@ -24,6 +24,11 @@ def interval(var_name: str, range: list):
 def ratio(var_name: str, range: list):
     return Variable(var_name, DataType.RATIO, categories=None, drange=range) # treat range like categories, check that all values are within range
 
+def load_data(source_name: str, vars: list):
+    return Dataset(source_name, vars)
+
+
+
 # ## TODO: Min? Max? 
 # univariate_stats = {'mean': UnivariateTest.mean, 
 #                     'median': UnivariateTest.median,

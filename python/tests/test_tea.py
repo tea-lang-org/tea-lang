@@ -1,5 +1,5 @@
 # from tea import load_data,  explore_summary
-from tea import ordinal, nominal, interval, ratio
+from tea import ordinal, nominal, interval, ratio, load_data
 
 from collections import OrderedDict
 
@@ -35,6 +35,55 @@ def test_make_ratio():
     assert r.name == 'age'
     assert r.categories == None
     assert r.drange == [0, 99]
+
+def test_load_data(): 
+    variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
+    var_names = ['education', 'age']
+    file_path = './datasets/mini_test.csv'
+    ds = load_data(file_path, variables)
+
+    assert ds.dfile == file_path
+    assert ds.variables == variables
+    # assert ds.variable_names == var_names
+
+    # ds = load_data('./dataasets/mini_test.csv', [ 
+    #     {
+    #         'name': 'education',
+    #         'dtype': DataType.ORDINAL,
+    #         'categories': ['high school', 'college', 'PhD'],
+    #         'drange': None
+    #     }, 
+    #     {
+    #         'name': 'age',
+    #         'dtype': DataType.RATIO,
+    #         'categories': None,
+    #         'drange': [0,99]
+    #     }
+    # ])
+#     ds = Dataset()
+#     ds.load_data(source)
+
+#     for var_name in vars: 
+#         v = vars[var_name]
+#         data_type = None
+#         categories = None
+#         if (v['type'] == 'ordinal' or v['type'] == 'nominal'): 
+#             # Create order tuple
+#             categories = OrderedDict()
+#             for i, c in enumerate(v['categories']):
+#                 categories[c] = i+1
+#         if (v['type'] == 'ordinal'): 
+#             data_type = DataType.ORDINAL
+#         elif (v['type'] == 'nominal'): 
+#             data_type = DataType.NOMINAL
+#         elif (v['type'] == 'interval'): 
+#             data_type = DataType.INTERVAL
+#         elif (v['type'] == 'ratio'): 
+#             data_type = DataType.RATIO
+#         else: 
+#             raise Exception('Variables must be specified as being ordinal, nominal, interval, or ratio')
+#         ds.set_variable(var_name, data_type, categories)
+    
 
 # def test():
 #     assert True

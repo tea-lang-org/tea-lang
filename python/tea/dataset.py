@@ -4,51 +4,17 @@ import os
 
 BASE_PATH = os.getcwd()
 
-@attr.s(init=False)
+@attr.s
 class Dataset(object): 
-    # variables: list
-    # variable_names: list
-    # data: list
+    dfile = attr.ib()
+    variables = attr.ib()
+    # variabe_names = attr.ib(init=False)
+    data = attr.ib(init=False)
 
-    def __init__(self, data=None, variable_names=None, variables=None): 
-        self.variables = None
-        self.variable_names = None
-        self.data = None
-
-    def load_data(self, source_name):
-        source_path = BASE_PATH + '/Datasets/' + source_name
-        data = pd.read_csv(source_path)
-
-        # Check that each column has a unique variable name
-        variable_names = data.columns.values.tolist()
-
-        # There are duplicates
-        if (len(variable_names) != len(set(variable_names))):
-            seen = set()
-            duplicates = dict()
-            for v in variable_names:
-                if v not in seen:
-                    seen.add(v)
-                else:  #already seen
-                    duplicates.append(v)
-                    dup_counts.append(1)
-                
-            # TODO: Raise error here for duplicates!
-            raise Exception('Duplictes! - may want to pass to pretty print warning/error')
-
-            duplicates = []
-        else:  # Only assign data to dataset if there are not variable name collisions
-            self.data = data
-            self.variable_names = variable_names
-            self.variables = list()
-    
-    def initialize_variables(self, order): 
-        pass
-    
-    def set_variable(self, var_name, var_type, var_categories=None): 
-        # assert(var_name in self.variable_names)
-        var = Variable(var_name, var_type, var_categories)
-        self.variables.append(var)
+    def __attrs_post_init__(self): 
+        self.data = pd.read_csv(self.dfile)
+        # TODO Check that there are duplicates? 
+        # self.variable_names = self.data.columns.values.tolist()
 
     def get_variable(self, var_name): 
         assert(var_name in self.variable_names)
