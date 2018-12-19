@@ -1,6 +1,6 @@
 from typing import Dict
 from collections import OrderedDict
-from .ast import Variable, DataType
+from .ast import Variable, DataType, Mean
 from .dataset import Dataset
 # from .evaluate import evaluate, pretty_print
 
@@ -26,6 +26,15 @@ def ratio(var_name: str, range: list):
 
 def load_data(source_name: str, vars: list):
     return Dataset(source_name, vars)
+
+def mean(var: Variable): 
+    return Mean(var)
+
+# def median(var: Variable): 
+#     return Median(var)
+
+# def standard_deviation(var: Variable): 
+#     return StandardDeviation(var)
 
 
 

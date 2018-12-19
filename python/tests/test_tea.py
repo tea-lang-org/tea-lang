@@ -1,7 +1,8 @@
 # from tea import load_data,  explore_summary
-from tea import ordinal, nominal, interval, ratio, load_data
+from tea import evaluate, ordinal, nominal, interval, ratio, load_data, mean
 
 from collections import OrderedDict
+import numpy as np
 
 def test_make_ordinal():
     o = ordinal('education', ['high school', 'college', 'Master\'s', 'PhD'])
@@ -38,13 +39,25 @@ def test_make_ratio():
 
 def test_load_data(): 
     variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
-    var_names = ['education', 'age']
     file_path = './datasets/mini_test.csv'
     ds = load_data(file_path, variables)
 
     assert ds.dfile == file_path
     assert ds.variables == variables
-    # assert ds.variable_names == var_names
+
+variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
+file_path = './datasets/mini_test.csv'
+ds = load_data(file_path, variables)
+age_data = [32,35,45,23,50,32,35,45,23,50]
+edu_data = ['high school','college','high school','PhD','PhD','high school','college','high school','PhD','PhD']
+edu_num = [1,2,1,3,3,1,2,1,3,3]
+def test_mean_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, mean(age)) == np.mean(age_data)
+
+def test_mean_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, mean(edu)) == np.mean(edu_num)
 
     # ds = load_data('./dataasets/mini_test.csv', [ 
     #     {

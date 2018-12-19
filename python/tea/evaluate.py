@@ -1,8 +1,22 @@
 from .ast import *
+from .dataset import Dataset
 
 from scipy import stats # Stats library used
 import numpy as np # Use some stats from numpy instead
- 
+
+def evaluate(dataset: Dataset, statistic: Node): 
+    if isinstance(statistic, Mean): 
+        var = statistic.var 
+        var_data = dataset.get_data(var)
+        # If numeric type
+        if (var.dtype == DataType.INTERVAL or var.dtype == DataType.RATIO): 
+            return np.mean(var_data)
+        elif (var.dtype == DataType.ORDINAL): 
+            order = var.categories
+            order_data = [order[d] for i,d in enumerate(var_data)]
+            return np.mean(order_data)
+        else: #(var.dtype == DataType.NOMINAL)
+            raise Exception('Cannot calculate MEAN for NOMINAL data!')
 #  'kurtosis', 'mean', 'minmax', 'nobs', 'skewness', 'variance'
 
 # def evaluate(dataset: Dataset, statistic: Test, var: Variable, var_data: pd.Series): 

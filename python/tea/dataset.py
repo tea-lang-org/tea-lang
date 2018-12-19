@@ -1,3 +1,5 @@
+from .ast import Variable, DataType
+
 import attr
 import pandas as pd
 import os
@@ -16,15 +18,29 @@ class Dataset(object):
         # TODO Check that there are duplicates? 
         # self.variable_names = self.data.columns.values.tolist()
 
-    def get_variable(self, var_name): 
-        assert(var_name in self.variable_names)
-        
-        var_data = self.data[var_name]
-        idx = [i for i,v in enumerate(self.variables) if (v.name == var_name)].pop()
-        var_type = self.variables[idx].data_type
+    def get_data(self, var: Variable): 
+        var_data = self.data[var.name]
 
-        if (var_type == DataType.INTERVAL or var_type == DataType.RATIO): 
-            var_data = pd.to_numeric(var_data)
-        else: 
-            var_data = [str(d) for i,d in enumerate(var_data)]
-        return (self.variables[idx], var_data)
+        if (var.dtype == DataType.INTERVAL or var.dtype == DataType.RATIO): 
+            return pd.to_numeric(var_data)
+        else:
+            return [str(d) for i,d in enumerate(var_data)]
+    
+    # FOR TESTING
+    def get_variable(self, var_name: str): 
+        for v in self.variables: 
+            if v.name == var_name: 
+                return v
+
+    # def get_variable(self, var): 
+    #     # assert(var_name in self.variable_names)
+        
+    #     var_data = self.data[var.name]
+    #     idx = [i for i,v in enumerate(self.variables) if (v.name == var.name)].pop()
+    #     var_type = self.variables[idx].data_type
+
+    #     if (var_type == DataType.INTERVAL or var_type == DataType.RATIO): 
+    #         var_data = pd.to_numeric(var_data)
+    #     else: 
+    #         var_data = [str(d) for i,d in enumerate(var_data)]
+    #     return (self.variables[idx], var_data)

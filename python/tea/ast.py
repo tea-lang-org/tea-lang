@@ -60,7 +60,6 @@ class StandardDeviation(Node):
 class Variance(Node): 
     var: Node
 
-
 @attr.s(auto_attribs=True)
 class Kurtosis(Node): 
     var: Node
