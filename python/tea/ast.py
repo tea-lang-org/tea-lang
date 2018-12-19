@@ -72,10 +72,11 @@ class Skew(Node):
 class Normality(Node): 
     var: Node
 
-
 @attr.s(auto_attribs=True)
 class Frequency(Node):
     var: Node
+
+
 
 class Value(Node):
     value: Union[int, float, str]

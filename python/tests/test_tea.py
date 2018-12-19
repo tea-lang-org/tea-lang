@@ -1,8 +1,10 @@
 # from tea import load_data,  explore_summary
-from tea import evaluate, ordinal, nominal, interval, ratio, load_data, mean
+from tea import evaluate, ordinal, nominal, interval, ratio, load_data,\
+                    mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency
 
 from collections import OrderedDict
 import numpy as np
+from scipy import stats
 
 def test_make_ordinal():
     o = ordinal('education', ['high school', 'college', 'Master\'s', 'PhD'])
@@ -58,6 +60,57 @@ def test_mean_num():
 def test_mean_ordinal(): 
     edu = ds.get_variable('education')
     assert evaluate(ds, mean(edu)) == np.mean(edu_num)
+
+def test_median_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, median(age)) == np.median(age_data)
+
+def test_median_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, median(edu)) == np.median(edu_num)
+
+def test_std_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, standard_deviation(age)) == np.std(age_data)
+
+def test_std_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, standard_deviation(edu)) == np.std(edu_num)
+
+def test_variance_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, variance(age)) == np.var(age_data)
+
+def test_variance_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, variance(edu)) == np.var(edu_num)
+
+def test_kurtosis_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, kurtosis(age)) == stats.kurtosis(age_data)
+
+def test_kurtosis_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, kurtosis(edu)) == stats.kurtosis(edu_num)
+
+def test_skew_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, skew(age)) == stats.skew(age_data)
+
+def test_skew_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, skew(edu)) == stats.skew(edu_num)
+
+def test_normality_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, normality(age)) == (stats.kurtosistest(age_data), stats.skewtest(age_data))
+
+def test_normality_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, normality(edu)) == (stats.kurtosistest(edu_num), stats.skewtest(edu_num))
+
+def test_frequency(): 
+    pass
 
     # ds = load_data('./dataasets/mini_test.csv', [ 
     #     {

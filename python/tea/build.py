@@ -1,7 +1,7 @@
 from typing import Dict
 from collections import OrderedDict
-from .ast import Variable, DataType, Mean
-from .dataset import Dataset
+from .ast import Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency
+from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
 def ordinal(var_name: str, ordered_categories: list):
@@ -30,11 +30,26 @@ def load_data(source_name: str, vars: list):
 def mean(var: Variable): 
     return Mean(var)
 
-# def median(var: Variable): 
-#     return Median(var)
+def median(var: Variable): 
+    return Median(var)
 
-# def standard_deviation(var: Variable): 
-#     return StandardDeviation(var)
+def standard_deviation(var: Variable): 
+    return StandardDeviation(var)
+
+def variance(var: Variable): 
+    return Variance(var)
+
+def kurtosis(var: Variable): 
+    return Kurtosis(var)
+
+def skew(var: Variable): 
+    return Skew(var)
+
+def normality(var: Variable): 
+    return Normality(var)
+
+def frequency(var: Variable): 
+    return Frequency(var)
 
 
 
