@@ -77,13 +77,8 @@ class Frequency(Node):
     var: Node
 
 
-
-class Value(Node):
-    value: Union[int, float, str]
-
-
 @attr.s(auto_attribs=True)
-class BinaryRelation(object):
+class BinaryRelation(Node):
     lhs: Node
     rhs: Node
 
@@ -123,4 +118,27 @@ class Equal(BinaryRelation):
 
 class NotEqual(BinaryRelation):
     pass
+
+
+@attr.s(auto_attribs=True)
+class Experiment(Node):
+    between: Node
+    within: Node
+
+@attr.s(auto_attribs=True)
+class Model(Node):
+    dep_var: Node
+    indep_var: Node
+    expr: Experiment
+
+@attr.s(auto_attribs=True)
+class Hypothesis(Node):
+    model: Model
+    prediction: BinaryRelation ## NOT SURE IF THIS IS WHAT WE WANT 
+
+# class Value(Node):
+#     value: Union[int, float, str]
+
+
+
 

@@ -1,6 +1,7 @@
 from typing import Dict
 from collections import OrderedDict
-from .ast import Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency
+from .ast import Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency, \
+                Experiment
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
@@ -50,6 +51,9 @@ def normality(var: Variable):
 
 def frequency(var: Variable): 
     return Frequency(var)
+
+def model(dep_var: Variable, indep_var: list, experiment: Experiment):
+    pass
 
 
 

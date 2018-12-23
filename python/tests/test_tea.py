@@ -1,6 +1,6 @@
 # from tea import load_data,  explore_summary
-from tea import evaluate, ordinal, nominal, interval, ratio, load_data,\
-                    mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency
+from tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
+            mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency)
 
 from collections import OrderedDict
 import numpy as np
