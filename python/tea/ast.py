@@ -77,6 +77,17 @@ class Frequency(Node):
     var: Node
 
 
+
+@attr.s(auto_attribs=True)
+class VariableList(Node):
+    x: Variable
+    xs: list
+
+@attr.s(auto_attribs=True)
+class Equation(Node):
+    x: Variable
+    xs: list
+
 @attr.s(auto_attribs=True)
 class BinaryRelation(Node):
     lhs: Node
@@ -120,16 +131,23 @@ class NotEqual(BinaryRelation):
     pass
 
 
+class ExperimentType(Enum): # May not need this
+    BETWEEN_SUBJECTS = 0
+    WITHIN_SUBJECTS = 1
+    MIXED = 2
+
 @attr.s(auto_attribs=True)
 class Experiment(Node):
-    between: Node
-    within: Node
+    exper_type: ExperimentType
+    between_vars: VariableList
+    within_vars: VariableList
+
 
 @attr.s(auto_attribs=True)
 class Model(Node):
-    dep_var: Node
-    indep_var: Node
-    expr: Experiment
+    dependent_var: Node
+    independent_vars: Node
+    exper: Experiment
 
 @attr.s(auto_attribs=True)
 class Hypothesis(Node):

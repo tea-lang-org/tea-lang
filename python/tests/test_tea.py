@@ -1,5 +1,5 @@
 # from tea import load_data,  explore_summary
-from tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
+from .tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency)
 
 from collections import OrderedDict
@@ -111,6 +111,9 @@ def test_normality_ordinal():
 
 def test_frequency(): 
     pass
+
+def test_experiment(): 
+    
 
     # ds = load_data('./dataasets/mini_test.csv', [ 
     #     {
