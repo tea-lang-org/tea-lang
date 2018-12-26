@@ -78,10 +78,10 @@ class Frequency(Node):
 
 
 
-@attr.s(auto_attribs=True)
-class VariableList(Node):
-    x: Variable
-    xs: list
+# @attr.s(auto_attribs=True)
+# class VariableList(Node):
+#     v: Variable
+#     vs: Node
 
 @attr.s(auto_attribs=True)
 class Equation(Node):
@@ -139,14 +139,27 @@ class ExperimentType(Enum): # May not need this
 @attr.s(auto_attribs=True)
 class Experiment(Node):
     exper_type: ExperimentType
-    between_vars: VariableList
-    within_vars: VariableList
+    between_vars: list
+    within_vars: list
+
+    def __attrs_post_init__(self):
+        if self.between_vars: # check that all elements in list are Variables
+            for bv in self.between_vars:
+                if not isinstance(bv, Variable):
+                    raise Exception(f"Between subjects variable list: NOT of type Variable: {bv}")
+        if self.within_vars:
+            for wv in self.within_vars:
+                if not isinstance(wv, Variable):
+                    raise Exception(f"Within subjects variable list: NOT of type Variable: {wv}")
+
+
+
 
 
 @attr.s(auto_attribs=True)
 class Model(Node):
-    dependent_var: Node
-    independent_vars: Node
+    dependent_var: Variable
+    independent_vars: Node # Variable? Equation?
     exper: Experiment
 
 @attr.s(auto_attribs=True)

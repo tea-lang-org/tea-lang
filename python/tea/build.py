@@ -1,7 +1,7 @@
 from typing import Dict
 from collections import OrderedDict
 from .ast import Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency, \
-                Experiment, VariableList, ExperimentType, Model
+                Experiment, list, ExperimentType, Model
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
@@ -52,12 +52,23 @@ def normality(var: Variable):
 def frequency(var: Variable): 
     return Frequency(var)
 
+# def variable_list(vars: list):
+#     return list(vars[0], vars[1:])
 
-def experiment(type: ExperimentType, between_vars: VariableList, within_vars: VariableList):
-    return Experiment(type, between_vars, within_vars)
+def between_experiment(between_vars: list):
+    return Experiment(ExperimentType.BETWEEN_SUBJECTS, between_vars, None)
+
+def within_experiment(within_vars: list):
+    return Experiment(ExperimentType.WITHIN_SUBJECTS, None, within_vars)
+
+def mixed_experiment(between_vars: list, within_vars: list):
+    return Experiment(ExperimentType.MIXED, between_vars, within_vars)    
+
+# def experiment(exp_type: ExperimentType, between_vars: list, within_vars: list):
+#     return Experiment(exp_type, between_vars, within_vars)
 
 # @param indep_var is a list of Variables
-def model(dep_var: Variable, indep_vars: VariableList, exper: Experiment):
+def model(dep_var: Variable, indep_vars: list, exper: Experiment):
     return Model(dep_var, indep_vars, exper)
 
 

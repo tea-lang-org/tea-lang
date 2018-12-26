@@ -1,10 +1,12 @@
 # from tea import load_data,  explore_summary
-from .tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
-            mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency)
+from tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
+            mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
+            variable_list, between_experiment, within_experiment, mixed_experiment)
 
 from collections import OrderedDict
 import numpy as np
 from scipy import stats
+
 
 def test_make_ordinal():
     o = ordinal('education', ['high school', 'college', 'Master\'s', 'PhD'])
@@ -112,8 +114,14 @@ def test_normality_ordinal():
 def test_frequency(): 
     pass
 
+# def test_variable_list(): 
+#     import pdb; pdb.set_trace()
+#     pass
+
 def test_experiment(): 
-    
+    # edu_exp = between_experiment()
+    pass
+
 
     # ds = load_data('./dataasets/mini_test.csv', [ 
     #     {
