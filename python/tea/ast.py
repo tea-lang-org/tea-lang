@@ -89,6 +89,10 @@ class Equation(Node):
     xs: list
 
 @attr.s(auto_attribs=True)
+class Operation(Node):
+    pass
+
+@attr.s(auto_attribs=True)
 class BinaryRelation(Node):
     lhs: Node
     rhs: Node

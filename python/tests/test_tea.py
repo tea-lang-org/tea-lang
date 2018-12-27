@@ -1,7 +1,7 @@
 # from tea import load_data,  explore_summary
 from tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
-            variable_list, between_experiment, within_experiment, mixed_experiment)
+            between_experiment, within_experiment, mixed_experiment)
 
 from collections import OrderedDict
 import numpy as np
@@ -118,9 +118,13 @@ def test_frequency():
 #     import pdb; pdb.set_trace()
 #     pass
 
-def test_experiment(): 
-    # edu_exp = between_experiment()
-    pass
+def test_between_experiment(): 
+    edu = ds.get_variable('education')
+    edu_exp = between_experiment([edu])
+    assert edu_exp.between_vars == [edu]
+    assert edu_exp.within_vars == None
+
+
 
 
     # ds = load_data('./dataasets/mini_test.csv', [ 

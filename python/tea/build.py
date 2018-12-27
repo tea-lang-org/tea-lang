@@ -1,7 +1,7 @@
 from typing import Dict
 from collections import OrderedDict
-from .ast import Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency, \
-                Experiment, list, ExperimentType, Model
+from .ast import (Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency,
+                Experiment, ExperimentType, Model)
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
