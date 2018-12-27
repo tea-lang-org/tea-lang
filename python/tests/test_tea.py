@@ -114,17 +114,28 @@ def test_normality_ordinal():
 def test_frequency(): 
     pass
 
-# def test_variable_list(): 
-#     import pdb; pdb.set_trace()
-#     pass
 
+variables = [nominal('block_number', ['1', '2', '3', '4']), nominal('number_of_symbols_to_memorize', ['0', '1', '2', '3', '4', '6'])]
+file_path = './datasets/2016.12.10-gajos17personality-data.csv'
+ds2 = load_data(file_path, variables)
 def test_between_experiment(): 
-    edu = ds.get_variable('education')
-    edu_exp = between_experiment([edu])
-    assert edu_exp.between_vars == [edu]
-    assert edu_exp.within_vars == None
+    sets = ds2.get_variable('number_of_symbols_to_memorize')
+    sets_exp = between_experiment([sets])
+    assert sets_exp.between_vars == [sets]
+    assert sets_exp.within_vars == None
 
+def test_within_experiment(): 
+    block = ds2.get_variable('block_number')
+    block_exp = within_experiment([block])
+    assert block_exp.between_vars == None
+    assert block_exp.within_vars == [block]
 
+def test_mixed_experiment():
+    sets = ds2.get_variable('number_of_symbols_to_memorize')
+    block = ds2.get_variable('block_number')
+    mixed_exp = mixed_experiment([sets], [block])
+    assert mixed_exp.between_vars == [sets]
+    assert mixed_exp.within_vars == [block]
 
 
     # ds = load_data('./dataasets/mini_test.csv', [ 
