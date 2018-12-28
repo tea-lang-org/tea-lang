@@ -18,13 +18,13 @@ def nominal(var_name: str, unordered_categories: list):
     categories = OrderedDict()
     for i, c in enumerate(unordered_categories):
         categories[c] = -1
-    return Variable(var_name, DataType.NOMINAL, categories, drange=None)
+    return Variable.from_spec(var_name, DataType.NOMINAL, categories, None)
 
 def interval(var_name: str, range: list):
-    return Variable(var_name, DataType.INTERVAL, categories=None, drange=range) # treat range like categories, check that all values are within range
+    return Variable.from_spec(var_name, DataType.INTERVAL, None, range) # treat range like categories, check that all values are within range
 
 def ratio(var_name: str, range: list):
-    return Variable(var_name, DataType.RATIO, categories=None, drange=range) # treat range like categories, check that all values are within range
+    return Variable.from_spec(var_name, DataType.RATIO, None, range) # treat range like categories, check that all values are within range
 
 def load_data(source_name: str, vars: list):
     return Dataset(source_name, vars)

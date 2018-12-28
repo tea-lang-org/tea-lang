@@ -19,27 +19,27 @@ def test_make_ordinal():
     ])
     assert o.drange == [1,4]
 
-# def test_make_nominal():
-#     n = nominal('gender', ['male', 'female', 'non-binary'])
-#     assert n.name == 'gender'
-#     assert n.categories == OrderedDict([
-#         ('male', -1),
-#         ('female', -1),
-#         ('non-binary', -1)
-#     ])
-#     assert n.drange == None
+def test_make_nominal():
+    n = nominal('gender', ['male', 'female', 'non-binary'])
+    assert n.name == 'gender'
+    assert n.categories == OrderedDict([
+        ('male', -1),
+        ('female', -1),
+        ('non-binary', -1)
+    ])
+    assert n.drange == None
 
-# def test_make_interval(): 
-#     i = interval('temp', [36, 115])
-#     assert i.name == 'temp'
-#     assert i.categories == None
-#     assert i.drange == [36, 115]
+def test_make_interval(): 
+    i = interval('temp', [36, 115])
+    assert i.name == 'temp'
+    assert i.categories == None
+    assert i.drange == [36, 115]
 
-# def test_make_ratio(): 
-#     r = ratio('age', range=[0, 99])
-#     assert r.name == 'age'
-#     assert r.categories == None
-#     assert r.drange == [0, 99]
+def test_make_ratio(): 
+    r = ratio('age', range=[0, 99])
+    assert r.name == 'age'
+    assert r.categories == None
+    assert r.drange == [0, 99]
 
 # def test_load_data(): 
 #     variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
