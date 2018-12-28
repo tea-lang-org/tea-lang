@@ -115,27 +115,27 @@ def test_frequency():
     pass
 
 
-# variables = [nominal('block_number', ['1', '2', '3', '4']), nominal('number_of_symbols_to_memorize', ['0', '1', '2', '3', '4', '6']), nominal('web_usage', ['1', '2', '3', '4'])]
-# file_path = './datasets/2016.12.10-gajos17personality-data.csv'
-# ds2 = load_data(file_path, variables)
-# def test_between_experiment(): 
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     sets_exp = between_experiment([sets])
-#     assert sets_exp.between_vars == [sets]
-#     assert sets_exp.within_vars == None
+variables = [nominal('block_number', ['1', '2', '3', '4']), nominal('number_of_symbols_to_memorize', ['0', '1', '2', '3', '4', '6']), nominal('web_usage', ['1', '2', '3', '4'])]
+file_path = './datasets/2016.12.10-gajos17personality-data.csv'
+ds2 = load_data(file_path, variables)
+def test_between_experiment(): 
+    sets = ds2.get_variable('number_of_symbols_to_memorize')
+    sets_exp = between_experiment([sets])
+    assert sets_exp.between_vars == [sets]
+    assert sets_exp.within_vars == None
 
-# def test_within_experiment(): 
-#     block = ds2.get_variable('block_number')
-#     block_exp = within_experiment([block])
-#     assert block_exp.between_vars == None
-#     assert block_exp.within_vars == [block]
+def test_within_experiment(): 
+    block = ds2.get_variable('block_number')
+    block_exp = within_experiment([block])
+    assert block_exp.between_vars == None
+    assert block_exp.within_vars == [block]
 
-# def test_mixed_experiment():
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     block = ds2.get_variable('block_number')
-#     mixed_exp = mixed_experiment([sets], [block])
-#     assert mixed_exp.between_vars == [sets]
-#     assert mixed_exp.within_vars == [block]
+def test_mixed_experiment():
+    sets = ds2.get_variable('number_of_symbols_to_memorize')
+    block = ds2.get_variable('block_number')
+    mixed_exp = mixed_experiment([sets], [block])
+    assert mixed_exp.between_vars == [sets]
+    assert mixed_exp.within_vars == [block]
 
 # def test_build_model(): 
 #     sets = ds2.get_variable('number_of_symbols_to_memorize')
