@@ -18,31 +18,12 @@ class DataType(Enum):
     INTERVAL = 2 # for CALCULATIONS, INTERVAL vs. RATIO data is not important distinction
     RATIO = 3 # for INTERPRETATIONS, important distinction
 
-@attr.s
+@attr.s(auto_attribs=True)
 class Variable(Node): 
     name = attr.ib()  
     dtype = attr.ib()
     categories = attr.ib(default=None)
     drange = attr.ib(default=None)
-
-    # def set_type(self, new_type): 
-    #     if (new_type == 'ordinal'): 
-    #         self.data_type = DataType.ORDINAL
-    #     elif (new_type == 'nominal'): 
-    #         self.data_type = DataType.NOMINAL
-    #     elif (new_type == 'interval'): 
-    #         self.data_type = DataType.INTERVAL
-    #     elif (new_type == 'ratio'): 
-    #         self.data_type = DataType.RATIO
-    #     else: 
-    #         raise Exception('Variables must be specified as being ordinal, nominal, interval, or ratio')
-    
-    # def set_order(self, new_order): 
-    #     self.order = new_order
-
-    # def set_categories(self, new_categories): 
-    #     self.categories = new_categories
-
 
 @attr.s(auto_attribs=True)
 class Mean(Node): 
@@ -77,11 +58,6 @@ class Frequency(Node):
     var: Node
 
 
-
-# @attr.s(auto_attribs=True)
-# class VariableList(Node):
-#     v: Variable
-#     vs: Node
 
 @attr.s(auto_attribs=True)
 class Equation(Node):
@@ -151,7 +127,7 @@ class Experiment(Node):
             for bv in self.between_vars:
                 if not isinstance(bv, Variable):
                     raise Exception(f"Between subjects variable list: NOT of type Variable: {bv}")
-        if self.within_vars:
+        if self.within_vars: # check that all elements in list are Variables
             for wv in self.within_vars:
                 if not isinstance(wv, Variable):
                     raise Exception(f"Within subjects variable list: NOT of type Variable: {wv}")
@@ -173,7 +149,3 @@ class Hypothesis(Node):
 
 # class Value(Node):
 #     value: Union[int, float, str]
-
-
-
-

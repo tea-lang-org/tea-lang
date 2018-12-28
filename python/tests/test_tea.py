@@ -137,6 +137,10 @@ def test_mixed_experiment():
     assert mixed_exp.between_vars == [sets]
     assert mixed_exp.within_vars == [block]
 
+def test_build_model(): 
+    pass
+
+
 
     # ds = load_data('./dataasets/mini_test.csv', [ 
     #     {
