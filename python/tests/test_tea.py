@@ -41,78 +41,78 @@ def test_make_ratio():
     assert r.categories == None
     assert r.drange == [0, 99]
 
-# def test_load_data(): 
-#     variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
-#     file_path = './datasets/mini_test.csv'
-#     ds = load_data(file_path, variables)
+def test_load_data(): 
+    variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
+    file_path = './datasets/mini_test.csv'
+    ds = load_data(file_path, variables)
 
-#     assert ds.dfile == file_path
-#     assert ds.variables == variables
+    assert ds.dfile == file_path
+    assert ds.variables == variables
 
-# variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
-# file_path = './datasets/mini_test.csv'
-# ds = load_data(file_path, variables)
-# age_data = [32,35,45,23,50,32,35,45,23,50]
-# edu_data = ['high school','college','high school','PhD','PhD','high school','college','high school','PhD','PhD']
-# edu_num = [1,2,1,3,3,1,2,1,3,3]
-# def test_mean_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, mean(age)) == np.mean(age_data)
+variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
+file_path = './datasets/mini_test.csv'
+ds = load_data(file_path, variables)
+age_data = [32,35,45,23,50,32,35,45,23,50]
+edu_data = ['high school','college','high school','PhD','PhD','high school','college','high school','PhD','PhD']
+edu_num = [1,2,1,3,3,1,2,1,3,3]
+def test_mean_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, mean(age)) == np.mean(age_data)
 
-# def test_mean_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, mean(edu)) == np.mean(edu_num)
+def test_mean_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, mean(edu)) == np.mean(edu_num)
 
-# def test_median_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, median(age)) == np.median(age_data)
+def test_median_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, median(age)) == np.median(age_data)
 
-# def test_median_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, median(edu)) == np.median(edu_num)
+def test_median_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, median(edu)) == np.median(edu_num)
 
-# def test_std_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, standard_deviation(age)) == np.std(age_data)
+def test_std_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, standard_deviation(age)) == np.std(age_data)
 
-# def test_std_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, standard_deviation(edu)) == np.std(edu_num)
+def test_std_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, standard_deviation(edu)) == np.std(edu_num)
 
-# def test_variance_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, variance(age)) == np.var(age_data)
+def test_variance_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, variance(age)) == np.var(age_data)
 
-# def test_variance_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, variance(edu)) == np.var(edu_num)
+def test_variance_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, variance(edu)) == np.var(edu_num)
 
-# def test_kurtosis_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, kurtosis(age)) == stats.kurtosis(age_data)
+def test_kurtosis_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, kurtosis(age)) == stats.kurtosis(age_data)
 
-# def test_kurtosis_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, kurtosis(edu)) == stats.kurtosis(edu_num)
+def test_kurtosis_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, kurtosis(edu)) == stats.kurtosis(edu_num)
 
-# def test_skew_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, skew(age)) == stats.skew(age_data)
+def test_skew_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, skew(age)) == stats.skew(age_data)
 
-# def test_skew_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, skew(edu)) == stats.skew(edu_num)
+def test_skew_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, skew(edu)) == stats.skew(edu_num)
 
-# def test_normality_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, normality(age)) == (stats.kurtosistest(age_data), stats.skewtest(age_data))
+def test_normality_num(): 
+    age = ds.get_variable('age')
+    assert evaluate(ds, normality(age)) == (stats.kurtosistest(age_data), stats.skewtest(age_data))
 
-# def test_normality_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, normality(edu)) == (stats.kurtosistest(edu_num), stats.skewtest(edu_num))
+def test_normality_ordinal(): 
+    edu = ds.get_variable('education')
+    assert evaluate(ds, normality(edu)) == (stats.kurtosistest(edu_num), stats.skewtest(edu_num))
 
-# def test_frequency(): 
-#     pass
+def test_frequency(): 
+    pass
 
 
 # variables = [nominal('block_number', ['1', '2', '3', '4']), nominal('number_of_symbols_to_memorize', ['0', '1', '2', '3', '4', '6']), nominal('web_usage', ['1', '2', '3', '4'])]
