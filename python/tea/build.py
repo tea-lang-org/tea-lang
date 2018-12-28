@@ -1,7 +1,7 @@
 from typing import Dict
 from collections import OrderedDict
 from .ast import (Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency,
-                Experiment, ExperimentType, Model)
+                Experiment, ExperimentType, Model, Equation)
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
@@ -64,6 +64,10 @@ def mixed_experiment(between_vars: list, within_vars: list):
 
 # def experiment(exp_type: ExperimentType, between_vars: list, within_vars: list):
 #     return Experiment(exp_type, between_vars, within_vars)
+
+
+def equation(op):
+    return Equation(op)
 
 # @param indep_var is a list of Variables
 def model(dep_var: Variable, indep_vars: Variable, exper: Experiment):

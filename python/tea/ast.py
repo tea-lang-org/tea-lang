@@ -11,7 +11,17 @@ from pandas.api.types import CategoricalDtype
 # from attr import attrs, attrib
 
 class Node(object):
-    pass
+    def __add__(self, other):
+        return Add(self, other)
+
+    def __sub__(self, other):
+        return Sub(self, other)
+
+    def __mul__(self, other):
+        return Mul(self, other)
+
+    def div(self, other):
+        return Div(self, other)
 
 class DataType(Enum):  
     ORDINAL = 0
@@ -34,43 +44,33 @@ class Variable(Node):
     @classmethod
     def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None):
         return cls(name, dtype, cat, drange)
-
-    def __add__(self, other):
-        return Add(self, other)
-
-    def __sub__(self, other):
-        return Sub(self, other)
-
-    def __mul__(self, other):
-        return Mul(self, other)
-
-    def div(self, other):
-        return Div(self, other)
-
-
     
 @attr.s(hash=True)
 class Add(Node): 
-    # rhs: Variable
-    rhs = attr.ib(type=Variable)
-    lhs = attr.ib(type=Variable)
-    # lhs: Variable
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
 
-@attr.s(auto_attribs=True)
+@attr.s(hash=True)
 class Sub(Node): 
-    rhs: Variable
-    lhs: Variable
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
 
-@attr.s(auto_attribs=True)
+@attr.s(hash=True)
 class Mul(Node): 
-    rhs: Variable
-    lhs: Variable
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
 
-@attr.s(auto_attribs=True)
+@attr.s(hash=True)
 class Div(Node): 
-    rhs: Variable
-    lhs: Variable
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
 
+@attr.s(auto_attribs=False, hash=True)
+class Equation(Node):
+    handle = attr.ib(type=Node)
+    # rhs = attr.ib(type=Node)
+    # op = attr.ib(type=Node)
+    # lhs = attr.ib(type=Node)
 
 
 @attr.s(auto_attribs=True)
@@ -106,11 +106,6 @@ class Frequency(Node):
     var: Node
 
 
-
-@attr.s(auto_attribs=True)
-class Equation(Node):
-    x: Variable
-    xs: list
 
 @attr.s(auto_attribs=True)
 class BinaryRelation(Node):

@@ -1,7 +1,7 @@
 # from tea import load_data,  explore_summary
 from tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
-            between_experiment, within_experiment, mixed_experiment)
+            between_experiment, within_experiment, mixed_experiment, equation)
 
 from collections import OrderedDict
 import numpy as np
@@ -137,12 +137,23 @@ def test_mixed_experiment():
     assert mixed_exp.between_vars == [sets]
     assert mixed_exp.within_vars == [block]
 
-def test_build_model(): 
+
+def test_build_equation(): 
     sets = ds2.get_variable('number_of_symbols_to_memorize')
     web = ds2.get_variable('web_usage')
     block = ds2.get_variable('block_number')
-    exp = between_experiment([sets])
-    m = model(sets, web+block, exp)
+    # import pdb; pdb.set_trace()
+    eq = equation(sets + web)
+    # TODO write better test case
+
+# def test_build_model(): 
+#     sets = ds2.get_variable('number_of_symbols_to_memorize')
+#     web = ds2.get_variable('web_usage')
+#     block = ds2.get_variable('block_number')
+#     exp = between_experiment([sets])
+#     import pdb; pdb.set_trace()
+#     m = model(sets, (web + block) + web*block, exp)
+#     import pdb; pdb.set_trace()
 
 
 
