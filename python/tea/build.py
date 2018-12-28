@@ -67,7 +67,6 @@ def mixed_experiment(between_vars: list, within_vars: list):
 
 # @param indep_var is a list of Variables
 def model(dep_var: Variable, indep_vars: Variable, exper: Experiment):
-    import pdb; pdb.set_trace()
     return Model(dep_var, indep_vars, exper)
 
 # TODO may need to use this for within subjects analysis

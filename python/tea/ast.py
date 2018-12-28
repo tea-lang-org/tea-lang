@@ -35,7 +35,7 @@ class Variable(Node):
     def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None):
         return cls(name, dtype, cat, drange)
 
-    def __add__(self, other: "Variable"):
+    def __add__(self, other):
         return Add(self, other)
 
     def __sub__(self, other):
@@ -49,24 +49,25 @@ class Variable(Node):
 
 
     
-@attr.s()
-class Add(Variable): 
+@attr.s(hash=True)
+class Add(Node): 
     # rhs: Variable
     rhs = attr.ib(type=Variable)
-    lhs: Variable
+    lhs = attr.ib(type=Variable)
+    # lhs: Variable
 
 @attr.s(auto_attribs=True)
-class Sub(Variable): 
+class Sub(Node): 
     rhs: Variable
     lhs: Variable
 
 @attr.s(auto_attribs=True)
-class Mul(Variable): 
+class Mul(Node): 
     rhs: Variable
     lhs: Variable
 
 @attr.s(auto_attribs=True)
-class Div(Variable): 
+class Div(Node): 
     rhs: Variable
     lhs: Variable
 

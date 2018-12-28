@@ -137,12 +137,12 @@ def test_mixed_experiment():
     assert mixed_exp.between_vars == [sets]
     assert mixed_exp.within_vars == [block]
 
-# def test_build_model(): 
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     web = ds2.get_variable('web_usage')
-#     block = ds2.get_variable('block_number')
-#     exp = between_experiment([sets])
-#     # m = model(sets, web+block, exp)
+def test_build_model(): 
+    sets = ds2.get_variable('number_of_symbols_to_memorize')
+    web = ds2.get_variable('web_usage')
+    block = ds2.get_variable('block_number')
+    exp = between_experiment([sets])
+    m = model(sets, web+block, exp)
 
 
 
