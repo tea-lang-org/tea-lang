@@ -111,7 +111,8 @@ def evaluate(dataset: Dataset, statistic: Node):
         for i,s in enumerate(statistics):
             frequency_summary.append((statistics[i], calc[i]))
         # TODO feed into histogram for visualization
-
+    elif isinstance(statistic, Model):
+        pass
 
     else: 
         raise Exception('Do not support this operation yet!')

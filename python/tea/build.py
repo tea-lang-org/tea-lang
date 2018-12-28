@@ -11,13 +11,14 @@ def ordinal(var_name: str, ordered_categories: list):
     for i, c in enumerate(ordered_categories):
         categories[c] = i+1 # start at 1 not 0
         
+    # return Variable.from_spec(var_name, DataType.ORDINAL, categories, [1, len(categories)])
     return Variable(var_name, DataType.ORDINAL, categories, [1, len(categories)])
 
 def nominal(var_name: str, unordered_categories: list):
     categories = OrderedDict()
     for i, c in enumerate(unordered_categories):
         categories[c] = -1
-    return Variable(var_name, DataType.NOMINAL, categories)
+    return Variable(var_name, DataType.NOMINAL, categories, drange=None)
 
 def interval(var_name: str, range: list):
     return Variable(var_name, DataType.INTERVAL, categories=None, drange=range) # treat range like categories, check that all values are within range
@@ -65,7 +66,8 @@ def mixed_experiment(between_vars: list, within_vars: list):
 #     return Experiment(exp_type, between_vars, within_vars)
 
 # @param indep_var is a list of Variables
-def model(dep_var: Variable, indep_vars: list, exper: Experiment):
+def model(dep_var: Variable, indep_vars: Variable, exper: Experiment):
+    import pdb; pdb.set_trace()
     return Model(dep_var, indep_vars, exper)
 
 # TODO may need to use this for within subjects analysis

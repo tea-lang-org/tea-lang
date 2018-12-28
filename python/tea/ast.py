@@ -8,6 +8,7 @@ from enum import Enum
 from typing import Dict, Union
 from collections import OrderedDict
 from pandas.api.types import CategoricalDtype
+# from attr import attrs, attrib
 
 class Node(object):
     pass
@@ -18,12 +19,58 @@ class DataType(Enum):
     INTERVAL = 2 # for CALCULATIONS, INTERVAL vs. RATIO data is not important distinction
     RATIO = 3 # for INTERPRETATIONS, important distinction
 
-@attr.s(auto_attribs=True)
+@attr.s
 class Variable(Node): 
-    name = attr.ib()  
+    # name = attr.ib(type=str)
+    # dtype = attr.ib(type=DataType)
+    # categories = attr.ib(type=list)
+    # drange = attr.ib(type=list)
+
+    name = attr.ib()
     dtype = attr.ib()
-    categories = attr.ib(default=None)
-    drange = attr.ib(default=None)
+    categories = attr.ib()
+    drange = attr.ib()
+
+    # @classmethod
+    # def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None):
+    #     return cls(name, dtype, cat, drange)
+
+    def __add__(self, other: "Variable"):
+        return Add(self, other)
+
+    def __sub__(self, other):
+        return Sub(self, other)
+
+    def __mul__(self, other):
+        return Mul(self, other)
+
+    def div(self, other):
+        return Div(self, other)
+
+
+    
+@attr.s()
+class Add(Variable): 
+    # rhs: Variable
+    rhs = attr.ib(type=Variable)
+    lhs: Variable
+
+@attr.s(auto_attribs=True)
+class Sub(Variable): 
+    rhs: Variable
+    lhs: Variable
+
+@attr.s(auto_attribs=True)
+class Mul(Variable): 
+    rhs: Variable
+    lhs: Variable
+
+@attr.s(auto_attribs=True)
+class Div(Variable): 
+    rhs: Variable
+    lhs: Variable
+
+
 
 @attr.s(auto_attribs=True)
 class Mean(Node): 
@@ -63,10 +110,6 @@ class Frequency(Node):
 class Equation(Node):
     x: Variable
     xs: list
-
-@attr.s(auto_attribs=True)
-class Operation(Node):
-    pass
 
 @attr.s(auto_attribs=True)
 class BinaryRelation(Node):
@@ -133,13 +176,10 @@ class Experiment(Node):
                     raise Exception(f"Within subjects variable list: NOT of type Variable: {wv}")
 
 
-
-
-
 @attr.s(auto_attribs=True)
 class Model(Node):
     dependent_var: Variable
-    independent_vars: Node # Variable? Equation?
+    independent_vars: Variable # Variable? Equation?
     exper: Experiment
 
 @attr.s(auto_attribs=True)
