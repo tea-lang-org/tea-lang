@@ -11,8 +11,8 @@ def ordinal(var_name: str, ordered_categories: list):
     for i, c in enumerate(ordered_categories):
         categories[c] = i+1 # start at 1 not 0
         
-    # return Variable.from_spec(var_name, DataType.ORDINAL, categories, [1, len(categories)])
-    return Variable(var_name, DataType.ORDINAL, categories, [1, len(categories)])
+    return Variable.from_spec(var_name, DataType.ORDINAL, categories, [1, len(categories)])
+    # return Variable(var_name, DataType.ORDINAL, categories, [1, len(categories)])
 
 def nominal(var_name: str, unordered_categories: list):
     categories = OrderedDict()

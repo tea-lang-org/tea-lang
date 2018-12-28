@@ -31,9 +31,9 @@ class Variable(Node):
     categories = attr.ib()
     drange = attr.ib()
 
-    # @classmethod
-    # def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None):
-    #     return cls(name, dtype, cat, drange)
+    @classmethod
+    def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None):
+        return cls(name, dtype, cat, drange)
 
     def __add__(self, other: "Variable"):
         return Add(self, other)
