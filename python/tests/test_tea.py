@@ -143,6 +143,7 @@ def test_build_equation():
     web = ds2.get_variable('web_usage')
     block = ds2.get_variable('block_number')
     eq = equation(sets + web + block + web*block)
+    assert eq.eq_handle == sets + web + block + web*block
 
 def test_build_model(): 
     sets = ds2.get_variable('number_of_symbols_to_memorize')
@@ -150,6 +151,9 @@ def test_build_model():
     block = ds2.get_variable('block_number')
     exp = between_experiment([sets])
     m = model(sets, (web + block) + web*block, exp)
+    assert m.eq_independent_vars == web + block + web*block
+    assert m.dependent_var == sets
+    assert m.experiment == exp
 
 
 

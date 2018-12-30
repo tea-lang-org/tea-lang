@@ -70,7 +70,7 @@ class Div(Eq_Node):
 
 @attr.s(auto_attribs=False, hash=True)
 class Equation(Node):
-    handle = attr.ib(type=Eq_Node)
+    eq_handle = attr.ib(type=Eq_Node)
     # rhs = attr.ib(type=Node)
     # op = attr.ib(type=Node)
     # lhs = attr.ib(type=Node)
@@ -178,8 +178,8 @@ class Experiment(Node):
 @attr.s(auto_attribs=True)
 class Model(Node):
     dependent_var: Variable
-    independent_vars: Equation # User-facing: list of vars or equation (both should be allowed)
-    exper: Experiment
+    eq_independent_vars: Equation # User-facing: list of vars or equation (both should be allowed)
+    experiment: Experiment
 
 @attr.s(auto_attribs=True)
 class Hypothesis(Node):
