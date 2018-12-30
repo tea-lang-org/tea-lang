@@ -66,8 +66,8 @@ def mixed_experiment(between_vars: list, within_vars: list):
 #     return Experiment(exp_type, between_vars, within_vars)
 
 
-def equation(op):
-    return Equation(op)
+def equation(eq):
+    return Equation(eq)
 
 # @param indep_var is a list of Variables
 def model(dep_var: Variable, indep_vars: Variable, exper: Experiment):

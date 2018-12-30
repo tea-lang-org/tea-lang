@@ -2,6 +2,7 @@ from .ast import *
 from .dataset import Dataset
 
 from scipy import stats # Stats library used
+import statsmodels.api as sm
 import numpy as np # Use some stats from numpy instead
 
 def evaluate(dataset: Dataset, statistic: Node): 

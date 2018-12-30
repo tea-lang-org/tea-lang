@@ -11,6 +11,9 @@ from pandas.api.types import CategoricalDtype
 # from attr import attrs, attrib
 
 class Node(object):
+    pass
+
+class Eq_Node(Node):
     def __add__(self, other):
         return Add(self, other)
 
@@ -30,7 +33,7 @@ class DataType(Enum):
     RATIO = 3 # for INTERPRETATIONS, important distinction
 
 @attr.s
-class Variable(Node): 
+class Variable(Eq_Node): 
     # name = attr.ib(type=str)
     # dtype = attr.ib(type=DataType)
     # categories = attr.ib(type=list)
@@ -46,28 +49,28 @@ class Variable(Node):
         return cls(name, dtype, cat, drange)
     
 @attr.s(hash=True)
-class Add(Node): 
+class Add(Eq_Node): 
+    rhs = attr.ib(type=Variable)
+    lhs = attr.ib(type=Variable)
+
+@attr.s(hash=True)
+class Sub(Eq_Node): 
     rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
 
 @attr.s(hash=True)
-class Sub(Node): 
+class Mul(Eq_Node): 
     rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
 
 @attr.s(hash=True)
-class Mul(Node): 
-    rhs = attr.ib(type=Node)
-    lhs = attr.ib(type=Node)
-
-@attr.s(hash=True)
-class Div(Node): 
+class Div(Eq_Node): 
     rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
 
 @attr.s(auto_attribs=False, hash=True)
 class Equation(Node):
-    handle = attr.ib(type=Node)
+    handle = attr.ib(type=Eq_Node)
     # rhs = attr.ib(type=Node)
     # op = attr.ib(type=Node)
     # lhs = attr.ib(type=Node)
