@@ -144,18 +144,12 @@ def test_build_equation():
     block = ds2.get_variable('block_number')
     eq = equation(sets + web + block + web*block)
 
-
-
-    
-
-# def test_build_model(): 
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     web = ds2.get_variable('web_usage')
-#     block = ds2.get_variable('block_number')
-#     exp = between_experiment([sets])
-#     import pdb; pdb.set_trace()
-#     m = model(sets, (web + block) + web*block, exp)
-#     import pdb; pdb.set_trace()
+def test_build_model(): 
+    sets = ds2.get_variable('number_of_symbols_to_memorize')
+    web = ds2.get_variable('web_usage')
+    block = ds2.get_variable('block_number')
+    exp = between_experiment([sets])
+    m = model(sets, (web + block) + web*block, exp)
 
 
 

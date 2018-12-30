@@ -70,8 +70,8 @@ def equation(eq):
     return Equation(eq)
 
 # @param indep_var is a list of Variables
-def model(dep_var: Variable, indep_vars: Variable, exper: Experiment):
-    return Model(dep_var, indep_vars, exper)
+def model(dep_var: Variable, eq_indep_vars: Variable, exper: Experiment):
+    return Model(dep_var, eq_indep_vars, exper)
 
 # TODO may need to use this for within subjects analysis
 def form_groups(var: Variable, bins):
