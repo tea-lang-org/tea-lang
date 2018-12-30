@@ -178,7 +178,7 @@ class Experiment(Node):
 @attr.s(auto_attribs=True)
 class Model(Node):
     dependent_var: Variable
-    independent_vars: Variable # Variable? Equation?
+    independent_vars: Equation # User-facing: list of vars or equation (both should be allowed)
     exper: Experiment
 
 @attr.s(auto_attribs=True)

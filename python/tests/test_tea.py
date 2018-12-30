@@ -137,14 +137,16 @@ def test_mixed_experiment():
     assert mixed_exp.between_vars == [sets]
     assert mixed_exp.within_vars == [block]
 
-
+# TODO: Write test case based on linear regression found in paper
 def test_build_equation(): 
     sets = ds2.get_variable('number_of_symbols_to_memorize')
     web = ds2.get_variable('web_usage')
     block = ds2.get_variable('block_number')
-    # import pdb; pdb.set_trace()
-    eq = equation(sets + web)
-    # TODO write better test case
+    eq = equation(sets + web + block + web*block)
+
+
+
+    
 
 # def test_build_model(): 
 #     sets = ds2.get_variable('number_of_symbols_to_memorize')
