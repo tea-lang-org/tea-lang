@@ -1,7 +1,8 @@
 from typing import Dict
 from collections import OrderedDict
 from .ast import (Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency,
-                Experiment, ExperimentType, Model, Equation)
+                Experiment, ExperimentType, Model, Equation, Hypothesis, Relation,
+                Experiment_New)
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
@@ -28,6 +29,9 @@ def ratio(var_name: str, range: list):
 
 def load_data(source_name: str, vars: list):
     return Dataset(source_name, vars)
+
+def load_data_arrs(y: list, x: list):
+    return Dataset.from_arr_numeric(y, x)
 
 def mean(var: Variable): 
     return Mean(var)
@@ -65,13 +69,17 @@ def mixed_experiment(between_vars: list, within_vars: list):
 # def experiment(exp_type: ExperimentType, between_vars: list, within_vars: list):
 #     return Experiment(exp_type, between_vars, within_vars)
 
-
 def equation(eq):
     return Equation(eq)
 
 # @param indep_var is a list of Variables
-def model(dep_var: Variable, eq_indep_vars: Variable, exper: Experiment):
+def model(dep_var: Variable, eq_indep_vars: Variable, exper: Experiment_New):
     return Model(dep_var, eq_indep_vars, exper)
+
+
+def hypothesis(model: Model, prediction: Relation):
+    return Hypothesis(model, prediction)
+
 
 # TODO may need to use this for within subjects analysis
 def form_groups(var: Variable, bins):

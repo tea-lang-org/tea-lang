@@ -5,7 +5,22 @@ from scipy import stats # Stats library used
 import statsmodels.api as sm
 import numpy as np # Use some stats from numpy instead
 
-def evaluate(dataset: Dataset, statistic: Node): 
+class Evaluator(object):
+    def __init__(self, dataset, experiment_setup):
+        self.dataset = dataset
+        self.experiment_setup = experiment_setup
+        self.stats = {}
+    
+    def eval(self, model: Model):
+        pass
+
+def evaluate(dataset: Dataset, experiment_setup: Experiment_New, model: Model):
+    e = Evaluator(dataset, experiment_setup)
+    return e.eval(model)
+
+
+
+def evaluate_og(dataset: Dataset, statistic: Node): 
     if isinstance(statistic, Mean): 
         var = statistic.var 
         var_data = dataset.get_data(var)
@@ -112,7 +127,21 @@ def evaluate(dataset: Dataset, statistic: Node):
         for i,s in enumerate(statistics):
             frequency_summary.append((statistics[i], calc[i]))
         # TODO feed into histogram for visualization
+    
     elif isinstance(statistic, Model):
+        pass
+    elif isinstance(statistic, Relation):
+        pass
+    elif isinstance(statistic, Hypothesis):
+        # TODO ????
+        model_results = evaluate(dataset, statistic.model)
+        # TODO: Should call prediction on each relation separately???
+        prediction_results = evaluate(dataset, statistic.prediction)
+
+
+        pass
+    elif isinstance(statistic, Relation):
+        # TODO: Will need to check if the rhs is a Variable
         pass
 
     else: 
@@ -152,3 +181,14 @@ def evaluate(dataset: Dataset, statistic: Node):
 #     'independent variable': 'AT',
 #     'direction': 'forward'
 # }) 
+
+
+# Basic stats (e.g., mean, median)
+# (datastore, variable, program) -> value (Int, float, str)
+# (datastore, model, variable, program) -> (statistic, variable, value)
+
+# (sampling method, prior, data) -> posterior
+
+
+# Stats degrees of freedom odds with compute as free
+# No general program interface/rule

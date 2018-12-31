@@ -14,9 +14,21 @@ class Dataset(object):
     data = attr.ib(init=False)
 
     def __attrs_post_init__(self): 
-        self.data = pd.read_csv(self.dfile)
+        if self.dfile: 
+            self.data = pd.read_csv(self.dfile)
         # TODO Check that there are duplicates? 
         # self.variable_names = self.data.columns.values.tolist()
+
+    @classmethod
+    def from_arr_numeric(cls, y: list, x: list):
+
+        data = {'X': x, 'Y': y}
+        df = pd.DataFrame.from_dict(data)
+
+        x_var = Variable('X', dtype=DataType.INTERVAL, categories=None, drange=None)
+        y_var = Variable('Y', dtype=DataType.INTERVAL, categories=None, drange=None)
+
+        return cls(dfile='', variables=[x_var,y_var], data=df)
 
     def get_data(self, var: Variable): 
         var_data = self.data[var.name]

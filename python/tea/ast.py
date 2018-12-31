@@ -32,7 +32,7 @@ class DataType(Enum):
     INTERVAL = 2 # for CALCULATIONS, INTERVAL vs. RATIO data is not important distinction
     RATIO = 3 # for INTERPRETATIONS, important distinction
 
-@attr.s
+@attr.s(repr=False)
 class Variable(Eq_Node): 
     # name = attr.ib(type=str)
     # dtype = attr.ib(type=DataType)
@@ -47,33 +47,52 @@ class Variable(Eq_Node):
     @classmethod
     def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None):
         return cls(name, dtype, cat, drange)
+
+    def __repr__(self): 
+        return self.name
     
-@attr.s(hash=True)
+@attr.s(hash=True, repr=False)
 class Add(Eq_Node): 
     rhs = attr.ib(type=Variable)
     lhs = attr.ib(type=Variable)
 
-@attr.s(hash=True)
+    def __repr__(self):
+        return f"{self.rhs} + {self.lhs}"
+
+@attr.s(hash=True, repr=False)
 class Sub(Eq_Node): 
     rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
 
-@attr.s(hash=True)
+    def __repr__(self):
+        return f"{self.rhs} - {self.lhs}"
+
+@attr.s(hash=True, repr=False)
 class Mul(Eq_Node): 
     rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
 
-@attr.s(hash=True)
+    def __repr__(self):
+        return f"{self.rhs} * {self.lhs}"
+
+@attr.s(hash=True, repr=False)
 class Div(Eq_Node): 
     rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
 
-@attr.s(auto_attribs=False, hash=True)
+    def __repr__(self):
+        return f"{self.rhs} / {self.lhs}"
+
+
+@attr.s(auto_attribs=False, hash=True, repr=False)
 class Equation(Node):
     eq_handle = attr.ib(type=Eq_Node)
     # rhs = attr.ib(type=Node)
     # op = attr.ib(type=Node)
     # lhs = attr.ib(type=Node)
+
+    def __repr__(self):
+        return repr(self.eq_handle)
 
 
 @attr.s(auto_attribs=True)
@@ -109,11 +128,13 @@ class Frequency(Node):
     var: Node
 
 
+# TODO: Should definitely check that the values that are passed are correct/exist/legit
+Value = Union[Node, int, float, str] # Allow for Node but also for raw int/float/str values (from domain knowledge)
 
 @attr.s(auto_attribs=True)
-class BinaryRelation(Node):
-    lhs: Node
-    rhs: Node
+class Relation(Node):
+    lhs: Value
+    rhs: Value
 
     def __le__(self, other):
         return LessThanEqual(self, other)
@@ -133,24 +154,30 @@ class BinaryRelation(Node):
     def __ne__(self, other):
         return NotEqual(self, other)
 
+@attr.s(hash=True)
+class LessThanEqual(Relation):
+    rhs = attr.ib(type=Value) # Should be Value or Variable?
+    lhs = attr.ib(type=Value)
 
-class LessThanEqual(BinaryRelation):
-    pass
+class LessThan(Relation):
+    rhs = attr.ib(type=Value) # Should be Value or Variable?
+    lhs = attr.ib(type=Value)
 
-class LessThan(BinaryRelation):
-    pass
+class GreaterThanEqual(Relation):
+    rhs = attr.ib(type=Value) # Should be Value or Variable?
+    lhs = attr.ib(type=Value)
 
-class GreaterThanEqual(BinaryRelation):
-    pass
+class GreaterThan(Relation):
+    rhs = attr.ib(type=Value) # Should be Value or Variable?
+    lhs = attr.ib(type=Value)
 
-class GreaterThan(BinaryRelation):
-    pass
+class Equal(Relation):
+    rhs = attr.ib(type=Value) # Should be Value or Variable?
+    lhs = attr.ib(type=Value)
 
-class Equal(BinaryRelation):
-    pass
-
-class NotEqual(BinaryRelation):
-    pass
+class NotEqual(Relation):
+    rhs = attr.ib(type=Value) # Should be Value or Variable?
+    lhs = attr.ib(type=Value)
 
 
 class ExperimentType(Enum): # May not need this
@@ -158,6 +185,9 @@ class ExperimentType(Enum): # May not need this
     WITHIN_SUBJECTS = 1
     MIXED = 2
 
+class Experiment_New(Node):
+    grouping: Variable # Variable for which there are only 2 values, splitting the participants cleanly
+   
 @attr.s(auto_attribs=True)
 class Experiment(Node):
     exper_type: ExperimentType
@@ -175,16 +205,19 @@ class Experiment(Node):
                     raise Exception(f"Within subjects variable list: NOT of type Variable: {wv}")
 
 
-@attr.s(auto_attribs=True)
+@attr.s(auto_attribs=True, repr=False)
 class Model(Node):
     dependent_var: Variable
     eq_independent_vars: Equation # User-facing: list of vars or equation (both should be allowed)
-    experiment: Experiment
+    experiment: Experiment_New
+        
+
 
 @attr.s(auto_attribs=True)
 class Hypothesis(Node):
     model: Model
-    prediction: BinaryRelation ## NOT SURE IF THIS IS WHAT WE WANT 
+    prediction: Relation ## NOT SURE IF THIS IS WHAT WE WANT 
 
 # class Value(Node):
 #     value: Union[int, float, str]
+ 
