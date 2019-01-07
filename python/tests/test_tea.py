@@ -2,7 +2,7 @@
 from tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
             between_experiment, within_experiment, mixed_experiment, equation,
-            load_data_arrs)
+            load_data_arrs, hypothesis, experiment_design)
 
 from collections import OrderedDict
 import numpy as np
@@ -151,14 +151,23 @@ def test_build_model():
     sets = ds2.get_variable('number_of_symbols_to_memorize')
     web = ds2.get_variable('web_usage')
     block = ds2.get_variable('block_number')
-    exp = between_experiment([sets])
-    m = model(sets, (web + block) + web*block, exp)
+    # exp = between_experiment([sets])
+    m = model(sets, (web + block) + web*block)
     assert m.eq_independent_vars == web + block + web*block
     assert m.dependent_var == sets
-    assert m.experiment == exp
 
-# def test_build_hypothesis(): 
-#     pass
+variables = [interval('participant', ['1', '10']), nominal('condition', ['a', 'b']), ratio('accuracy', ['0', '10'])]
+file_path = './datasets/mini_test2.csv'
+ds3 = load_data(file_path, variables)
+def test_build_hypothesis(): 
+    condition = ds3.get_variable('condition')
+    acc = ds3.get_variable('accuracy')
+    m = model(acc, condition)
+    h = hypothesis('a'>'b')
+    exp = experiment_design([condition, acc])
+    results = evaluate(ds3, exp, m, h)
+    # TODO May want to do something similar to the summary() method -- https://www.statsmodels.org/stable/_modules/statsmodels/base/model.html#GenericLikelihoodModelResults.summary
+    
 
 # def test_model(): 
 #     Y = [1,3,4,5,2,3,4]

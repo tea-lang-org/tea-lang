@@ -32,21 +32,24 @@ class DataType(Enum):
     INTERVAL = 2 # for CALCULATIONS, INTERVAL vs. RATIO data is not important distinction
     RATIO = 3 # for INTERPRETATIONS, important distinction
 
-@attr.s(repr=False)
-class Variable(Eq_Node): 
-    # name = attr.ib(type=str)
-    # dtype = attr.ib(type=DataType)
-    # categories = attr.ib(type=list)
-    # drange = attr.ib(type=list)
+class Experiment_DataType(Enum):
+    BETWEEN_SUBJECTS = 0
+    WITHIN_SUBJECTS = 1
+    OUTCOME = 2 # variables that are DV measures -- TODO could use this to check that equations are formulated correctly
 
+@attr.s(hash=True, repr=False)
+class Variable(Eq_Node): 
     name = attr.ib()
-    dtype = attr.ib()
+    dtype = attr.ib(type=DataType)
     categories = attr.ib()
     drange = attr.ib()
+    etype = attr.ib(type=Experiment_DataType) # between or within subjects variable OR outcome variable
+
 
     @classmethod
-    def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None):
-        return cls(name, dtype, cat, drange)
+    def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None, etype: Experiment_DataType=2):
+        # Default behavior is that variables treated as BETWEEN SUBJECTS
+        return cls(name, dtype, cat, drange, etype)
 
     def __repr__(self): 
         return self.name
@@ -179,18 +182,15 @@ class NotEqual(Relation):
     rhs = attr.ib(type=Value) # Should be Value or Variable?
     lhs = attr.ib(type=Value)
 
+# class Experiment_New(Node):
+#     grouping: Variable # Variable for which there are only 2 values, splitting the participants cleanly
 
-class ExperimentType(Enum): # May not need this
-    BETWEEN_SUBJECTS = 0
-    WITHIN_SUBJECTS = 1
-    MIXED = 2
-
-class Experiment_New(Node):
-    grouping: Variable # Variable for which there are only 2 values, splitting the participants cleanly
-   
+@attr.s(auto_attribs=True)
+class Experiment_SetUp(Node):
+    vars: list
+     
 @attr.s(auto_attribs=True)
 class Experiment(Node):
-    exper_type: ExperimentType
     between_vars: list
     within_vars: list
 
@@ -205,39 +205,14 @@ class Experiment(Node):
                     raise Exception(f"Within subjects variable list: NOT of type Variable: {wv}")
 
 
-@attr.s(auto_attribs=True, repr=False)
+@attr.s(auto_attribs=True, hash=True, repr=False)
 class Model(Node):
     dependent_var: Variable
     eq_independent_vars: Equation # User-facing: list of vars or equation (both should be allowed)
-    experiment: Experiment_New
-
-class Expr:
-    pass
-
-class Call(Expr):
-    pass
-
-class Op(Expr):
-    pass
-
-class Conv2d(Op):
-    pass
-
-class Const(Expr):
-    tensor: Tensor
-
-Module = Dict[str, Expr]
-
-Module + str 
-
-Module + "main"
-
-Call(conv2d, args) : Tensor
-
+    # experiment: Experiment_SetUp
 
 @attr.s(auto_attribs=True)
 class Hypothesis(Node):
-    model: Model
     prediction: Relation ## NOT SURE IF THIS IS WHAT WE WANT 
 
 # class Value(Node):

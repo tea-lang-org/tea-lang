@@ -1,8 +1,8 @@
 from typing import Dict
 from collections import OrderedDict
 from .ast import (Variable, DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency,
-                Experiment, ExperimentType, Model, Equation, Hypothesis, Relation,
-                Experiment_New)
+                Experiment, Model, Equation, Hypothesis, Relation,
+                Experiment_SetUp)
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
@@ -73,13 +73,14 @@ def equation(eq):
     return Equation(eq)
 
 # @param indep_var is a list of Variables
-def model(dep_var: Variable, eq_indep_vars: Variable, exper: Experiment_New):
-    return Model(dep_var, eq_indep_vars, exper)
+def model(dep_var: Variable, eq_indep_vars: Variable):
+    return Model(dep_var, eq_indep_vars)
 
+def hypothesis(prediction: Relation):
+    return Hypothesis(prediction)
 
-def hypothesis(model: Model, prediction: Relation):
-    return Hypothesis(model, prediction)
-
+def experiment_design(variables: tuple):
+    return Experiment_SetUp(variables)
 
 # TODO may need to use this for within subjects analysis
 def form_groups(var: Variable, bins):
