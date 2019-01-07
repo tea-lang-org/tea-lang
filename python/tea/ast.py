@@ -210,7 +210,29 @@ class Model(Node):
     dependent_var: Variable
     eq_independent_vars: Equation # User-facing: list of vars or equation (both should be allowed)
     experiment: Experiment_New
-        
+
+class Expr:
+    pass
+
+class Call(Expr):
+    pass
+
+class Op(Expr):
+    pass
+
+class Conv2d(Op):
+    pass
+
+class Const(Expr):
+    tensor: Tensor
+
+Module = Dict[str, Expr]
+
+Module + str 
+
+Module + "main"
+
+Call(conv2d, args) : Tensor
 
 
 @attr.s(auto_attribs=True)
