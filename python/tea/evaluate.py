@@ -30,11 +30,17 @@ class Evaluator(object):
     
     def eval(self, model: Model):
         self.stats = {}
-        eq = str(model.dependent_var) + '~' + str(model.eq_independent_vars)
 
-        m = smf.ols(formula=eq, data=self.dataset) # use patsy for R-style equations
-        results = m.fit()
-        self.stats[eq] = results._results.__dict__
+        if (len(model.eq_independent_vars) == 1): # bivariate analysis
+            import pdb; pdb.set_trace()
+
+
+        else: #multivariate analysis
+            eq = str(model.dependent_var) + '~' + str(model.eq_independent_vars)
+
+            m = smf.ols(formula=eq, data=self.dataset) # use patsy for R-style equations
+            results = m.fit()
+            self.stats[eq] = results._results.__dict__
 
 
 def evaluate(dataset: Dataset, experiment_setup: Experiment_SetUp, model: Model, hypothesis: Hypothesis):
