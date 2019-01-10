@@ -8,16 +8,21 @@ BASE_PATH = os.getcwd()
 
 @attr.s
 class Dataset(object): 
-    dfile = attr.ib()
-    variables = attr.ib()
-    # variabe_names = attr.ib(init=False)
-    data = attr.ib(init=False)
+    dfile = attr.ib() # path name 
+    variables = attr.ib() # list of Variable objects <-- TODO: may not need this in new implementation....
+    unique_pids = attr.ib() # list of unique participant ids
+    data = attr.ib(init=False) # pandas DataFrame
+    
 
     def __attrs_post_init__(self): 
+
         if self.dfile: 
             self.data = pd.read_csv(self.dfile)
         # TODO Check that there are duplicates? 
-        # self.variable_names = self.data.columns.values.tolist()
+
+        #relabel DataFrame indices to be pids, like this:
+        # last = df2.index[-1]
+        # df2 = df2.rename(index={last: 0})
 
     @classmethod
     def from_arr_numeric(cls, y: list, x: list):
