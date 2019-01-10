@@ -86,3 +86,6 @@ def regression(dataset, model: Model, stats):
     m = smf.ols(formula=eq, data=dataset) # use patsy for R-style equations
     results = m.fit()
     stats[eq] = results._results.__dict__
+
+def isnormal(data): 
+    return 
