@@ -27,8 +27,9 @@ def interval(var_name: str, range: list):
 def ratio(var_name: str, range: list):
     return Variable.from_spec(var_name, DataType.RATIO, None, range) # treat range like categories, check that all values are within range
 
-def load_data(source_name: str, vars: list):
-    return Dataset(source_name, vars)
+# @param pid is the name of the column with participant ids
+def load_data(source_name: str, vars: list, pid: str):
+    return Dataset(source_name, vars, pid)
 
 def load_data_arrs(y: list, x: list):
     return Dataset.from_arr_numeric(y, x)

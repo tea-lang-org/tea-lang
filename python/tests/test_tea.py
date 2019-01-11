@@ -117,9 +117,9 @@ import statsmodels.api as sm
 #     pass
 
 
-variables = [nominal('block_number', ['1', '2', '3', '4']), nominal('number_of_symbols_to_memorize', ['0', '1', '2', '3', '4', '6']), nominal('web_usage', ['1', '2', '3', '4'])]
-file_path = './datasets/2016.12.10-gajos17personality-data.csv'
-ds2 = load_data(file_path, variables)
+# variables = [nominal('block_number', ['1', '2', '3', '4']), nominal('number_of_symbols_to_memorize', ['0', '1', '2', '3', '4', '6']), nominal('web_usage', ['1', '2', '3', '4'])]
+# file_path = './datasets/2016.12.10-gajos17personality-data.csv'
+# ds2 = load_data(file_path, variables)
 # def test_between_experiment(): 
 #     sets = ds2.get_variable('number_of_symbols_to_memorize')
 #     sets_exp = between_experiment([sets])
@@ -147,18 +147,18 @@ ds2 = load_data(file_path, variables)
 #     eq = equation(sets + web + block + web*block)
 #     assert eq.eq_handle == sets + web + block + web*block
 
-def test_build_model(): 
-    sets = ds2.get_variable('number_of_symbols_to_memorize')
-    web = ds2.get_variable('web_usage')
-    block = ds2.get_variable('block_number')
-    # exp = between_experiment([sets])
-    m = model(sets, (web + block) + web*block)
-    assert m.eq_independent_vars == web + block + web*block
-    assert m.dependent_var == sets
+# def test_build_model(): 
+#     sets = ds2.get_variable('number_of_symbols_to_memorize')
+#     web = ds2.get_variable('web_usage')
+#     block = ds2.get_variable('block_number')
+#     # exp = between_experiment([sets])
+#     m = model(sets, (web + block) + web*block)
+#     assert m.eq_independent_vars == web + block + web*block
+#     assert m.dependent_var == sets
 
 variables = [interval('participant', ['1', '10']), nominal('condition', ['a', 'b']), ratio('accuracy', ['0', '10'])]
 file_path = './datasets/mini_test2.csv'
-ds3 = load_data(file_path, variables)
+ds3 = load_data(file_path, variables, 'participant')
 def test_build_hypothesis(): 
     condition = ds3.get_variable('condition')
     acc = ds3.get_variable('accuracy')
