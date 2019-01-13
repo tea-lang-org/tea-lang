@@ -83,8 +83,27 @@ import numpy as np # Use some stats from numpy instead
 
 def evaluate(dataset: Dataset, expr: Node):
     if isinstance(expr, Variable):
-        import pdb; pdb.set_trace()
         return dataset[expr.name]
+
+    # Should add to Dataset? -- doing so could compromise atomicity???
+    elif isinstance(expr, Filter): # returns a Variable
+        var = Filter.var
+        cond = Filter.condition
+
+        ds.
+        
+        new_name = var.name + '_' + str(lower_bound) + '_to_' + str(upper_bound)
+
+        return Variable(new_name)
+
+        name = attr.ib()
+    dtype = attr.ib(type=DataType)
+    categories = attr.ib()
+    drange = attr.ib()
+    
+    # children from which self/this Variable is "derived"
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
 
 # def regression(dataset, model: Model, stats): 
 #     eq = str(model.dependent_var) + '~' + str(model.eq_independent_vars)

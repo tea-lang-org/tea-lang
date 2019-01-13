@@ -1,7 +1,8 @@
 # from tea import load_data,  explore_summary
 from tea import (   load_data,
-                    ordinal
-                )#, nominal)
+                    ordinal,
+                    # nominal
+                )
 # (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
 #             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
 #             between_experiment, within_experiment, mixed_experiment, equation,
@@ -62,6 +63,9 @@ ds = load_data(file_path, variables, 'participant_id')
 def test_index_in_dataset():
     for v in variables:
         assert(ds[v.name] == ds.data[v.name]).all()
+    
+def test_filter_ordinal(): 
+    pass
 
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]

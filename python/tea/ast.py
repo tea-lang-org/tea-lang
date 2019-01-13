@@ -64,9 +64,38 @@ class Variable(Node):
     def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None, rhs: Node=None, lhs: Node=None):
         return cls(name, dtype, cat, drange, rhs, lhs)
 
+    # def __le__(self, other):
+    #     return LessThanEqual(self, other)
+    
+    # def __lt__(self, other):
+    #     return LessThan(self, other)
+    
+    # def __ge__(self, other):
+    #     return GreaterThanEqual(self, other)
+    
+    # def __gt__(self, other):
+    #     return GreaterThan(self, other)
+
+    def __eq__(self, val: Value):
+        # TODO check that value is valid/exists in categories or range depending on data time
+        pass
+
+    # def __ne__(self, other):
+    #     return NotEqual(self, other)
+
     def __repr__(self): 
         return self.name
+
+@attr.s(hash=True, repr=False)
+class Filter(Node):
+    var: Variable # variable to filter on
+    condition: tuple # inclusive bounding on both sides
     
+    def __repr__(self):
+        return (f"Filter {self.var} on [{self.condition}]")
+
+
+
 # @attr.s(hash=True, repr=False)
 # class Add(Eq_Node): 
 #     rhs = attr.ib(type=Variable)
@@ -144,31 +173,31 @@ class Variable(Node):
 #     var: Node
 
 
-# # TODO: Should definitely check that the values that are passed are correct/exist/legit
-# Value = Union[Node, int, float, str] # Allow for Node but also for raw int/float/str values (from domain knowledge)
+# TODO: Should definitely check that the values that are passed are correct/exist/legit
+Value = Union[Node, int, float, str] # Allow for Node but also for raw int/float/str values (from domain knowledge)
 
-# @attr.s(auto_attribs=True)
-# class Relation(Node):
-#     lhs: Value
-#     rhs: Value
+@attr.s(auto_attribs=True)
+class Relation(Node):
+    lhs: Variable
+    rhs: Value
 
-#     def __le__(self, other):
-#         return LessThanEqual(self, other)
+    # def __le__(self, other):
+    #     return LessThanEqual(self, other)
     
-#     def __lt__(self, other):
-#         return LessThan(self, other)
+    # def __lt__(self, other):
+    #     return LessThan(self, other)
     
-#     def __ge__(self, other):
-#         return GreaterThanEqual(self, other)
+    # def __ge__(self, other):
+    #     return GreaterThanEqual(self, other)
     
-#     def __gt__(self, other):
-#         return GreaterThan(self, other)
+    # def __gt__(self, other):
+    #     return GreaterThan(self, other)
 
-#     def __eq__(self, other):
-#         return Equal(self, other)
+    # def __eq__(self, other):
+    #     return Equal(self, other)
 
-#     def __ne__(self, other):
-#         return NotEqual(self, other)
+    # def __ne__(self, other):
+    #     return NotEqual(self, other)
 
 # @attr.s(hash=True)
 # class LessThanEqual(Relation):
@@ -187,9 +216,9 @@ class Variable(Node):
 #     rhs = attr.ib(type=Value) # Should be Value or Variable?
 #     lhs = attr.ib(type=Value)
 
-# class Equal(Relation):
-#     rhs = attr.ib(type=Value) # Should be Value or Variable?
-#     lhs = attr.ib(type=Value)
+class Equal(Relation):
+    rhs = attr.ib(type=Variable) # Should be Value or Variable?
+    lhs = attr.ib(type=Value)
 
 # class NotEqual(Relation):
 #     rhs = attr.ib(type=Value) # Should be Value or Variable?
