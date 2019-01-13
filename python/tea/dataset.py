@@ -6,7 +6,7 @@ import os
 
 BASE_PATH = os.getcwd()
 
-@attr.s
+@attr.s(hash=True)
 class Dataset(object): 
     dfile = attr.ib() # path name 
     variables = attr.ib() # list of Variable objects <-- TODO: may not need this in new implementation....
@@ -35,8 +35,7 @@ class Dataset(object):
         return cls(dfile='', variables=[x_var,y_var], data=df)
 
     
-    # FOR TESTING
-    def get_variable(self, var_name: str): 
-        for v in self.variables: 
+    def __getitem__(self, var_name: str):
+        for v in self.variables: # checks that the Variable is known to the Dataset object
             if v.name == var_name: 
-                return v
+                return self.data[var_name] # returns the data, not the variable object

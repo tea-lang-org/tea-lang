@@ -1,8 +1,11 @@
 # from tea import load_data,  explore_summary
-from tea import (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
-            mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
-            between_experiment, within_experiment, mixed_experiment, equation,
-            load_data_arrs, hypothesis, experiment_design)
+from tea import (   load_data,
+                    ordinal
+                )#, nominal)
+# (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
+#             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
+#             between_experiment, within_experiment, mixed_experiment, equation,
+#             load_data_arrs, hypothesis, experiment_design)
 
 from collections import OrderedDict
 import numpy as np
@@ -10,16 +13,16 @@ from scipy import stats
 import statsmodels.api as sm
 
 
-# def test_make_ordinal():
-#     o = ordinal('education', ['high school', 'college', 'Master\'s', 'PhD'])
-#     assert o.name == 'education'
-#     assert o.categories == OrderedDict([
-#         ('high school', 1),
-#         ('college', 2),
-#         ('Master\'s', 3),
-#         ('PhD', 4)
-#     ])
-#     assert o.drange == [1,4]
+def test_make_ordinal():
+    o = ordinal('education', ['high school', 'college', 'Master\'s', 'PhD'])
+    assert o.name == 'education'
+    assert o.categories == OrderedDict([
+        ('high school', 1),
+        ('college', 2),
+        ('Master\'s', 3),
+        ('PhD', 4)
+    ])
+    assert o.drange == [1,4]
 
 # def test_make_nominal():
 #     n = nominal('gender', ['male', 'female', 'non-binary'])
@@ -51,9 +54,16 @@ import statsmodels.api as sm
 #     assert ds.dfile == file_path
 #     assert ds.variables == variables
 
+variables = [ordinal('education', ['high school', 'college', 'PhD'])]
 # variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
-# file_path = './datasets/mini_test.csv'
-# ds = load_data(file_path, variables)
+file_path = './datasets/mini_test.csv'
+ds = load_data(file_path, variables, 'participant_id')
+
+def test_index_in_dataset():
+    for v in variables:
+        assert(ds[v.name] == ds.data[v.name]).all()
+
+
 # age_data = [32,35,45,23,50,32,35,45,23,50]
 # edu_data = ['high school','college','high school','PhD','PhD','high school','college','high school','PhD','PhD']
 # edu_num = [1,2,1,3,3,1,2,1,3,3]
@@ -156,16 +166,16 @@ import statsmodels.api as sm
 #     assert m.eq_independent_vars == web + block + web*block
 #     assert m.dependent_var == sets
 
-variables = [interval('participant', ['1', '10']), nominal('condition', ['a', 'b']), ratio('accuracy', ['0', '10'])]
-file_path = './datasets/mini_test2.csv'
-ds3 = load_data(file_path, variables, 'participant')
-def test_build_hypothesis(): 
-    condition = ds3.get_variable('condition')
-    acc = ds3.get_variable('accuracy')
-    m = model(acc, condition)
-    h = hypothesis('a'>'b')
-    exp = experiment_design([condition, acc])
-    results = evaluate(ds3, exp, m, h)
+# variables = [interval('participant', ['1', '10']), nominal('condition', ['a', 'b']), ratio('accuracy', ['0', '10'])]
+# file_path = './datasets/mini_test2.csv'
+# ds3 = load_data(file_path, variables, 'participant')
+# def test_build_hypothesis(): 
+#     condition = ds3.get_variable('condition')
+#     acc = ds3.get_variable('accuracy')
+#     m = model(acc, condition)
+#     h = hypothesis('a'>'b')
+#     exp = experiment_design([condition, acc])
+#     results = evaluate(ds3, exp, m, h)
     # TODO May want to do something similar to the summary() method -- https://www.statsmodels.org/stable/_modules/statsmodels/base/model.html#GenericLikelihoodModelResults.summary
     
 
