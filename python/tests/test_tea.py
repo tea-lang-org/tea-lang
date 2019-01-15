@@ -1,7 +1,10 @@
 # from tea import load_data,  explore_summary
 from tea import (   load_data,
+                    const,
                     ordinal,
                     # nominal
+                    filter,
+                    evaluate
                 )
 # (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
 #             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
@@ -55,7 +58,8 @@ def test_make_ordinal():
 #     assert ds.dfile == file_path
 #     assert ds.variables == variables
 
-variables = [ordinal('education', ['high school', 'college', 'PhD'])]
+categories = ['high school', 'college', 'PhD']
+variables = [ordinal('education', categories)]
 # variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
 file_path = './datasets/mini_test.csv'
 ds = load_data(file_path, variables, 'participant_id')
@@ -64,8 +68,15 @@ def test_index_in_dataset():
     for v in variables:
         assert(ds[v.name] == ds.data[v.name]).all()
     
-def test_filter_ordinal(): 
-    pass
+def test_filter(): 
+    for v in variables: 
+        if (not v.categories):
+            cat = v.categories.keys()
+            for c in cat: 
+                res = filter(v, '==', const(c))
+                sub_ds = evaluate(ds, res)
+                tmp = ds.data[v.name]
+                assert (sub_ds == tmp[tmp == c])
 
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]

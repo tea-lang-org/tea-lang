@@ -1,11 +1,14 @@
 from typing import Dict
 from collections import OrderedDict
-from .ast import (Variable, DataType)
+from .ast import (Variable, DataType, Literal)
 # , DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency,
                 # Experiment, Model, Equation, Hypothesis, Relation,
                 # Experiment_SetUp)
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
+
+def const(val: Literal):
+    return Literal(val)
 
 def ordinal(var_name: str, ordered_categories: list):
     # Create order tuple
@@ -31,6 +34,22 @@ def nominal(var_name: str, unordered_categories: list):
 # @param pid is the name of the column with participant ids
 def load_data(source_name: str, vars: list, pid: str):
     return Dataset(source_name, vars, pid)
+
+def filter(var: Variable, op: str, other: Literal): 
+    if (op == '=='):
+        return var.subset_equals(other)
+    elif (op == '!='):
+        pass
+    elif (op == '>'):
+        pass
+    elif (op == '>='):
+        pass
+    elif (op == '<'):
+        pass
+    elif (op == '<='):
+        pass
+    else: 
+        raise ValueError(f"Do not support the operator{op}")
 
 # def load_data_arrs(y: list, x: list):
 #     return Dataset.from_arr_numeric(y, x)

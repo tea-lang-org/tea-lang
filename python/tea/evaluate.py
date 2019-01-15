@@ -85,12 +85,23 @@ def evaluate(dataset: Dataset, expr: Node):
     if isinstance(expr, Variable):
         return dataset[expr.name]
 
+    elif isinstance(expr, Literal):
+        return expr.value
+
+    elif isinstance(expr, Equal):
+        rhs = evaluate(dataset, expr.rhs)
+        lhs = evaluate(dataset, expr.lhs)
+
+        return rhs[rhs == lhs]
+
+        
     # Should add to Dataset? -- doing so could compromise atomicity???
     elif isinstance(expr, Filter): # returns a Variable
         var = Filter.var
         cond = Filter.condition
 
-        ds.
+        data = ds[var.name]
+        new_data = data[data]
         
         new_name = var.name + '_' + str(lower_bound) + '_to_' + str(upper_bound)
 

@@ -2,8 +2,9 @@ from . import ast
 from . import build
 from . import evaluate
 
-from .build import (load_data,
-                    ordinal #, nominal
+from .build import (load_data, const,
+                    ordinal,
+                    filter #, nominal
                     # , nominal, interval, ratio, load_data, model, 
                     # mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
                     # between_experiment, within_experiment, mixed_experiment, model, equation,

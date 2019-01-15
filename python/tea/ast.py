@@ -75,10 +75,14 @@ class Variable(Node):
     
     # def __gt__(self, other):
     #     return GreaterThan(self, other)
-
-    def __eq__(self, val: Value):
-        # TODO check that value is valid/exists in categories or range depending on data time
-        pass
+    
+    def subset_equals(self, other: Node):
+        # import pdb; pdb.set_trace()
+        return Equal(self, other)
+        
+    # def __eq__(self, other: Node):
+    #     # TODO check that value is valid/exists in categories or range depending on data time
+    #     return Equal(self, other)
 
     # def __ne__(self, other):
     #     return NotEqual(self, other)
@@ -94,7 +98,10 @@ class Filter(Node):
     def __repr__(self):
         return (f"Filter {self.var} on [{self.condition}]")
 
-
+@attr.s(hash=True, repr=False)
+class Equal(Node):
+    rhs = attr.ib(type=Node) # Should be Node?
+    lhs = attr.ib(type=Node)
 
 # @attr.s(hash=True, repr=False)
 # class Add(Eq_Node): 
@@ -174,12 +181,16 @@ class Filter(Node):
 
 
 # TODO: Should definitely check that the values that are passed are correct/exist/legit
-Value = Union[Node, int, float, str] # Allow for Node but also for raw int/float/str values (from domain knowledge)
+# Value = Union[Node, int, float, str] # Allow for Node but also for raw int/float/str values (from domain knowledge)
 
-@attr.s(auto_attribs=True)
-class Relation(Node):
-    lhs: Variable
-    rhs: Value
+@attr.s(hash=True)
+class Literal(Node):
+    value = attr.ib(type=Union[int, float, str])
+
+# @attr.s(auto_attribs=True)
+# class Relation(Node):
+#     lhs: Variable
+#     rhs: Value
 
     # def __le__(self, other):
     #     return LessThanEqual(self, other)
@@ -216,9 +227,6 @@ class Relation(Node):
 #     rhs = attr.ib(type=Value) # Should be Value or Variable?
 #     lhs = attr.ib(type=Value)
 
-class Equal(Relation):
-    rhs = attr.ib(type=Variable) # Should be Value or Variable?
-    lhs = attr.ib(type=Value)
 
 # class NotEqual(Relation):
 #     rhs = attr.ib(type=Value) # Should be Value or Variable?
