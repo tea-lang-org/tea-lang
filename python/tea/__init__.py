@@ -3,7 +3,7 @@ from . import build
 from . import evaluate
 
 from .build import (load_data, const,
-                    ordinal,
+                    ordinal, isordinal,
                     filter #, nominal
                     # , nominal, interval, ratio, load_data, model, 
                     # mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,

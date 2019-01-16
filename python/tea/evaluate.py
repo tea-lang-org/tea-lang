@@ -83,7 +83,7 @@ import numpy as np # Use some stats from numpy instead
 
 def evaluate(dataset: Dataset, expr: Node):
     if isinstance(expr, Variable):
-        return dataset[expr.name]
+        return (dataset[expr.name], expr.categories) # TODO not sure if this is a good idea
 
     elif isinstance(expr, Literal):
         return expr.value
@@ -99,6 +99,20 @@ def evaluate(dataset: Dataset, expr: Node):
         lhs = evaluate(dataset, expr.lhs)
 
         return rhs[rhs != lhs]
+
+    elif isinstance(expr, LessThanEqual):
+        # Could implement with Less Than and Equal
+        pass
+    
+    elif isinstance(expr, LessThan):
+
+        rhs = evaluate(dataset, expr.rhs)
+    
+    elif isinstance(expr, GreaterThan):
+        pass
+    
+    elif isinstance(expr, GreaterThanEqual):
+        pass
 
 # def regression(dataset, model: Model, stats): 
 #     eq = str(model.dependent_var) + '~' + str(model.eq_independent_vars)

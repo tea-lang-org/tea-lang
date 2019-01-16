@@ -40,13 +40,14 @@ class Node(object):
     def __or__(self, other):
         return Or(self, other)
 
+@attr.s(repr=True)
 class DataType(Enum):  
     ORDINAL = 0
     NOMINAL = 1
     # for CALCULATIONS, INTERVAL vs. RATIO data is not important distinction
     # for INTERPRETATIONS, important distinction (?)
     INTERVAL = 2 
-    RATIO = 3 
+    RATIO = 3
 
 @attr.s(hash=True, repr=False)
 class Variable(Node): 
@@ -63,33 +64,24 @@ class Variable(Node):
     @classmethod
     def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None, rhs: Node=None, lhs: Node=None):
         return cls(name, dtype, cat, drange, rhs, lhs)
-
-    # def __le__(self, other):
-    #     return LessThanEqual(self, other)
-    
-    # def __lt__(self, other):
-    #     return LessThan(self, other)
-    
-    # def __ge__(self, other):
-    #     return GreaterThanEqual(self, other)
-    
-    # def __gt__(self, other):
-    #     return GreaterThan(self, other)
     
     def subset_equals(self, other: Node):
-        # import pdb; pdb.set_trace()
         return Equal(self, other)
     
     def subset_not_equals(self, other: Node):
-        # import pdb; pdb.set_trace()
         return NotEqual(self, other)
 
-    # def __eq__(self, other: Node):
-    #     # TODO check that value is valid/exists in categories or range depending on data time
-    #     return Equal(self, other)
+    def subset_lt(self, other: Node):
+        return LessThan(self, other)
 
-    # def __ne__(self, other):
-    #     return NotEqual(self, other)
+    def subset_le(self, other: Node):
+        return LessThanEqual(self, other)
+    
+    def subset_ge(self, other: Node):
+        return GreaterThanEqual(self, other)
+    
+    def subset_gt(self, other: Node):
+        return GreaterThan(self, other)
 
     def __repr__(self): 
         return self.name
@@ -104,13 +96,34 @@ class Filter(Node):
 
 @attr.s(hash=True, repr=False)
 class Equal(Node):
-    rhs = attr.ib(type=Node) # Should be Node?
+    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
 
 @attr.s(hash=True, repr=False)
 class NotEqual(Node):
-    rhs = attr.ib(type=Node) # Should be Node?
+    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
+
+@attr.s(hash=True, repr=False)
+class LessThan(Node):
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
+
+@attr.s(hash=True, repr=False)
+class LessThanEqual(Node):
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
+
+@attr.s(hash=True, repr=False)
+class GreaterThan(Node):
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
+
+@attr.s(hash=True, repr=False)
+class GreaterThanEqual(Node):
+    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Node)
+
 
 # @attr.s(hash=True, repr=False)
 # class Add(Eq_Node): 

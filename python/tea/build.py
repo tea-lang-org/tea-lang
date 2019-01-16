@@ -19,6 +19,9 @@ def ordinal(var_name: str, ordered_categories: list):
     return Variable.from_spec(var_name, DataType.ORDINAL, categories, [1, len(categories)])
     # return Variable(var_name, DataType.ORDINAL, categories, [1, len(categories)])
 
+def isordinal(var: Variable):
+    return var.dtype == DataType.ORDINAL
+
 def nominal(var_name: str, unordered_categories: list):
     categories = OrderedDict()
     for i, c in enumerate(unordered_categories):
@@ -40,14 +43,14 @@ def filter(var: Variable, op: str, other: Literal):
         return var.subset_equals(other)
     elif (op == '!='):
         return var.subset_not_equals(other)
-    elif (op == '>'):
-        pass
-    elif (op == '>='):
-        pass
     elif (op == '<'):
-        pass
+        return var.subset_lt(other)
     elif (op == '<='):
-        pass
+        return var.subset_le(other)
+    elif (op == '>'):
+        return var.subset_gt(other)
+    elif (op == '>='):
+        return var.subset_ge(other)
     else: 
         raise ValueError(f"Do not support the operator{op}")
 
