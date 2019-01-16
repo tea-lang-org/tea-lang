@@ -79,7 +79,11 @@ class Variable(Node):
     def subset_equals(self, other: Node):
         # import pdb; pdb.set_trace()
         return Equal(self, other)
-        
+    
+    def subset_not_equals(self, other: Node):
+        # import pdb; pdb.set_trace()
+        return NotEqual(self, other)
+
     # def __eq__(self, other: Node):
     #     # TODO check that value is valid/exists in categories or range depending on data time
     #     return Equal(self, other)
@@ -100,6 +104,11 @@ class Filter(Node):
 
 @attr.s(hash=True, repr=False)
 class Equal(Node):
+    rhs = attr.ib(type=Node) # Should be Node?
+    lhs = attr.ib(type=Node)
+
+@attr.s(hash=True, repr=False)
+class NotEqual(Node):
     rhs = attr.ib(type=Node) # Should be Node?
     lhs = attr.ib(type=Node)
 

@@ -39,7 +39,7 @@ def filter(var: Variable, op: str, other: Literal):
     if (op == '=='):
         return var.subset_equals(other)
     elif (op == '!='):
-        pass
+        return var.subset_not_equals(other)
     elif (op == '>'):
         pass
     elif (op == '>='):

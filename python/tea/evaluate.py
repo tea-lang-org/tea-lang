@@ -94,27 +94,11 @@ def evaluate(dataset: Dataset, expr: Node):
 
         return rhs[rhs == lhs]
 
-        
-    # Should add to Dataset? -- doing so could compromise atomicity???
-    elif isinstance(expr, Filter): # returns a Variable
-        var = Filter.var
-        cond = Filter.condition
+    elif isinstance(expr, NotEqual): 
+        rhs = evaluate(dataset, expr.rhs)
+        lhs = evaluate(dataset, expr.lhs)
 
-        data = ds[var.name]
-        new_data = data[data]
-        
-        new_name = var.name + '_' + str(lower_bound) + '_to_' + str(upper_bound)
-
-        return Variable(new_name)
-
-        name = attr.ib()
-    dtype = attr.ib(type=DataType)
-    categories = attr.ib()
-    drange = attr.ib()
-    
-    # children from which self/this Variable is "derived"
-    rhs = attr.ib(type=Node)
-    lhs = attr.ib(type=Node)
+        return rhs[rhs != lhs]
 
 # def regression(dataset, model: Model, stats): 
 #     eq = str(model.dependent_var) + '~' + str(model.eq_independent_vars)

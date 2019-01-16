@@ -66,9 +66,9 @@ ds = load_data(file_path, variables, 'participant_id')
 
 def test_index_in_dataset():
     for v in variables:
-        assert(ds[v.name] == ds.data[v.name]).all()
+        assert(ds[v.name].equals(ds.data[v.name]))
     
-def test_filter(): 
+def test_filter_equals(): 
     for v in variables: 
         if (not v.categories):
             cat = v.categories.keys()
@@ -76,7 +76,26 @@ def test_filter():
                 res = filter(v, '==', const(c))
                 sub_ds = evaluate(ds, res)
                 tmp = ds.data[v.name]
-                assert (sub_ds == tmp[tmp == c])
+                assert (sub_ds.equals(tmp[tmp == c]))
+        else: 
+            all_unique = ds.data[v.name].unique()
+            for e in all_unique: 
+                res = filter(v, '==', const(e))
+                sub_ds = evaluate(ds, res)
+                tmp = ds.data[v.name]
+                import pdb; pdb.set_trace()
+                assert (sub_ds.equals(tmp[tmp == e]))
+
+
+def test_filter_not_equals(): 
+    for v in variables: 
+        if (not v.categories):
+            cat = v.categories.keys()
+            for c in cat: 
+                res = filter(v, '!=', const(c))
+                sub_ds = evaluate(ds, res)
+                tmp = ds.data[v.name]
+                assert (sub_ds == tmp[tmp != c])
 
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]
