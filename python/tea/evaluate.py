@@ -134,32 +134,50 @@ def evaluate(dataset: Dataset, expr: Node):
         assert isinstance(rhs, VarData)
         assert isinstance(lhs, VarData)
         
-        dataframe = rhs.data[rhs.data != lhs.data]
-        metadata = rhs.meta_data
-        return VarData(dataframe, metdata)
+        dataframe = rhs.dataframe[rhs.dataframe != lhs.dataframe]
+        metadata = rhs.metadata
+        return VarData(dataframe, metadata)
+
+    elif isinstance(expr, LessThan):
+        rhs = evaluate(dataset, expr.rhs)
+        lhs = evaluate(dataset, expr.lhs)
+        assert isinstance(rhs, VarData)
+        assert isinstance(lhs, VarData)
+        
+        if (not rhs.metadata):
+            raise ValueError('Malformed Relation. Filter on Variables must have variable as rhs')
+        elif (rhs.metadata[0] == DataType.NOMINAL):
+            raise ValueError('Cannot compare nominal values with Less Than')
+        elif (rhs.metadata[0] == DataType.ORDINAL):
+            # check int/values, conver to int and then back to str to do < ??
+
+        dataframe = rhs.dataframe[rhs.dataframe == lhs.dataframe]
+        metadata = rhs.metadata
+        return VarData(dataframe, metadata)
+        elif (rhs.metadata[0] == DataType.ORDINAL or RATIO) # may want to have metadata be a dictionary
 
     elif isinstance(expr, LessThanEqual):
         # Could implement with Less Than and Equal
-        pass
+        raise Exception('Not implemented LESS THAN EQUAL')
     
-    elif isinstance(expr, LessThan):
-        # assert isinstance(expr.rhs, Variable)
-        # assert isinstance(expr.lhs, Variable)
-        # rhs = expr.rhs
-        # if (rhs.)
-        pass
+    
     
     elif isinstance(expr, GreaterThan):
-        pass
+        raise Exception('Not implemented GREATER THAN')
     
     elif isinstance(expr, GreaterThanEqual):
-        pass
+        raise Exception('Not implemented GREATER THAN EQUAL')
 
-# def regression(dataset, model: Model, stats): 
-#     eq = str(model.dependent_var) + '~' + str(model.eq_independent_vars)
-#     m = smf.ols(formula=eq, data=dataset) # use patsy for R-style equations
-#     results = m.fit()
-#     stats[eq] = results._results.__dict__
+    elif isinstance(expr, Relate): 
+        raise Exception('Not implemented RELATE')
+
+    elif isinstance(expr, Compare): 
+        raise Exception('Not implemented COMPARE')
+    
+    elif isinstance(expr, Add): 
+        raise Exception('Not implemented Add')
+
+    # TODO all the other arithmetic....
 
 # def isnormal(data): 
 #     return 
