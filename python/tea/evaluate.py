@@ -1,13 +1,30 @@
 from .ast import *
 from .dataset import Dataset
 
+import attr
+from typing import Any
+
 from scipy import stats # Stats library used
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np # Use some stats from numpy instead
+import pandas as pd
 
-# Eval : Dataset -> Model -> List[Hyps] -> ????
-# Eval : Model -> List[Hyps] -> (Dataset -> Result)
+# Eval : Dataset, Program (list of functions/stats) --> table of computed stats
+
+# x = 1 
+# -----
+# y = 2
+# -----
+# z = x + y
+# -------
+# z = z + z
+# ----------
+
+# def f():
+#     tree 
+
+# f -> AST 
 
 
 # class Evaluator(object):
@@ -81,32 +98,56 @@ import numpy as np # Use some stats from numpy instead
 #     e.eval(model)
 #     return e.stats
 
+
+class Value(object):
+    pass
+
+@attr.s(init=True, auto_attribs=True)
+class VarData(Value):
+    dataframe: Any
+    metadata: Any
+
 def evaluate(dataset: Dataset, expr: Node):
     if isinstance(expr, Variable):
-        return (dataset[expr.name], expr.categories) # TODO not sure if this is a good idea
+        dataframe = dataset[expr.name]
+        metadata = (dataset.get_variable_data(expr.name)) # (dtype, categories)
+        return VarData(dataframe, metadata)
 
     elif isinstance(expr, Literal):
-        return expr.value
+        data = pd.Series([expr.value] * len(dataset.data), index=dataset.data.index) # Series filled with literal value
+        metadata = None # metadata=None means literal
+        return VarData(data, metadata)
 
     elif isinstance(expr, Equal):
         rhs = evaluate(dataset, expr.rhs)
         lhs = evaluate(dataset, expr.lhs)
-
-        return rhs[rhs == lhs]
+        assert isinstance(rhs, VarData)
+        assert isinstance(lhs, VarData)
+        
+        dataframe = rhs.dataframe[rhs.dataframe == lhs.dataframe]
+        metadata = rhs.metadata
+        return VarData(dataframe, metadata)
 
     elif isinstance(expr, NotEqual): 
         rhs = evaluate(dataset, expr.rhs)
         lhs = evaluate(dataset, expr.lhs)
-
-        return rhs[rhs != lhs]
+        assert isinstance(rhs, VarData)
+        assert isinstance(lhs, VarData)
+        
+        dataframe = rhs.data[rhs.data != lhs.data]
+        metadata = rhs.meta_data
+        return VarData(dataframe, metdata)
 
     elif isinstance(expr, LessThanEqual):
         # Could implement with Less Than and Equal
         pass
     
     elif isinstance(expr, LessThan):
-
-        rhs = evaluate(dataset, expr.rhs)
+        # assert isinstance(expr.rhs, Variable)
+        # assert isinstance(expr.lhs, Variable)
+        # rhs = expr.rhs
+        # if (rhs.)
+        pass
     
     elif isinstance(expr, GreaterThan):
         pass

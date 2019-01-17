@@ -74,7 +74,7 @@ def test_filter_equals():
         all_unique = ds.data[v.name].unique()
         for e in all_unique: 
             res = filter(v, '==', const(e))
-            sub_ds = evaluate(ds, res)
+            sub_ds = evaluate(ds, res).dataframe
             tmp = ds.data[v.name]
             assert (sub_ds.equals(tmp[tmp == e]))
 
@@ -88,27 +88,27 @@ def test_filter_not_equals():
             tmp = ds.data[v.name]
             assert (sub_ds.equals(tmp[tmp != e]))
 
-def test_filter_less(): 
-    for v in variables: 
-        import pdb; pdb.set_trace()
-        if (v.drange): # is ORDINAL or INTERVAL/RATIO
-            if (isordinal(v)):
-                cat_keys = v.categories.keys()
-                # cat_num = v.categories.values()
-                for c in cat_keys:
-                    num = v.categories[c]
-                    res = filter(v, '<=', const(c))
-                    # TODO SHOULD ALSO BE ABLE TO FILTER WITH NUMBERS?
-                    sub_ds = evaluate(ds, res)
+# def test_filter_less(): 
+#     for v in variables: 
+#         import pdb; pdb.set_trace()
+#         if (v.drange): # is ORDINAL or INTERVAL/RATIO
+#             if (isordinal(v)):
+#                 cat_keys = v.categories.keys()
+#                 # cat_num = v.categories.values()
+#                 for c in cat_keys:
+#                     num = v.categories[c]
+#                     res = filter(v, '<=', const(c))
+#                     # TODO SHOULD ALSO BE ABLE TO FILTER WITH NUMBERS?
+#                     sub_ds = evaluate(ds, res)
 
-                    tmp_cat = ds.data[v.name]
-                    tmp_num = [v.categories(n) for n in tmp_cat]
-                    tmp = tmp_num[tmp_num <= e]
-                    import pdb; pdb.set_trace()
+#                     tmp_cat = ds.data[v.name]
+#                     tmp_num = [v.categories(n) for n in tmp_cat]
+#                     tmp = tmp_num[tmp_num <= e]
+#                     import pdb; pdb.set_trace()
 
-                    assert (sub_ds.equals(tmp[tmp <= e]))
-            # elif (isnumeric(v)):
-            #     pass
+#                     assert (sub_ds.equals(tmp[tmp <= e]))
+#             # elif (isnumeric(v)):
+#             #     pass
 
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]

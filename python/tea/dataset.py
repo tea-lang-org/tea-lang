@@ -39,3 +39,9 @@ class Dataset(object):
         for v in self.variables: # checks that the Variable is known to the Dataset object
             if v.name == var_name: 
                 return self.data[var_name] # returns the data, not the variable object
+
+    def get_variable_data(self, var_name: str):
+        for v in self.variables: 
+            if v.name == var_name:
+                return (v.dtype, v.categories) #, v.drange)
+
