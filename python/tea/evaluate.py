@@ -110,7 +110,7 @@ class VarData(Value):
 def evaluate(dataset: Dataset, expr: Node):
     if isinstance(expr, Variable):
         dataframe = dataset[expr.name]
-        metadata = (dataset.get_variable_data(expr.name)) # (dtype, categories)
+        metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, Literal):
@@ -143,18 +143,34 @@ def evaluate(dataset: Dataset, expr: Node):
         lhs = evaluate(dataset, expr.lhs)
         assert isinstance(rhs, VarData)
         assert isinstance(lhs, VarData)
+
+        dataframe = None
+        metadata = rhs.metadata
         
         if (not rhs.metadata):
             raise ValueError('Malformed Relation. Filter on Variables must have variable as rhs')
-        elif (rhs.metadata[0] == DataType.NOMINAL):
+        elif (rhs.metadata['dtype'] == DataType.NOMINAL):
             raise ValueError('Cannot compare nominal values with Less Than')
-        elif (rhs.metadata[0] == DataType.ORDINAL):
-            # check int/values, conver to int and then back to str to do < ??
+        elif (rhs.metadata['dtype'] == DataType.ORDINAL):
+            comparison = lhs.dataframe[0]
+            if (isinstance(comparison, str)):
+                categories = lhs.metadata['categories'] # OrderedDict
+                dataframe = filter(lambda x: categories[x] < categories[comparison], rhs.dataframe)
 
-        dataframe = rhs.dataframe[rhs.dataframe == lhs.dataframe]
-        metadata = rhs.metadata
-        return VarData(dataframe, metadata)
-        elif (rhs.metadata[0] == DataType.ORDINAL or RATIO) # may want to have metadata be a dictionary
+            elif (isinstance(comparison, int)):
+                categories = lhs.metadata['categories'] # OrderedDict
+                dataframe = filter(lambda x: categories[x] < comparison, rhs.dataframe)
+
+            else: 
+                raise ValueError(f"Cannot compare ORDINAL variables to {type(lhs.dataframe[0])}")
+
+            return VarData(dataframe, metadata)
+
+        elif (rhs.metadata['dtype'] == DataType.INTERVAL or rhs.metadata['dtype'] == DataType.RATIO):
+            dataframe = filter(lambda x: x < comparison, rhs.dataframe) # TODO check return type and index if pandas Series
+            
+        else:
+            raise Exception(f"Invalid Less Than Operation:{rhs} < {lhs}")
 
     elif isinstance(expr, LessThanEqual):
         # Could implement with Less Than and Equal
@@ -181,3 +197,17 @@ def evaluate(dataset: Dataset, expr: Node):
 
 # def isnormal(data): 
 #     return 
+
+# helper method
+def bootstrap():
+    raise Exception('Not implemented BOOTSTRAP')
+
+
+# More USER FACING
+# Takes all evaluated results, stores for call and then outputs the results in a dictionary/table
+def eval(dataset, args*):
+    results = {}
+    for e in args*: 
+        results[e] = evaluate(dataset, expr)
+    
+    return eval 

@@ -38,7 +38,7 @@ def nominal(var_name: str, unordered_categories: list):
 def load_data(source_name: str, vars: list, pid: str):
     return Dataset(source_name, vars, pid)
 
-def filter(var: Variable, op: str, other: Literal): 
+def select(var: Variable, op: str, other: Literal): 
     if (op == '=='):
         return var.subset_equals(other)
     elif (op == '!='):

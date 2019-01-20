@@ -4,7 +4,7 @@ from . import evaluate
 
 from .build import (load_data, const,
                     ordinal, isordinal,
-                    filter #, nominal
+                    select #, nominal
                     # , nominal, interval, ratio, load_data, model, 
                     # mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
                     # between_experiment, within_experiment, mixed_experiment, model, equation,

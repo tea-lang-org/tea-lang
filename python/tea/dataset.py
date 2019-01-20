@@ -43,5 +43,6 @@ class Dataset(object):
     def get_variable_data(self, var_name: str):
         for v in self.variables: 
             if v.name == var_name:
-                return (v.dtype, v.categories) #, v.drange)
+                return { 'dtype': v.dtype, 
+                        'categories': v.categories} 
 

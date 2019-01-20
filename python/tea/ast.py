@@ -17,8 +17,8 @@ class Node(object):
     def compare(self, other):
         return Compare(self, other)
     
-    def filter(self, other):
-        return Filter(self, other)
+    def select(self, other):
+        return Select(self, other)
 
     def __add__(self, other):
         return Add(self, other)
@@ -87,12 +87,12 @@ class Variable(Node):
         return self.name
 
 @attr.s(hash=True, repr=False)
-class Filter(Node):
+class Select(Node):
     var: Variable # variable to filter on
     condition: tuple # inclusive bounding on both sides
     
     def __repr__(self):
-        return (f"Filter {self.var} on [{self.condition}]")
+        return (f"Select {self.var} on [{self.condition}]")
 
 @attr.s(hash=True, repr=False)
 class Equal(Node):

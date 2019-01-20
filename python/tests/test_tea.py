@@ -4,7 +4,7 @@ from tea import (   load_data,
                     ordinal,
                     isordinal, 
                     # nominal
-                    filter,
+                    select,
                     evaluate
                 )
 # (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
@@ -69,46 +69,49 @@ def test_index_in_dataset():
     for v in variables:
         assert(ds[v.name].equals(ds.data[v.name]))
     
-def test_filter_equals(): 
+def test_select_equals(): 
     for v in variables: 
         all_unique = ds.data[v.name].unique()
         for e in all_unique: 
-            res = filter(v, '==', const(e))
+            res = select(v, '==', const(e))
             sub_ds = evaluate(ds, res).dataframe
             tmp = ds.data[v.name]
             assert (sub_ds.equals(tmp[tmp == e]))
 
 
-def test_filter_not_equals(): 
+def test_select_not_equals(): 
     for v in variables: 
         all_unique = ds.data[v.name].unique()
         for e in all_unique: 
-            res = filter(v, '!=', const(e))
-            sub_ds = evaluate(ds, res)
+            res = select(v, '!=', const(e))
+            sub_ds = evaluate(ds, res).dataframe
             tmp = ds.data[v.name]
             assert (sub_ds.equals(tmp[tmp != e]))
 
-# def test_filter_less(): 
-#     for v in variables: 
-#         import pdb; pdb.set_trace()
-#         if (v.drange): # is ORDINAL or INTERVAL/RATIO
-#             if (isordinal(v)):
-#                 cat_keys = v.categories.keys()
-#                 # cat_num = v.categories.values()
-#                 for c in cat_keys:
-#                     num = v.categories[c]
-#                     res = filter(v, '<=', const(c))
-#                     # TODO SHOULD ALSO BE ABLE TO FILTER WITH NUMBERS?
-#                     sub_ds = evaluate(ds, res)
+def test_select_less(): 
+    for v in variables: 
+        import pdb; pdb.set_trace()
+        if (v.drange): # is ORDINAL or INTERVAL/RATIO
+            if (isordinal(v)):
+                cat_keys = v.categories.keys()
+                # cat_num = v.categories.values()
+                for c in cat_keys:
+                    num = v.categories[c]
+                    res_str = select(v, '<', const(c))
+                    res_num = select(v, '<', const(c))
+                    sub_ds_str = evaluate(ds, res_str).dataframe
+                    sub_ds_num = evaluate(ds, res_num).dataframe
 
-#                     tmp_cat = ds.data[v.name]
-#                     tmp_num = [v.categories(n) for n in tmp_cat]
-#                     tmp = tmp_num[tmp_num <= e]
-#                     import pdb; pdb.set_trace()
+                    tmp_cat = ds.data[v.name]
+                    tmp_num = [v.categories(n) for n in tmp_cat]
+                    tmp_res = filter(lambda x: x < num, tmp_num)
+                    # tmp = tmp_num[tmp_num <= e]
+                    import pdb; pdb.set_trace()
 
-#                     assert (sub_ds.equals(tmp[tmp <= e]))
-#             # elif (isnumeric(v)):
-#             #     pass
+                    assert (sub_ds_str.equals(tmp_res))
+                    assert (sub_ds_num.equals(tmp_res))
+            # elif (isnumeric(v)):
+            #     pass
 
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]
