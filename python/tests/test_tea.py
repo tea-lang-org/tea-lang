@@ -90,7 +90,6 @@ def test_select_not_equals():
 
 def test_select_less(): 
     for v in variables: 
-        import pdb; pdb.set_trace()
         if (v.drange): # is ORDINAL or INTERVAL/RATIO
             if (isordinal(v)):
                 cat_keys = v.categories.keys()
@@ -98,9 +97,10 @@ def test_select_less():
                 for c in cat_keys:
                     num = v.categories[c]
                     res_str = select(v, '<', const(c))
-                    res_num = select(v, '<', const(c))
-                    sub_ds_str = evaluate(ds, res_str).dataframe
-                    sub_ds_num = evaluate(ds, res_num).dataframe
+                    res_num = select(v, '<', const(num))
+                    sub_ds_str = evaluate(ds, res_str)
+                    # sub_ds_num = evaluate(ds, res_num).dataframe
+                    import pdb; pdb.set_trace()
 
                     tmp_cat = ds.data[v.name]
                     tmp_num = [v.categories(n) for n in tmp_cat]

@@ -139,19 +139,21 @@ def evaluate(dataset: Dataset, expr: Node):
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, LessThan):
+        print('inside Evaluat for LessThan')
         rhs = evaluate(dataset, expr.rhs)
         lhs = evaluate(dataset, expr.lhs)
         assert isinstance(rhs, VarData)
         assert isinstance(lhs, VarData)
+        import pdb; pdb.set_trace()
 
         dataframe = None
         metadata = rhs.metadata
         
         if (not rhs.metadata):
             raise ValueError('Malformed Relation. Filter on Variables must have variable as rhs')
-        elif (rhs.metadata['dtype'] == DataType.NOMINAL):
+        elif (rhs.metadata['dtype'] is DataType.NOMINAL):
             raise ValueError('Cannot compare nominal values with Less Than')
-        elif (rhs.metadata['dtype'] == DataType.ORDINAL):
+        elif (rhs.metadata['dtype'] is DataType.ORDINAL):
             comparison = lhs.dataframe[0]
             if (isinstance(comparison, str)):
                 categories = lhs.metadata['categories'] # OrderedDict
@@ -166,9 +168,9 @@ def evaluate(dataset: Dataset, expr: Node):
 
             return VarData(dataframe, metadata)
 
-        elif (rhs.metadata['dtype'] == DataType.INTERVAL or rhs.metadata['dtype'] == DataType.RATIO):
+        elif (rhs.metadata['dtype'] is DataType.INTERVAL or rhs.metadata['dtype'] is DataType.RATIO):
             dataframe = filter(lambda x: x < comparison, rhs.dataframe) # TODO check return type and index if pandas Series
-            
+
         else:
             raise Exception(f"Invalid Less Than Operation:{rhs} < {lhs}")
 
@@ -203,11 +205,11 @@ def bootstrap():
     raise Exception('Not implemented BOOTSTRAP')
 
 
-# More USER FACING
+# TODO More USER FACING
 # Takes all evaluated results, stores for call and then outputs the results in a dictionary/table
-def eval(dataset, args*):
-    results = {}
-    for e in args*: 
-        results[e] = evaluate(dataset, expr)
+# def eval(dataset, args*):
+#     results = {}
+#     for e in args*: 
+#         results[e] = evaluate(dataset, expr)
     
-    return eval 
+#     return eval 

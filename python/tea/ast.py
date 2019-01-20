@@ -40,7 +40,7 @@ class Node(object):
     def __or__(self, other):
         return Or(self, other)
 
-@attr.s(repr=True)
+@attr.s(repr=False)
 class DataType(Enum):  
     ORDINAL = 0
     NOMINAL = 1
