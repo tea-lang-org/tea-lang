@@ -4,6 +4,9 @@ from . import evaluate
 
 from .build import (load_data, const,
                     ordinal, isordinal,
+                    nominal, isnominal,
+                    ratio, isratio,
+                    interval, isinterval, isnumeric,
                     select #, nominal
                     # , nominal, interval, ratio, load_data, model, 
                     # mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,

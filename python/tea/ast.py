@@ -109,21 +109,20 @@ class LessThan(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
 
-
 @attr.s(hash=True, repr=False)
 class LessThanEqual(Node):
-    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)
 
 @attr.s(hash=True, repr=False)
 class GreaterThan(Node):
-    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)
 
 @attr.s(hash=True, repr=False)
 class GreaterThanEqual(Node):
-    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)
 
 
 # @attr.s(hash=True, repr=False)

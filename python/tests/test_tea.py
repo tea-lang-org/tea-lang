@@ -1,9 +1,10 @@
 # from tea import load_data,  explore_summary
 from tea import (   load_data,
                     const,
-                    ordinal,
-                    isordinal, 
-                    # nominal
+                    ordinal, isordinal, 
+                    nominal, isnominal,
+                    interval, isinterval,
+                    ratio, isratio, isnumeric,
                     select,
                     evaluate
                 )
@@ -61,8 +62,8 @@ def test_make_ordinal():
 #     assert ds.variables == variables
 
 categories = ['high school', 'college', 'PhD']
-variables = [ordinal('education', categories)]
-# variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
+# variables = [ordinal('education', categories)]
+variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', drange=[0,99])]
 file_path = './datasets/mini_test.csv'
 ds = load_data(file_path, variables, 'participant_id')
 
@@ -94,6 +95,7 @@ def test_select_less():
         if (v.drange): # is ORDINAL or INTERVAL/RATIO
             if (isordinal(v)):
                 categories = v.categories.keys()
+                
                 # cat_num = v.categories.values()
                 for cat in categories:
                     num = v.categories[cat]
@@ -103,12 +105,21 @@ def test_select_less():
                     sub_ds_num = evaluate(ds, res_num).dataframe
                     
                     # Selecting using STR or INT should give same answer
-                    tmp_res = pd.Series(list(filter(lambda x: v.categories[x] < v.categories[cat], ds.data[v.name])))
-                    assert (sub_ds_str.equals(tmp_res))
-                    assert (sub_ds_num.equals(tmp_res))
+                    tmp_res = list(filter(lambda x: v.categories[x] < v.categories[cat], ds.data[v.name]))
+                    # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
+                    assert (sub_ds_str.tolist() == tmp_res)
+                    assert (sub_ds_num.tolist() == tmp_res)
                     
-            # elif (isnumeric(v)):
-            #     pass
+            elif (isnumeric(v)):
+                drange = v.drange
+                midpoint = (drange.pop() - drange.pop(0))/2
+                res = select(v, '<', const(midpoint))
+                sub_ds = evaluate(ds, res).dataframe
+
+                data = ds.data[v.name]
+                tmp = data[data < midpoint]
+                assert(sub_ds.equals(tmp))
+                # assert(sub_ds.tolist() == tmp.tolist())
 
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]

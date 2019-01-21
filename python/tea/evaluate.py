@@ -139,7 +139,6 @@ def evaluate(dataset: Dataset, expr: Node):
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, LessThan):
-        print('inside Evaluate for LessThan')
         rhs = evaluate(dataset, expr.rhs)
         lhs = evaluate(dataset, expr.lhs)
         assert isinstance(rhs, VarData)
@@ -157,32 +156,43 @@ def evaluate(dataset: Dataset, expr: Node):
             comparison = rhs.dataframe.iloc[0]
             if (isinstance(comparison, str)):
                 categories = lhs.metadata['categories'] # OrderedDict
-                # comparison = 'PhD'
-                dataframe = pd.Series(list(filter(lambda x: categories[x] < categories[comparison], lhs.dataframe)))
-                # import pdb; pdb.set_trace()
-
-                
-                # df = [x for x in rhs.dataframe if categories[x] < categories[comparison]]
-                # import pdb; pdb.set_trace()
-
-                # cond1 = (lambda x: categories[x] < categories[comparison])
-                # df = rhs.dataframe[cond1]
-                # import pdb; pdb.set_trace()
+                # Get raw Pandas Series indices for desired data
+                ids  = [i for i,x in enumerate(lhs.dataframe) if categories[x] < categories[comparison]]
+                # Get Pandas Series set indices for desired data
+                p_ids = [lhs.dataframe.index.values[i] for i in ids]
+                # Create new Pandas Series with only the desired data, using set indices
+                dataframe = pd.Series(lhs.dataframe, p_ids)
+                dataframe.index.name = dataset.pid_col_name
                 
             elif (np.issubdtype(comparison, np.integer)):
                 categories = lhs.metadata['categories'] # OrderedDict
-                dataframe = pd.Series(list(filter(lambda x: categories[x] < comparison, lhs.dataframe)))
+                # Get raw Pandas Series indices for desired data
+                ids  = [i for i,x in enumerate(lhs.dataframe) if categories[x] < comparison]
+                # Get Pandas Series set indices for desired data
+                p_ids = [lhs.dataframe.index.values[i] for i in ids]
+                # Create new Pandas Series with only the desired data, using set indices
+                dataframe = pd.Series(lhs.dataframe, p_ids)
+                dataframe.index.name = dataset.pid_col_name                
 
             else: 
                 raise ValueError(f"Cannot compare ORDINAL variables to {type(rhs.dataframe.iloc[0])}")
 
-            return VarData(dataframe, metadata)
 
-        elif (rhs.metadata['dtype'] is DataType.INTERVAL or rhs.metadata['dtype'] is DataType.RATIO):
-            dataframe = filter(lambda x: x < comparison, rhs.dataframe) # TODO check return type and index if pandas Series
-
+        elif (lhs.metadata['dtype'] is DataType.INTERVAL or lhs.metadata['dtype'] is DataType.RATIO):
+            comparison = rhs.dataframe.iloc[0]
+             # Get raw Pandas Series indices for desired data
+            ids  = [i for i,x in enumerate(lhs.dataframe) if x < comparison]
+            # Get Pandas Series set indices for desired data
+            p_ids = [lhs.dataframe.index.values[i] for i in ids]
+            # Create new Pandas Series with only the desired data, using set indices
+            dataframe = pd.Series(lhs.dataframe, p_ids)
+            dataframe.index.name = dataset.pid_col_name   
+            
         else:
-            raise Exception(f"Invalid Less Than Operation:{rhs} < {lhs}")
+            raise Exception(f"Invalid Less Than Operation:{lhs} < {rhs}")
+
+        
+        return VarData(dataframe, metadata)
 
     elif isinstance(expr, LessThanEqual):
         # Could implement with Less Than and Equal

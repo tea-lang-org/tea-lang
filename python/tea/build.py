@@ -20,7 +20,7 @@ def ordinal(var_name: str, ordered_categories: list):
     # return Variable(var_name, DataType.ORDINAL, categories, [1, len(categories)])
 
 def isordinal(var: Variable):
-    return var.dtype == DataType.ORDINAL
+    return var.dtype is DataType.ORDINAL
 
 def nominal(var_name: str, unordered_categories: list):
     categories = OrderedDict()
@@ -28,11 +28,23 @@ def nominal(var_name: str, unordered_categories: list):
         categories[c] = -1
     return Variable.from_spec(var_name, DataType.NOMINAL, categories, None)
 
-# def interval(var_name: str, range: list):
-#     return Variable.from_spec(var_name, DataType.INTERVAL, None, range) # treat range like categories, check that all values are within range
+def isnominal(var: Variable):
+    return var.dtype is DataType.NOMINAL
 
-# def ratio(var_name: str, range: list):
-#     return Variable.from_spec(var_name, DataType.RATIO, None, range) # treat range like categories, check that all values are within range
+def interval(var_name: str, drange: list):
+    return Variable.from_spec(var_name, DataType.INTERVAL, None, drange) # treat range like categories, check that all values are within range
+
+def isinterval(var: Variable):
+    return var.dtype is DataType.INTERVAL
+
+def ratio(var_name: str, drange: list):
+    return Variable.from_spec(var_name, DataType.RATIO, None, drange) # treat range like categories, check that all values are within range
+
+def isratio(var: Variable):
+    return var.dtype is DataType.RATIO
+
+def isnumeric(var: Variable):
+    return (isratio(var) or isinterval(var))
 
 # @param pid is the name of the column with participant ids
 def load_data(source_name: str, vars: list, pid: str):
