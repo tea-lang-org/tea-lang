@@ -119,13 +119,13 @@ def evaluate(dataset: Dataset, expr: Node):
         return VarData(data, metadata)
 
     elif isinstance(expr, Equal):
-        rhs = evaluate(dataset, expr.rhs)
         lhs = evaluate(dataset, expr.lhs)
-        assert isinstance(rhs, VarData)
+        rhs = evaluate(dataset, expr.rhs)
         assert isinstance(lhs, VarData)
+        assert isinstance(rhs, VarData)
         
-        dataframe = rhs.dataframe[rhs.dataframe == lhs.dataframe]
-        metadata = rhs.metadata
+        dataframe = lhs.dataframe[lhs.dataframe == rhs.dataframe]
+        metadata = lhs.metadata
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, NotEqual): 
@@ -134,37 +134,47 @@ def evaluate(dataset: Dataset, expr: Node):
         assert isinstance(rhs, VarData)
         assert isinstance(lhs, VarData)
         
-        dataframe = rhs.dataframe[rhs.dataframe != lhs.dataframe]
-        metadata = rhs.metadata
+        dataframe = lhs.dataframe[lhs.dataframe != rhs.dataframe]
+        metadata = lhs.metadata
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, LessThan):
-        print('inside Evaluat for LessThan')
+        print('inside Evaluate for LessThan')
         rhs = evaluate(dataset, expr.rhs)
         lhs = evaluate(dataset, expr.lhs)
         assert isinstance(rhs, VarData)
         assert isinstance(lhs, VarData)
-        import pdb; pdb.set_trace()
 
         dataframe = None
         metadata = rhs.metadata
         
-        if (not rhs.metadata):
+        if (not lhs.metadata):
             raise ValueError('Malformed Relation. Filter on Variables must have variable as rhs')
-        elif (rhs.metadata['dtype'] is DataType.NOMINAL):
+        elif (lhs.metadata['dtype'] is DataType.NOMINAL):
             raise ValueError('Cannot compare nominal values with Less Than')
-        elif (rhs.metadata['dtype'] is DataType.ORDINAL):
-            comparison = lhs.dataframe[0]
+        elif (lhs.metadata['dtype'] is DataType.ORDINAL):
+            assert (rhs.metadata is None) # May want to add a case should RHS and LHS both be variables
+            comparison = rhs.dataframe.iloc[0]
             if (isinstance(comparison, str)):
                 categories = lhs.metadata['categories'] # OrderedDict
-                dataframe = filter(lambda x: categories[x] < categories[comparison], rhs.dataframe)
+                # comparison = 'PhD'
+                dataframe = pd.Series(list(filter(lambda x: categories[x] < categories[comparison], lhs.dataframe)))
+                # import pdb; pdb.set_trace()
 
-            elif (isinstance(comparison, int)):
+                
+                # df = [x for x in rhs.dataframe if categories[x] < categories[comparison]]
+                # import pdb; pdb.set_trace()
+
+                # cond1 = (lambda x: categories[x] < categories[comparison])
+                # df = rhs.dataframe[cond1]
+                # import pdb; pdb.set_trace()
+                
+            elif (np.issubdtype(comparison, np.integer)):
                 categories = lhs.metadata['categories'] # OrderedDict
-                dataframe = filter(lambda x: categories[x] < comparison, rhs.dataframe)
+                dataframe = pd.Series(list(filter(lambda x: categories[x] < comparison, lhs.dataframe)))
 
             else: 
-                raise ValueError(f"Cannot compare ORDINAL variables to {type(lhs.dataframe[0])}")
+                raise ValueError(f"Cannot compare ORDINAL variables to {type(rhs.dataframe.iloc[0])}")
 
             return VarData(dataframe, metadata)
 

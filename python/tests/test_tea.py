@@ -14,6 +14,7 @@ from tea import (   load_data,
 
 from collections import OrderedDict
 import numpy as np
+import pandas as pd
 from scipy import stats
 import statsmodels.api as sm
 
@@ -92,24 +93,20 @@ def test_select_less():
     for v in variables: 
         if (v.drange): # is ORDINAL or INTERVAL/RATIO
             if (isordinal(v)):
-                cat_keys = v.categories.keys()
+                categories = v.categories.keys()
                 # cat_num = v.categories.values()
-                for c in cat_keys:
-                    num = v.categories[c]
-                    res_str = select(v, '<', const(c))
+                for cat in categories:
+                    num = v.categories[cat]
+                    res_str = select(v, '<', const(cat))
                     res_num = select(v, '<', const(num))
-                    sub_ds_str = evaluate(ds, res_str)
-                    # sub_ds_num = evaluate(ds, res_num).dataframe
-                    import pdb; pdb.set_trace()
-
-                    tmp_cat = ds.data[v.name]
-                    tmp_num = [v.categories(n) for n in tmp_cat]
-                    tmp_res = filter(lambda x: x < num, tmp_num)
-                    # tmp = tmp_num[tmp_num <= e]
-                    import pdb; pdb.set_trace()
-
+                    sub_ds_str = evaluate(ds, res_str).dataframe
+                    sub_ds_num = evaluate(ds, res_num).dataframe
+                    
+                    # Selecting using STR or INT should give same answer
+                    tmp_res = pd.Series(list(filter(lambda x: v.categories[x] < v.categories[cat], ds.data[v.name])))
                     assert (sub_ds_str.equals(tmp_res))
                     assert (sub_ds_num.equals(tmp_res))
+                    
             # elif (isnumeric(v)):
             #     pass
 

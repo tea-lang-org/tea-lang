@@ -96,18 +96,19 @@ class Select(Node):
 
 @attr.s(hash=True, repr=False)
 class Equal(Node):
-    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)
 
 @attr.s(hash=True, repr=False)
 class NotEqual(Node):
-    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)
 
 @attr.s(hash=True, repr=False)
 class LessThan(Node):
-    rhs = attr.ib(type=Node)
     lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)
+
 
 @attr.s(hash=True, repr=False)
 class LessThanEqual(Node):
