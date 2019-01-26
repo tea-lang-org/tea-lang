@@ -228,7 +228,9 @@ def test_compare():
     hs = select(edu, '==', const('high school'))
     college = select(edu, '==', const('college'))
 
-    res = compare([hs, college], age)
+    comp = compare([hs, college], age)
+    res = evaluate(ds, comp)
+    import pdb; pdb.set_trace()
     
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]

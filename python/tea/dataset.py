@@ -19,7 +19,6 @@ class Dataset(object):
         if self.dfile: 
             self.data = pd.read_csv(self.dfile)
             self.row_pids = self.data[self.pid_col_name] # Change/update based on parameter that is passed to constructor??
-            # self.row_pids = self.data[0]
 
         # Reindex DataFrame indices to be pids
         self.data.set_index(self.pid_col_name, inplace=True)
@@ -47,3 +46,6 @@ class Dataset(object):
                 return { 'dtype': v.dtype, 
                         'categories': v.categories} 
 
+    # @param indices are a list of indices for rows that contain the desired data
+    def get_subset(self, indices:list):
+        pass

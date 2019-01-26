@@ -108,6 +108,17 @@ class VarData(Value):
     dataframe: Any
     metadata: Any
 
+@attr.s(init=True, auto_attribs=True)
+class ResData(Value):
+    # groups: Any # What groups were compared?
+    # ci_intervals: Any # CI intervals for each group
+    # point_estimates: Any # point estimate for each group
+    # # interpretation: Any ????
+    
+    group_results: Any # Results from central tendency procedure for groups compared??
+    test: Any # name? of test conducted to compare groups (whose results are stored in group_results)
+    test_results: Any # result of conducting above test
+
 def evaluate(dataset: Dataset, expr: Node):
     if isinstance(expr, Variable):
         dataframe = dataset[expr.name]
@@ -365,8 +376,8 @@ def evaluate(dataset: Dataset, expr: Node):
 
         return VarData(dataframe, metadata) 
 
-    elif isinstance(expr, Relate): 
-        raise Exception('Not implemented RELATE')
+    # elif isinstance(expr, Relate): 
+    #     raise Exception('Not implemented RELATE')
 
     elif isinstance(expr, Compare): 
         groups = [] # list of variables comparing
@@ -383,24 +394,46 @@ def evaluate(dataset: Dataset, expr: Node):
             groups.append(group)
         assert (len(groups) == 2) # Just comparing 2 groups for now
         assert (groups[0].metadata['dtype'] == groups[1].metadata['dtype']) # assert they are the same datatype
+        iv_dtype = groups[0].metadata['dtype']
 
         dv = evaluate(dataset, expr.dv)
         assert isinstance(dv, VarData)
 
         # If Nominal x Nominal, do X
-        if (groups[0].metadata['dtype'] is DataType.NOMINAL):
+        if (iv_dtype is DataType.NOMINAL):
             if ((dv.metadata['dtype'] is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO) and isnormal(dv.dataframe)):
                 # t-test - 2 independent samples of paired?
                 raise AssertionError ('Not implemented - ttests')
 
-            elif (dv.metadata['dtype'] is DataType.ORDINAL or dv.metadata['dtype'] is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO):
+            elif (dv.metadata['dtype'] is DataType.ORDINAL or iv_dtype is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO):
                 raise AssertionError ('Not implemented - Wilcoxon, Mann Whitney test')
             
             elif (dv.metadata['dtype'] is DataType.NOMINAL):
                 raise AssertionError ('Not implemnted - Chi square or Fishers Exact Test')
-        elif (groups[0].metadata['dtype'] is DataType.ORDINAL):
+        elif (iv_dtype is DataType.ORDINAL):
+            import pdb; pdb.set_trace()
+
+            central_tendencies = []
+            for group in groups: 
+                # get the iv data for ivs
+                data = dv.dataframe.loc(axis=0)[group.dataframe.index.values]
+
+                # calculate some central tendency metric
+                metric = bootstrap(data) # how know which central tendency metric to calculate? -- based on data properties
+                # Wilcoxon Mann Whitney U test
+
+                central_tendencies.append(metric)
+
+
+            
+            # compare these measures of central tendency
+            # estimates (confidence intervals, etc)
+            ResData([{}, {}], test: '', test_results: '')
+            # NHST tests?
+            
+            
             raise AssertionError('Not implemented - IV is ORDINAL -- may have some overlap with iv == NOMINAL')
-        elif (groups[0].metadata['dtype'] is DataType.INTERVAL or groups[0].metadata['dtype'] is DataType.RATIO):
+        elif (iv_dtype is DataType.INTERVAL or iv_dtype is DataType.RATIO):
             raise AssertionError('Not implemented - IV is INTERVAL OR RATIO')
         else:
             raise ValueError('Should never get here. ')
@@ -430,7 +463,17 @@ def evaluate(dataset: Dataset, expr: Node):
 #     return 
 
 # helper method
-def bootstrap():
+def bootstrap(data):
+    print('Do something with incoming data')
+
+"""
+    return {
+            'var_name': '',
+            'ci_interval': '',
+            'point_name': '',
+            'point_est': '', 
+            }
+"""
     raise Exception('Not implemented BOOTSTRAP')
 
 

@@ -71,20 +71,21 @@ def select(var: Variable, op: str, other: Literal):
 # X could be the list of variables/groups want to compare on y - may only want to compare 2 groups, not all conditions
 def compare(iv, dv: Variable):
 
-    ivs = list
+    ivs = []
     if (isinstance(iv, Variable)):
         if isnominal(iv) or isordinal(iv):
             #split up based on categories, build ivs and then pass to Compare
             groups = list(iv.categories.keys())
             for g in groups: 
-                ivs.append(select(iv, '==',g))
+                ivs.append(select(iv, '==', g))
+                import pdb; pdb.set_trace()
         elif isnumeric(iv):
             # pass directly to Compare
             raise AssertionError('NOT IMPLEMENTED')
         else: 
             raise ValueError(f"Invalid Variable type: {iv.dtype}")
-    else: # x is a list of Variables
-        return Compare(ivs, dv)
+    else: # iv is already a list of Variables
+        return Compare(iv, dv)
         # # For preprocessing in case we want to 
         # if isnumeric(x):
         #     if isnumeric(y):
