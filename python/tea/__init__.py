@@ -7,7 +7,7 @@ from .build import (load_data, const,
                     nominal, isnominal,
                     ratio, isratio,
                     interval, isinterval, isnumeric,
-                    select #, nominal
+                    select, compare
                     # , nominal, interval, ratio, load_data, model, 
                     # mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
                     # between_experiment, within_experiment, mixed_experiment, model, equation,

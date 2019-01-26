@@ -9,6 +9,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np # Use some stats from numpy instead
 import pandas as pd
+import bootstrapped as bs
 
 # Eval : Dataset, Program (list of functions/stats) --> table of computed stats
 
@@ -368,7 +369,57 @@ def evaluate(dataset: Dataset, expr: Node):
         raise Exception('Not implemented RELATE')
 
     elif isinstance(expr, Compare): 
-        raise Exception('Not implemented COMPARE')
+        groups = [] # list of variables comparing
+
+        #TODO: Computed Properties of Data
+        #[dtypes, normality test, residuals?, ]
+
+        # independent? paired tests
+        # one or two tailed tests?
+
+        for e in expr.iv: 
+            group = evaluate(dataset, e)
+            assert isinstance(group, VarData)
+            groups.append(group)
+        assert (len(groups) == 2) # Just comparing 2 groups for now
+        assert (groups[0].metadata['dtype'] == groups[1].metadata['dtype']) # assert they are the same datatype
+
+        dv = evaluate(dataset, expr.dv)
+        assert isinstance(dv, VarData)
+
+        # If Nominal x Nominal, do X
+        if (groups[0].metadata['dtype'] is DataType.NOMINAL):
+            if ((dv.metadata['dtype'] is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO) and isnormal(dv.dataframe)):
+                # t-test - 2 independent samples of paired?
+                raise AssertionError ('Not implemented - ttests')
+
+            elif (dv.metadata['dtype'] is DataType.ORDINAL or dv.metadata['dtype'] is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO):
+                raise AssertionError ('Not implemented - Wilcoxon, Mann Whitney test')
+            
+            elif (dv.metadata['dtype'] is DataType.NOMINAL):
+                raise AssertionError ('Not implemnted - Chi square or Fishers Exact Test')
+        elif (groups[0].metadata['dtype'] is DataType.ORDINAL):
+            raise AssertionError('Not implemented - IV is ORDINAL -- may have some overlap with iv == NOMINAL')
+        elif (groups[0].metadata['dtype'] is DataType.INTERVAL or groups[0].metadata['dtype'] is DataType.RATIO):
+            raise AssertionError('Not implemented - IV is INTERVAL OR RATIO')
+        else:
+            raise ValueError('Should never get here. ')
+
+
+
+        raise Exception('Not implemented Compare')
+    
+    elif isinstance(expr, Mean):
+        var = evaluate(dataset, expr.var)
+        assert isinstance(var, VarData)
+
+        bs.bootstrap(var.dataframe, stat_func=bs_stats.mean)
+        raise Exception('Not implemented Mean')
+    
+    elif isinstance(expr, Median):
+        raise Exception('Not implemented Median')
+
+
     
     elif isinstance(expr, Add): 
         raise Exception('Not implemented Add')

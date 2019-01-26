@@ -35,7 +35,7 @@ class Node(object):
 
     # MAY NOT NEED TO OVERRIDE AND, OR
     def __and__(self, other):
-        return Add(self, other)
+        return And(self, other)
     
     def __or__(self, other):
         return Or(self, other)
@@ -123,6 +123,15 @@ class GreaterThan(Node):
 class GreaterThanEqual(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
+
+@attr.s(hash=True, repr=False)
+class Compare(Node):
+    iv = attr.ib(type=Node) # groups to compare
+    dv = attr.ib(type=Node) # value/metric to compare the groups on
+
+@attr.s(hash=True, repr=False)
+class Mean(Node):
+    var = attr.ib(type=Node)
 
 
 # @attr.s(hash=True, repr=False)

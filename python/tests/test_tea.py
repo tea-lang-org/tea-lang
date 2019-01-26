@@ -6,7 +6,8 @@ from tea import (   load_data,
                     interval, isinterval,
                     ratio, isratio, isnumeric,
                     select,
-                    evaluate
+                    evaluate,
+                    compare
                 )
 # (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
 #             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
@@ -19,6 +20,18 @@ import pandas as pd
 from scipy import stats
 import statsmodels.api as sm
 
+# Sample program
+"""
+load_data('data.csv')
+design_experiment({
+    'independent variable': ['col_name', 'col_name'],
+    'dependent variable': ['col_name'],
+    # not sure that we want to call them "between" and "within" subjects -- may want to elicit separately or via a different modality
+    'between subjects': ['col_name'],
+    'within subjects': ['col_name']
+})
+compare('groups', 'time') # may want to go back to the original doc
+"""
 
 def test_make_ordinal():
     o = ordinal('education', ['high school', 'college', 'Master\'s', 'PhD'])
@@ -63,7 +76,9 @@ def test_make_ratio():
 
 categories = ['high school', 'college', 'PhD']
 # variables = [ordinal('education', categories)]
-variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', drange=[0,99])]
+edu = ordinal('education', ['high school', 'college', 'PhD'])
+age = ratio('age', drange=[0,99])
+variables = [edu, age]
 file_path = './datasets/mini_test.csv'
 ds = load_data(file_path, variables, 'participant_id')
 
@@ -79,7 +94,6 @@ def test_select_equals():
             sub_ds = evaluate(ds, res).dataframe
             tmp = ds.data[v.name]
             assert (sub_ds.equals(tmp[tmp == e]))
-
 
 def test_select_not_equals(): 
     for v in variables: 
@@ -210,6 +224,12 @@ def test_select_ge():
                 tmp = data[data >= midpoint]
                 assert(sub_ds.equals(tmp))
 
+def test_compare():
+    hs = select(edu, '==', const('high school'))
+    college = select(edu, '==', const('college'))
+
+    res = compare([hs, college], age)
+    
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]
 # edu_data = ['high school','college','high school','PhD','PhD','high school','college','high school','PhD','PhD']

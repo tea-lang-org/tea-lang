@@ -1,6 +1,8 @@
-from typing import Dict
+from typing import Dict, Union
 from collections import OrderedDict
-from .ast import (Variable, DataType, Literal)
+from .ast import (  Variable, DataType, Literal,
+                    Compare
+                )
 # , DataType, Mean, Median, StandardDeviation, Variance, Kurtosis, Skew, Normality, Frequency,
                 # Experiment, Model, Equation, Hypothesis, Relation,
                 # Experiment_SetUp)
@@ -65,6 +67,38 @@ def select(var: Variable, op: str, other: Literal):
         return var.subset_ge(other)
     else: 
         raise ValueError(f"Do not support the operator{op}")
+
+# X could be the list of variables/groups want to compare on y - may only want to compare 2 groups, not all conditions
+def compare(iv, dv: Variable):
+
+    ivs = list
+    if (isinstance(iv, Variable)):
+        if isnominal(iv) or isordinal(iv):
+            #split up based on categories, build ivs and then pass to Compare
+            groups = list(iv.categories.keys())
+            for g in groups: 
+                ivs.append(select(iv, '==',g))
+        elif isnumeric(iv):
+            # pass directly to Compare
+            raise AssertionError('NOT IMPLEMENTED')
+        else: 
+            raise ValueError(f"Invalid Variable type: {iv.dtype}")
+    else: # x is a list of Variables
+        return Compare(ivs, dv)
+        # # For preprocessing in case we want to 
+        # if isnumeric(x):
+        #     if isnumeric(y):
+        #         print('Need to implement how to do Numeric x Numeric')
+        #     elif isnominal(y):
+        #         print('Need to implement Numeric x Nominal')
+        #     elif isordinal(y):
+        #         print('Need to implement Numeric x ORDINAL - may be able to just call compare using numbers for categories') 
+        #     else: 
+        #         raise ValueError(f"Cannot have data of type{y.dtype}")
+        # elif isnominal(x):
+        #     raise ValueError('Not implemented! X is nominal')
+        # elif isordinal(x):
+        #     raise ValueError('Not implemented! X is ordinal')
 
 # def load_data_arrs(y: list, x: list):
 #     return Dataset.from_arr_numeric(y, x)
