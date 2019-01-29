@@ -133,7 +133,8 @@ class GreaterThanEqual(Node):
 
 @attr.s(hash=True, repr=False)
 class Compare(Node):
-    iv = attr.ib(type=Node) # groups to compare
+    iv = attr.ib(type=Node)
+    groups = attr.ib(type=Node) # groups to compare
     dv = attr.ib(type=Node) # value/metric to compare the groups on
     prediction = attr.ib(type=Node) # TODO create separate AST Node for predictions? 
 

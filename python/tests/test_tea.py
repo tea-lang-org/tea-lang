@@ -230,12 +230,20 @@ def test_compare():
     accuracy = ratio('accuracy', drange=[0,50])
     variables = [condition, accuracy]
     file_path = './datasets/bivariate_mini.csv'
+    
+    experimental_design = {
+                            'independent variables': 'condition',
+                            'dependent variables': 'accuracy',
+                            'between subjects': 'condition',
+                        }
+
     ds = load_data(file_path, variables, 'participant_id')
     # hyp = hypothesize(iv='condition', dv='accuracy', prediction='microtask > macrotask') #-- maybe this is just compare by another name
     # ^^ PREDICTION helps us determine if we should be looking at one or two tailed tests
 
     stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
-    res = evaluate(ds, stat)
+    res = evaluate(ds, stat, experimental_design)
+    print(res) # write prettier str
     assert (res.test_results[1] < .05) # need to write better tests 
     
 

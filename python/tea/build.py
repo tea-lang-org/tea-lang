@@ -102,7 +102,7 @@ def compare(iv, dv: Variable, prediction: str) :
             for g in groups: 
                 ivs.append(select(iv, '==', const(g)))
             
-            return Compare(ivs, dv, predict(iv, prediction))
+            return Compare(iv, ivs, dv, predict(iv, prediction))
         elif isnumeric(iv):
             # pass directly to Compare
             raise AssertionError('NOT IMPLEMENTED')

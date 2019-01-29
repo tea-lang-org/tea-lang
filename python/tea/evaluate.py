@@ -108,18 +108,26 @@ class VarData(Value):
     dataframe: Any
     metadata: Any
 
-@attr.s(init=True, auto_attribs=True)
+@attr.s(init=True, auto_attribs=True, str=False)
 class ResData(Value):
     # groups: Any # What groups were compared?
     # ci_intervals: Any # CI intervals for each group
     # point_estimates: Any # point estimate for each group
     # # interpretation: Any ????
     
+    ivs: Any # Results from central tendency procedure for groups compared??
+    dv: Any
     group_results: Any # Results from central tendency procedure for groups compared??
     test: Any # name? of test conducted to compare groups (whose results are stored in group_results)
     test_results: Any # result of conducting above test
 
-def evaluate(dataset: Dataset, expr: Node):
+    def __str__(self):
+        summary = f"Compared {self.dv} as dependent variables between independent variables: {self.ivs}"
+        test = f"\nConducted {self.test}: test statistic: {self.test_results[0]}, p-value: {self.test_results[1]}"
+
+        return summary + test
+
+def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
     if isinstance(expr, Variable):
         dataframe = dataset[expr.name]
         metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
@@ -386,11 +394,10 @@ def evaluate(dataset: Dataset, expr: Node):
         # one or two tailed tests?
 
         # Check "well-formedness"
-        for e in expr.iv: 
+        for e in expr.groups: 
             group = evaluate(dataset, e)
             assert isinstance(group, VarData)
             groups.append(group)
-        import pdb; pdb.set_trace()
         assert (len(groups) == 2) # Just comparing 2 groups for now
         assert (groups[0].metadata['dtype'] == groups[1].metadata['dtype']) # assert they are the same datatype
         iv_dtype = groups[0].metadata['dtype']
@@ -408,7 +415,6 @@ def evaluate(dataset: Dataset, expr: Node):
         
         # Check variance using Levene's test
         eq_var = False
-        import pdb; pdb.set_trace()
         levene = stats.levene(iv_data[0], iv_data[1]).pvalue
         if levene > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
             eq_var = True
@@ -431,8 +437,8 @@ def evaluate(dataset: Dataset, expr: Node):
                     # 1-tailed test
                     # ??? How should treat the Les than EQUAL TO?
                     
+                    # if (design['between subjects'])
                     ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
-                    import pdb; pdb.set_trace()
                     corrected_pvalue = None
                     if (ttest.statistic > 0):
                         corrected_pvalue = ttest.pvalue * .5 
@@ -441,7 +447,7 @@ def evaluate(dataset: Dataset, expr: Node):
                     else: 
                         raise ValueError(f"T statistic equals 0: {ttest.statistic}")
                     
-                    return ResData(None,f"One-sided ttest with equal variance={eq_var}", [ttest.statistic, corrected_pvalue])
+                    return ResData(expr.iv, expr.dv, None, f"one-sided ttest with equal variance={eq_var}", [ttest.statistic, corrected_pvalue])
 
                 
 
@@ -451,7 +457,6 @@ def evaluate(dataset: Dataset, expr: Node):
             elif (dv.metadata['dtype'] is DataType.NOMINAL):
                 raise AssertionError ('Not implemnted - Chi square or Fishers Exact Test')
         elif (iv_dtype is DataType.ORDINAL):
-            import pdb; pdb.set_trace()
 
             central_tendencies = []
             for group in groups: 
