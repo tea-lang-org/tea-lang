@@ -9,7 +9,7 @@ from .ast import (  Variable, DataType, Literal,
 from .dataset import Dataset 
 # from .evaluate import evaluate, pretty_print
 
-def const(val: Literal):
+def const(val):
     return Literal(val)
 
 def ordinal(var_name: str, ordered_categories: list):
@@ -68,17 +68,41 @@ def select(var: Variable, op: str, other: Literal):
     else: 
         raise ValueError(f"Do not support the operator{op}")
 
-# X could be the list of variables/groups want to compare on y - may only want to compare 2 groups, not all conditions
-def compare(iv, dv: Variable):
+# TODO: Likely need to change the signature of this method
+def predict(iv: Variable, prediction: str): 
+    
+    if(iv.dtype is DataType.NOMINAL or iv.dtype is DataType.ORDINAL): 
+        if ('>' in prediction):
+            lhs = prediction[:prediction.index('>')].strip()
+            rhs = prediction[prediction.index('>')+1:].strip()
+            assert(lhs in iv.categories.keys())
+            assert(rhs in iv.categories.keys())
 
+            return const(lhs) > const(rhs)
+
+
+    # need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
+    
+        lhs = prediction[:prediction.index(comparison)]
+        rhs = prediction[prediction.index(comparison)+1:]
+        assert(lhs in iv.categories)
+        assert(rhs in iv.categories)
+
+        return const(lhs) 
+
+
+# X could be the list of variables/groups want to compare on y - may only want to compare 2 groups, not all conditions
+def compare(iv, dv: Variable, prediction: str) :
+    
     ivs = []
     if (isinstance(iv, Variable)):
         if isnominal(iv) or isordinal(iv):
             #split up based on categories, build ivs and then pass to Compare
             groups = list(iv.categories.keys())
             for g in groups: 
-                ivs.append(select(iv, '==', g))
-                import pdb; pdb.set_trace()
+                ivs.append(select(iv, '==', const(g)))
+            
+            return Compare(ivs, dv, predict(iv, prediction))
         elif isnumeric(iv):
             # pass directly to Compare
             raise AssertionError('NOT IMPLEMENTED')

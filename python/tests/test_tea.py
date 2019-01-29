@@ -7,7 +7,7 @@ from tea import (   load_data,
                     ratio, isratio, isnumeric,
                     select,
                     evaluate,
-                    compare
+                    compare, predict
                 )
 # (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
 #             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
@@ -225,12 +225,18 @@ def test_select_ge():
                 assert(sub_ds.equals(tmp))
 
 def test_compare():
-    hs = select(edu, '==', const('high school'))
-    college = select(edu, '==', const('college'))
+    # condit_cat = ['microtask', 'macrotask']
+    condition = nominal('condition', ['microtask', 'macrotask'])
+    accuracy = ratio('accuracy', drange=[0,50])
+    variables = [condition, accuracy]
+    file_path = './datasets/bivariate_mini.csv'
+    ds = load_data(file_path, variables, 'participant_id')
+    # hyp = hypothesize(iv='condition', dv='accuracy', prediction='microtask > macrotask') #-- maybe this is just compare by another name
+    # ^^ PREDICTION helps us determine if we should be looking at one or two tailed tests
 
-    comp = compare([hs, college], age)
-    res = evaluate(ds, comp)
-    import pdb; pdb.set_trace()
+    stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
+    res = evaluate(ds, stat)
+    assert (res.test_results[1] < .05) # need to write better tests 
     
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]

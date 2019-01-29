@@ -49,7 +49,7 @@ class DataType(Enum):
     INTERVAL = 2 
     RATIO = 3
 
-@attr.s(hash=True, repr=False)
+@attr.s(hash=True, repr=False, cmp=False)
 class Variable(Node): 
     # meta data about the variable, determines how the operators are to be/can be executed
     name = attr.ib()
@@ -124,10 +124,19 @@ class GreaterThanEqual(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
 
+# @attr.s(hash=True, repr=False)
+# class Prediction(Node):
+#     lhs = attr.ib(type=Node) 
+#     relation = attr.iv(type=Node)
+#     rhs = attr.ib(type=Node)
+    
+
 @attr.s(hash=True, repr=False)
 class Compare(Node):
     iv = attr.ib(type=Node) # groups to compare
     dv = attr.ib(type=Node) # value/metric to compare the groups on
+    prediction = attr.ib(type=Node) # TODO create separate AST Node for predictions? 
+
 
 @attr.s(hash=True, repr=False)
 class Mean(Node):
@@ -142,7 +151,7 @@ class Mean(Node):
 #     def __repr__(self):
 #         return f"{self.rhs} + {self.lhs}"
 
-# @attr.s(hash=True, repr=False)
+# @attr.s(hash=True, repr=False
 # class Sub(Eq_Node): 
 #     rhs = attr.ib(type=Node)
 #     lhs = attr.ib(type=Node)
@@ -214,9 +223,12 @@ class Mean(Node):
 # TODO: Should definitely check that the values that are passed are correct/exist/legit
 # Value = Union[Node, int, float, str] # Allow for Node but also for raw int/float/str values (from domain knowledge)
 
-@attr.s(hash=True)
+@attr.s(hash=True, cmp=False)
 class Literal(Node):
     value = attr.ib(type=Union[int, float, str])
+
+    def __gt__(self, other):
+        return GreaterThan(self, other)
 
 # @attr.s(auto_attribs=True)
 # class Relation(Node):

@@ -382,28 +382,68 @@ def evaluate(dataset: Dataset, expr: Node):
     elif isinstance(expr, Compare): 
         groups = [] # list of variables comparing
 
-        #TODO: Computed Properties of Data
-        #[dtypes, normality test, residuals?, ]
-
         # independent? paired tests
         # one or two tailed tests?
 
+        # Check "well-formedness"
         for e in expr.iv: 
             group = evaluate(dataset, e)
             assert isinstance(group, VarData)
             groups.append(group)
+        import pdb; pdb.set_trace()
         assert (len(groups) == 2) # Just comparing 2 groups for now
         assert (groups[0].metadata['dtype'] == groups[1].metadata['dtype']) # assert they are the same datatype
         iv_dtype = groups[0].metadata['dtype']
-
         dv = evaluate(dataset, expr.dv)
         assert isinstance(dv, VarData)
+
+        # Check properties of the data
+        #TODO: Computed Properties of Data
+        #[dtypes, normality test, residuals?, variance]
+        iv_data = [] # 2D array corresponding to data from each group, group[i]'s data is in iv_data[i]
+        for g in groups: 
+            ind = g.dataframe.index.values
+            group_data = [dv.dataframe.loc[i] for i in ind]
+            iv_data.append(group_data)
+        
+        # Check variance using Levene's test
+        eq_var = False
+        import pdb; pdb.set_trace()
+        levene = stats.levene(iv_data[0], iv_data[1]).pvalue
+        if levene > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
+            eq_var = True
+        
+
 
         # If Nominal x Nominal, do X
         if (iv_dtype is DataType.NOMINAL):
             if ((dv.metadata['dtype'] is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO) and isnormal(dv.dataframe)):
-                # t-test - 2 independent samples of paired?
-                raise AssertionError ('Not implemented - ttests')
+                # 2-tailed vs. 1 -tailed -- based on hypothesis
+
+                if (isinstance(expr.prediction, Equal) or isinstance(expr.prediction, NotEqual)):
+                    # two-tailed test
+                    raise NotImplemented
+                elif (isinstance(expr.prediction, LessThan) or isinstance(expr.prediction, LessThanEqual)): 
+                    # 1-tailed test
+                    # ??? How should treat the Les than EQUAL TO? 
+                    raise NotImplemented
+                elif (isinstance(expr.prediction, GreaterThan) or isinstance(expr.prediction, GreaterThanEqual)): 
+                    # 1-tailed test
+                    # ??? How should treat the Les than EQUAL TO?
+                    
+                    ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
+                    import pdb; pdb.set_trace()
+                    corrected_pvalue = None
+                    if (ttest.statistic > 0):
+                        corrected_pvalue = ttest.pvalue * .5 
+                    elif (ttest.statistic < 0): 
+                        corrected_pvalue = 1 - (ttest.pvalue * .5)
+                    else: 
+                        raise ValueError(f"T statistic equals 0: {ttest.statistic}")
+                    
+                    return ResData(None,f"One-sided ttest with equal variance={eq_var}", [ttest.statistic, corrected_pvalue])
+
+                
 
             elif (dv.metadata['dtype'] is DataType.ORDINAL or iv_dtype is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO):
                 raise AssertionError ('Not implemented - Wilcoxon, Mann Whitney test')
@@ -419,16 +459,13 @@ def evaluate(dataset: Dataset, expr: Node):
                 data = dv.dataframe.loc(axis=0)[group.dataframe.index.values]
 
                 # calculate some central tendency metric
-                metric = bootstrap(data) # how know which central tendency metric to calculate? -- based on data properties
                 # Wilcoxon Mann Whitney U test
-
-                central_tendencies.append(metric)
-
-
+                import pdb; pdb.set_trace()
+                metric = bootstrap(data) # how know which central tendency metric to calculate? -- based on data properties
             
             # compare these measures of central tendency
             # estimates (confidence intervals, etc)
-            ResData([{}, {}], test: '', test_results: '')
+            # ResData([{}, {}], test: '', test_results: '')
             # NHST tests?
             
             
@@ -449,13 +486,13 @@ def evaluate(dataset: Dataset, expr: Node):
         bs.bootstrap(var.dataframe, stat_func=bs_stats.mean)
         raise Exception('Not implemented Mean')
     
-    elif isinstance(expr, Median):
-        raise Exception('Not implemented Median')
+    # elif isinstance(expr, Median):
+    #     raise Exception('Not implemented Median')
 
 
     
-    elif isinstance(expr, Add): 
-        raise Exception('Not implemented Add')
+    # elif isinstance(expr, Add): 
+    #     raise Exception('Not implemented Add')
 
     # TODO all the other arithmetic....
 
@@ -464,6 +501,7 @@ def evaluate(dataset: Dataset, expr: Node):
 
 # helper method
 def bootstrap(data):
+    import pdb; pdb.set_trace()
     print('Do something with incoming data')
 
 """
@@ -474,8 +512,10 @@ def bootstrap(data):
             'point_est': '', 
             }
 """
-    raise Exception('Not implemented BOOTSTRAP')
+    # raise Exception('Not implemented BOOTSTRAP')
 
+def isnormal(data): 
+    return True
 
 # TODO More USER FACING
 # Takes all evaluated results, stores for call and then outputs the results in a dictionary/table
