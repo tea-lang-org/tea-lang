@@ -388,10 +388,23 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
     #     raise Exception('Not implemented RELATE')
 
     elif isinstance(expr, Compare): 
+        xs = is_well_formed_compare(expr)
+
+        # Form dictionary with characteristics that we care about
+        {
+            'sample size': , # could be range (instead of single val)
+            'effect size': , # could be range (instead of single val)
+            'alpha': , # Type 1 error rate
+
+
+            'normality': normality_test, # could also be more generic distribution info
+            'equal_variance': equal_variance,
+            'correlation': 
+            #'' other things!
+        }
+
         groups = [] # list of variables comparing
 
-        # independent? paired tests
-        # one or two tailed tests?
 
         # Check "well-formedness"
         for e in expr.groups: 
@@ -407,9 +420,12 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
         # Check properties of the data
         #TODO: Computed Properties of Data
         #[dtypes, normality test, residuals?, variance]
+
+
         iv_data = [] # 2D array corresponding to data from each group, group[i]'s data is in iv_data[i]
         for g in groups: 
             ind = g.dataframe.index.values
+            import pdb; pdb.set_trace()
             group_data = [dv.dataframe.loc[i] for i in ind]
             iv_data.append(group_data)
         
@@ -437,8 +453,16 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
                     # 1-tailed test
                     # ??? How should treat the Les than EQUAL TO?
                     
-                    # if (design['between subjects'])
-                    ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
+                    if (expr.iv.name in design['between subjects']):
+                        # independent samples
+                        ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
+                    elif (expr.iv.name in design['within subjects']):
+                        # dependent samples
+                        
+                        # split the samples
+                        import pdb; pdb.set_trace()
+                        ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
+
                     corrected_pvalue = None
                     if (ttest.statistic > 0):
                         corrected_pvalue = ttest.pvalue * .5 
