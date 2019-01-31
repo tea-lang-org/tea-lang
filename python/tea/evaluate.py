@@ -3,6 +3,7 @@ from .dataset import Dataset
 
 import attr
 from typing import Any
+from types import SimpleNamespace # allows for dot notation access for dictionaries
 
 from scipy import stats # Stats library used
 import statsmodels.api as sm
@@ -107,6 +108,15 @@ class Value(object):
 class VarData(Value):
     dataframe: Any
     metadata: Any
+
+@attr.s(init=True, auto_attribs=True)
+class GroupsData(Value): # TODO probably want to rename this
+    dataframes: Any
+    metadata: Any  # not totally sure but could include vardata types? 
+    # list of characteristics about the groups that are used to determine statistical test
+    distribution: Any 
+    variance: Any 
+
 
 @attr.s(init=True, auto_attribs=True, str=False)
 class ResData(Value):
@@ -388,32 +398,23 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
     #     raise Exception('Not implemented RELATE')
 
     elif isinstance(expr, Compare): 
-        xs = is_well_formed_compare(expr)
+        ivs = is_well_formed_compare(dataset, expr)
 
         # Form dictionary with characteristics that we care about
-        {
-            'sample size': , # could be range (instead of single val)
-            'effect size': , # could be range (instead of single val)
-            'alpha': , # Type 1 error rate
+        # {
+        #     # These could be Power data structure or passed separately from the Groups data
+        #     'sample size': , # could be range (instead of single val)
+        #     'effect size': , # could be range (instead of single val)
+        #     'alpha': , # Type 1 error rate
 
+        #     # in GroupsData 
+        #     'normality': normality_test, # could also be more generic distribution info
+        #     'equal_variance': equal_variance,
+        #     'correlation': 
+        #     #'' other things!
+        # }
 
-            'normality': normality_test, # could also be more generic distribution info
-            'equal_variance': equal_variance,
-            'correlation': 
-            #'' other things!
-        }
-
-        groups = [] # list of variables comparing
-
-
-        # Check "well-formedness"
-        for e in expr.groups: 
-            group = evaluate(dataset, e)
-            assert isinstance(group, VarData)
-            groups.append(group)
-        assert (len(groups) == 2) # Just comparing 2 groups for now
-        assert (groups[0].metadata['dtype'] == groups[1].metadata['dtype']) # assert they are the same datatype
-        iv_dtype = groups[0].metadata['dtype']
+        iv_dtype = ivs[0].metadata['dtype']
         dv = evaluate(dataset, expr.dv)
         assert isinstance(dv, VarData)
 
@@ -423,7 +424,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
 
 
         iv_data = [] # 2D array corresponding to data from each group, group[i]'s data is in iv_data[i]
-        for g in groups: 
+        for g in ivs: 
             ind = g.dataframe.index.values
             import pdb; pdb.set_trace()
             group_data = [dv.dataframe.loc[i] for i in ind]
@@ -483,7 +484,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
         elif (iv_dtype is DataType.ORDINAL):
 
             central_tendencies = []
-            for group in groups: 
+            for group in ivs: 
                 # get the iv data for ivs
                 data = dv.dataframe.loc(axis=0)[group.dataframe.index.values]
 
@@ -532,6 +533,21 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
 def bootstrap(data):
     import pdb; pdb.set_trace()
     print('Do something with incoming data')
+
+
+# @returns array of variables 
+def is_well_formed_compare(dataset, expr):
+    xs = [] # list of variables comparing
+
+    # Check "well-formedness"
+    for e in expr.groups: 
+        group = evaluate(dataset, e)
+        assert isinstance(group, VarData)
+        xs.append(group)
+    assert (len(xs) == 2) # Just comparing 2 groups for now
+    assert (xs[0].metadata['dtype'] == xs[1].metadata['dtype']) # assert they are the same datatype
+
+    return xs
 
 """
     return {
