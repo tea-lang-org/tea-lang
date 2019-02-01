@@ -111,7 +111,7 @@ class VarData(Value):
 
 @attr.s(init=True, auto_attribs=True)
 class GroupsData(Value): # TODO probably want to rename this
-    dataframes: Any
+    dataframes: SimpleNamespace
     metadata: Any  # not totally sure but could include vardata types? 
     # list of characteristics about the groups that are used to determine statistical test
     distribution: Any 
@@ -140,6 +140,7 @@ class ResData(Value):
 def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
     if isinstance(expr, Variable):
         dataframe = dataset[expr.name]
+        import pdb; pdb.set_trace()
         metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
         return VarData(dataframe, metadata)
 
@@ -398,7 +399,10 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
     #     raise Exception('Not implemented RELATE')
 
     elif isinstance(expr, Compare): 
-        ivs = is_well_formed_compare(dataset, expr)
+        groups = is_well_formed_compare(dataset, expr) # list of groups
+        dv = evaluate(dataset, expr.dv)
+
+        assert isinstance(dv, VarData)
 
         # Form dictionary with characteristics that we care about
         # {
@@ -414,28 +418,12 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
         #     #'' other things!
         # }
 
-        iv_dtype = ivs[0].metadata['dtype']
-        dv = evaluate(dataset, expr.dv)
-        assert isinstance(dv, VarData)
-
         # Check properties of the data
         #TODO: Computed Properties of Data
         #[dtypes, normality test, residuals?, variance]
 
-
-        iv_data = [] # 2D array corresponding to data from each group, group[i]'s data is in iv_data[i]
-        for g in ivs: 
-            ind = g.dataframe.index.values
-            import pdb; pdb.set_trace()
-            group_data = [dv.dataframe.loc[i] for i in ind]
-            iv_data.append(group_data)
-        
-        # Check variance using Levene's test
-        eq_var = False
-        levene = stats.levene(iv_data[0], iv_data[1]).pvalue
-        if levene > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
-            eq_var = True
-        
+        import pdb; pdb.set_trace()
+        groups_data = compute_data_properties(dataset, groups, dv)        
 
 
         # If Nominal x Nominal, do X
@@ -535,7 +523,9 @@ def bootstrap(data):
     print('Do something with incoming data')
 
 
-# @returns array of variables 
+# @param: dataset - the Dataset used to back/execute tests
+# @param: expr - Compare AST node used to construct list of VarData
+# @returns If well formed, returns list of VarData, containing data for each group in expr | Else, throws AssertionError
 def is_well_formed_compare(dataset, expr):
     xs = [] # list of variables comparing
 
@@ -549,6 +539,27 @@ def is_well_formed_compare(dataset, expr):
 
     return xs
 
+def compute_data_properties(dataset, groups, dv):
+    iv_dtype = groups[0].metadata['dtype']
+
+    # iv_data = SimpleNamespace()
+    iv_data = []
+    for g in groups: 
+        ind = g.dataframe.index.values
+        group_data = [dv.dataframe.loc[i] for i in ind]
+        # import pdb; pdb.set_trace()
+        iv_data.append(group_data)
+    
+
+    # Form Groups Data
+    return GroupsData(iv_data, None, distribution=[is_normal(), -1], variance=is_equal_variance(iv_data))
+
+     dataframes: SimpleNamespace
+    metadata: Any  # not totally sure but could include vardata types? 
+    # list of characteristics about the groups that are used to determine statistical test
+    distribution: Any 
+    variance: Any 
+
 """
     return {
             'var_name': '',
@@ -560,7 +571,17 @@ def is_well_formed_compare(dataset, expr):
     # raise Exception('Not implemented BOOTSTRAP')
 
 def isnormal(data): 
-    return True
+    normality = stats.normaltest(data)
+
+def is_equal_variance(iv_data: list):
+    # Check variance using Levene's test
+    eq_var = False
+    levene = stats.levene(iv_data[0], iv_data[1])
+    test_res = (levene.w, levene.pvalue)
+    if test_res[1] > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
+        eq_var = True
+    
+    return (eq_var, test_res)
 
 # TODO More USER FACING
 # Takes all evaluated results, stores for call and then outputs the results in a dictionary/table

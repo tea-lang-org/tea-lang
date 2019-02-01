@@ -18,7 +18,7 @@ class Dataset(object):
     def __attrs_post_init__(self): 
         if self.dfile: 
             self.data = pd.read_csv(self.dfile)
-            self.row_pids = self.data[self.pid_col_name] # Change/update based on parameter that is passed to constructor??
+            # self.row_pids = self.data[self.pid_col_name] # Change/update based on parameter that is passed to constructor??
 
         # Reindex DataFrame indices to be pids
         self.data.set_index(self.pid_col_name, inplace=True)

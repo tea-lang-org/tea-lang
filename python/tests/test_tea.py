@@ -251,7 +251,7 @@ def test_compare():
     condition = nominal('condition', ['microtask', 'macrotask'])
     accuracy = ratio('accuracy', drange=[0,50])
     variables = [condition, accuracy]
-    file_path = './datasets/bivariate_mini.csv'
+    file_path = './datasets/bivariate_mini_within.csv'
     
     experimental_design = {
                             'independent variables': 'condition',
