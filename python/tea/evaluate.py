@@ -140,7 +140,7 @@ class ResData(Value):
 def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
     if isinstance(expr, Variable):
         dataframe = dataset[expr.name]
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
         return VarData(dataframe, metadata)
 
@@ -552,13 +552,14 @@ def compute_data_properties(dataset, groups, dv):
     
 
     # Form Groups Data
-    return GroupsData(iv_data, None, distribution=[is_normal(), -1], variance=is_equal_variance(iv_data))
+    return iv_data
+    # return GroupsData(iv_data, None, distribution=[isnormal(), -1], variance=is_equal_variance(iv_data))
 
-     dataframes: SimpleNamespace
-    metadata: Any  # not totally sure but could include vardata types? 
-    # list of characteristics about the groups that are used to determine statistical test
-    distribution: Any 
-    variance: Any 
+    # dataframes: SimpleNamespace
+    # metadata: Any  # not totally sure but could include vardata types? 
+    # # list of characteristics about the groups that are used to determine statistical test
+    # distribution: Any 
+    # variance: Any 
 
 """
     return {

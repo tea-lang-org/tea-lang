@@ -224,50 +224,29 @@ def test_select_ge():
                 tmp = data[data >= midpoint]
                 assert(sub_ds.equals(tmp))
 
-def test_compare():
-    # condit_cat = ['microtask', 'macrotask']
-
-    # import tea
+# def test_compare():
+#     # BETWEEN SUBJECTS
+#     condition = nominal('condition', ['microtask', 'macrotask'])
+#     accuracy = ratio('accuracy', drange=[0,50])
+#     variables = [condition, accuracy]
+#     file_path = './datasets/bivariate_mini.csv'
     
-    # dataset = './datasets/bivariate_mini.csv'
-    # variables = [nominal('condition', ['microtask', 'macrotask']), ratio('accuracy', drange=[0,50])]
-    # experimental_design = {
-    #                         'independent variables': 'condition',
-    #                         'dependent variables': 'accuracy',
-    #                         'between subjects': 'condition',
-    #                     }
-    # ds = load_data(dataset, variables, 'participant_id')
+#     experimental_design = {
+#                             'independent variables': 'condition',
+#                             'dependent variables': 'accuracy',
+#                             'between subjects': 'condition',
+#                         }
 
-    # stat = hypothesize(condition, accuracy, 'microtask > macrotask') 
-    # results = evaluate(ds, stat, experimental_design) # send to interpreter
-    # print(res) 
+#     ds = load_data(file_path, variables, 'participant_id')
+#     # hyp = hypothesize(iv='condition', dv='accuracy', prediction='microtask > macrotask') #-- maybe this is just compare by another name
+#     # ^^ PREDICTION helps us determine if we should be looking at one or two tailed tests
 
+#     stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
+#     res = evaluate(ds, stat, experimental_design)
+#     print(res) # write prettier str
+#     import pdb; pdb.set_trace()
+#     assert (res.test_results[1] < .05) # need to write better tests 
 
-
-
-
-
-    # BETWEEN SUBJECTS
-    condition = nominal('condition', ['microtask', 'macrotask'])
-    accuracy = ratio('accuracy', drange=[0,50])
-    variables = [condition, accuracy]
-    file_path = './datasets/bivariate_mini_within.csv'
-    
-    experimental_design = {
-                            'independent variables': 'condition',
-                            'dependent variables': 'accuracy',
-                            'between subjects': 'condition',
-                        }
-
-    ds = load_data(file_path, variables, 'participant_id')
-    # hyp = hypothesize(iv='condition', dv='accuracy', prediction='microtask > macrotask') #-- maybe this is just compare by another name
-    # ^^ PREDICTION helps us determine if we should be looking at one or two tailed tests
-
-    stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
-    res = evaluate(ds, stat, experimental_design)
-    print(res) # write prettier str
-    import pdb; pdb.set_trace()
-    assert (res.test_results[1] < .05) # need to write better tests 
 
      # WITHIN SUBJECTS
     # condition = nominal('condition', ['microtask', 'macrotask'])
@@ -290,6 +269,21 @@ def test_compare():
     # print(res) # write prettier str
     # assert (res.test_results[1] < .05) # need to write better tests 
     
+def test_dataset_query():
+    condition = nominal('condition', ['microtask', 'macrotask'])
+    accuracy = ratio('accuracy', drange=[0,50])
+    variables = [condition, accuracy]
+    file_path = './datasets/bivariate_mini.csv'
+    
+    experimental_design = {
+                            'independent variables': 'condition',
+                            'dependent variables': 'accuracy',
+                            'between subjects': 'condition',
+                        }
+
+    ds = load_data(file_path, variables, 'participant_id')
+
+    ds.select('condition', ["condition == 'microtask'"]) # this is the correct way to build up a query
 
 # age_data = [32,35,45,23,50,32,35,45,23,50]
 # edu_data = ['high school','college','high school','PhD','PhD','high school','college','high school','PhD','PhD']

@@ -3,6 +3,7 @@ from .ast import Variable, DataType
 import attr
 import pandas as pd
 import os
+from typing import Dict
 
 BASE_PATH = os.getcwd()
 
@@ -46,6 +47,43 @@ class Dataset(object):
                 return { 'dtype': v.dtype, 
                         'categories': v.categories} 
 
+
+    # SQL style select
+    def select(self, target_var_name: str, where: list):
+        # TODO should check that the query is valid (no typos, etc.) before build
+        
+        def build_query(where: list):
+            query = ''
+
+            #build up query based on where clauses 
+            for i, e in enumerate(where):
+                query += e
+                
+                if (i+1 < len(where)):
+                    query += '&'
+            return query
+
+        df = self.data
+        query = build_query(where)
+        
+        import pdb; pdb.set_trace()
+        
+        res = df.query(query)
+        import pdb; pdb.set_trace()
+
+
+
+    
     # @param indices are a list of indices for rows that contain the desired data
     def get_subset(self, indices:list):
         pass
+
+
+# Build SQL like conditions for selecting data
+def build_conditions(data, where: Dict[str,str]):
+    if not where:
+        return
+    elif len(where) == 1:
+        col, val = where.items()
+        return lambda: (data[col] == val)
+        # col, val in where.items(): 
