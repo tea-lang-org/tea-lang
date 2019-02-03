@@ -1,8 +1,8 @@
 import attr
 import os
 import csv
-import pandas as pd
-import numpy as np
+# import pandas as pd
+# import numpy as np
 
 from enum import Enum
 from typing import Dict, Union
@@ -134,9 +134,9 @@ class GreaterThanEqual(Node):
 @attr.s(hash=True, repr=False)
 class Compare(Node):
     iv = attr.ib(type=Node) # name of Variable from which the groups come
-    groups = attr.ib(type=Node) # groups to compare
+    # groups = attr.ib(type=Node) # groups to compare
     dv = attr.ib(type=Node) # value/metric to compare the groups on
-    prediction = attr.ib(type=Node) # TODO create separate AST Node for predictions? 
+    predictions = attr.ib(type=list) # list of Nodes
 
 
 @attr.s(hash=True, repr=False)

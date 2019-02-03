@@ -110,12 +110,13 @@ class VarData(Value):
     metadata: Any
 
 @attr.s(init=True, auto_attribs=True)
-class GroupsData(Value): # TODO probably want to rename this
-    dataframes: SimpleNamespace
-    metadata: Any  # not totally sure but could include vardata types? 
-    # list of characteristics about the groups that are used to determine statistical test
-    distribution: Any 
-    variance: Any 
+class CompData(Value): # TODO probably want to rename this
+    dataframes: dict # or SimpleNamespace?
+    # metadata: Any  # not totally sure but could include vardata types? 
+    # set of characteristics about the groups that are used to determine statistical test
+    properties: SimpleNamespace
+    # distribution: Any  (--> properties.distribution)
+    # variance: Any (--> properties.variance)
 
 
 @attr.s(init=True, auto_attribs=True, str=False)
@@ -399,10 +400,10 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
     #     raise Exception('Not implemented RELATE')
 
     elif isinstance(expr, Compare): 
-        groups = is_well_formed_compare(dataset, expr) # list of groups
-        dv = evaluate(dataset, expr.dv)
-
-        assert isinstance(dv, VarData)
+        import pdb; pdb.set_trace()
+        # groups = is_well_formed_compare(dataset, expr) # list of groups
+        # dv = evaluate(dataset, expr.dv)
+        # assert isinstance(dv, VarData)
 
         # Form dictionary with characteristics that we care about
         # {
@@ -421,9 +422,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, Value]=None):
         # Check properties of the data
         #TODO: Computed Properties of Data
         #[dtypes, normality test, residuals?, variance]
-
-        import pdb; pdb.set_trace()
-        groups_data = compute_data_properties(dataset, groups, dv)        
+          
+        data_props = compute_data_properties(dataset, expr)        
 
 
         # If Nominal x Nominal, do X
@@ -539,27 +539,98 @@ def is_well_formed_compare(dataset, expr):
 
     return xs
 
-def compute_data_properties(dataset, groups, dv):
-    iv_dtype = groups[0].metadata['dtype']
 
-    # iv_data = SimpleNamespace()
-    iv_data = []
-    for g in groups: 
-        ind = g.dataframe.index.values
-        group_data = [dv.dataframe.loc[i] for i in ind]
+def compute_distribution(data):
+    # Check normality of data
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html
+    # Based on D’Agostino, R. B. (1971), “An omnibus test of normality for moderate and large sample size”, Biometrika, 58, 341-348
+    # and D’Agostino, R. and Pearson, E. S. (1973), “Tests for departure from normality”, Biometrika, 60, 613-622
+    # Null hypothesis is that distribution comes from Normal Distribution
+    # Rejecting null means that distribution is NOT normal
+    norm_test = stats.normaltest(data, axis=0)
+    # return ('normality', norm_test[0], norm_test[1])
+    return (norm_test[0], norm_test[1])
+
+    # TODO: may want to compute/find the best distribution if not normal
+
+def is_normal(data):
+    norm_test = compute_distribution(data)
+    return (norm_test[2] < .05)
+
+def compute_variance(groups_data):
+    # compute variance for each group
+
+    # Levene test to test for equal variances - Leven is more robust to nonnormal data than Bartlett's test
+    # Null Hypothesis is that samples have the same variances
+    # Rejecting null means that samples have different variances
+    # Default/currently using .05 alpha level
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
+    
+    keys = list(groups_data.keys())
+    # levene_test = stats.levene({groups_data[k].values} for k in keys)
+    
+    levene_test = stats.levene(groups_data[keys[0]], groups_data[keys[1]])
+    # return ('equal_variance', levene_test[0], levene_test[1])
+    return (levene_test[0], levene_test[1])
+
+
+def compute_data_properties(dataset, expr: Node):
+
+    if isinstance(expr, Compare):
+        # list of groups that we are interested in
+        groups = []
+        for p in expr.predictions:
+            assert(p.lhs and p.rhs) # assert that each prediction has a lhs and rhs
+            groups.append(p.lhs.value)
+            groups.append(p.rhs.value)
+
+        data = dict()
+        #let's get data for those groups
+        for g in groups: 
+            where = expr.iv.name
+            where += (" == \'" + g + "\'")
+            data[g] = dataset.select(expr.dv.name, [where])
+        
         # import pdb; pdb.set_trace()
-        iv_data.append(group_data)
+        # data = SimpleNamespace(**data)
+        # import pdb; pdb.set_trace()
+
+        # Calculate various stats/preconditional properties
+        # Assign intermediate values to simplenamespace var (see CompData vars)
+        props = SimpleNamespace()
+        # For debugging: Could change dist values here
+        
+        # distribution
+        props.dist = compute_distribution(dataset.select(expr.dv.name))
+        # variance
+        props.var = compute_variance(data)
+        import pdb; pdb.set_trace()
+
+        # What is the metadata for CompData?
+
+        # return CompData that has this data and other metadata
+        return CompData(data, props)
+
+    # iv_dtype = groups[0].metadata['dtype']
+
+    # # iv_data = SimpleNamespace()
+    # iv_data = []
+    # for g in groups: 
+    #     ind = g.dataframe.index.values
+    #     group_data = [dv.dataframe.loc[i] for i in ind]
+    #     # import pdb; pdb.set_trace()
+    #     iv_data.append(group_data)
     
 
     # Form Groups Data
-    return iv_data
+    # return iv_data
     # return GroupsData(iv_data, None, distribution=[isnormal(), -1], variance=is_equal_variance(iv_data))
 
-    # dataframes: SimpleNamespace
-    # metadata: Any  # not totally sure but could include vardata types? 
-    # # list of characteristics about the groups that are used to determine statistical test
-    # distribution: Any 
-    # variance: Any 
+    dataframes: SimpleNamespace
+    metadata: Any  # not totally sure but could include vardata types? 
+    # list of characteristics about the groups that are used to determine statistical test
+    distribution: Any 
+    variance: Any 
 
 """
     return {

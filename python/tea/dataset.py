@@ -49,9 +49,9 @@ class Dataset(object):
 
 
     # SQL style select
-    def select(self, target_var_name: str, where: list):
+    def select(self, col: str, where: list = None):
         # TODO should check that the query is valid (no typos, etc.) before build
-        
+
         def build_query(where: list):
             query = ''
 
@@ -64,26 +64,19 @@ class Dataset(object):
             return query
 
         df = self.data
-        query = build_query(where)
-        
-        import pdb; pdb.set_trace()
-        
-        res = df.query(query)
-        import pdb; pdb.set_trace()
+        if where: # not None
+            query = build_query(where)
+            res = df.query(query)[col] # makes a copy
+        else: 
+            res = df[col]
 
-
-
-    
-    # @param indices are a list of indices for rows that contain the desired data
-    def get_subset(self, indices:list):
-        pass
-
+        return res
 
 # Build SQL like conditions for selecting data
-def build_conditions(data, where: Dict[str,str]):
-    if not where:
-        return
-    elif len(where) == 1:
-        col, val = where.items()
-        return lambda: (data[col] == val)
-        # col, val in where.items(): 
+# def build_conditions(data, where: Dict[str,str]):
+#     if not where:
+#         return
+#     elif len(where) == 1:
+#         col, val = where.items()
+#         return lambda: (data[col] == val)
+#         # col, val in where.items(): 
