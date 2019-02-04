@@ -234,6 +234,7 @@ def test_compare_bivariate_between():
                             'independent variables': 'condition',
                             'dependent variables': 'accuracy',
                             'between subjects': 'condition',
+                            'alpha': 1
                         }
 
     ds = load_data(file_path, variables, 'participant_id')

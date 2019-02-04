@@ -141,18 +141,27 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
     return var_name in design['within subjects'] if ('between subjects' in design) else False
 
 def t_test_ind(expr: Compare, comp_data: CompData):
-    # 2-tailed vs. 1 -tailed ttest -- based on hypothesis#
-    # if (isinstance(expr.prediction, Equal) or isinstance(expr.prediction, NotEqual)):
+    # HOW DO WE DEAL WITH MORE THAN ONE PREDICTION???
+    # - should check that all predictions make sense (involve actual/legit values?)
+    # - really a matter of INTREPRETATION for the predictions -- p-value, and maybe multiple comparison corrections??
+
+    assert(len(comp_data.dataframes) == 2)
+    assert(len(expr.predictions) == 1)
+    pred = expr.predictions[0]
+
+    if (isinstance(pred, Equal) or isinstance(pred, NotEqual)):
                 #     # two-tailed test
                 #     raise NotImplemented
-                # elif (isinstance(expr.prediction, LessThan) or isinstance(expr.prediction, LessThanEqual)): 
+        pass
+    elif (isinstance(pred, LessThan) or isinstance(pred, LessThanEqual)): 
                 #     # 1-tailed test
                 #     # ??? How should treat the Les than EQUAL TO? 
                 #     raise NotImplemented
-                # elif (isinstance(expr.prediction, GreaterThan) or isinstance(expr.prediction, GreaterThanEqual)): 
+        pass
+    elif (isinstance(pred, GreaterThan) or isinstance(pred, GreaterThanEqual)): 
                 #     # 1-tailed test
                     # ??? How should treat the Les than EQUAL TO?
-
+        import pdb; pdb.set_trace()
         # ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
 
     #                 corrected_pvalue = None
@@ -165,7 +174,7 @@ def t_test_ind(expr: Compare, comp_data: CompData):
                     
     #                 return ResData(expr.iv, expr.dv, None, f"one-sided ttest with equal variance={eq_var}", [ttest.statistic, corrected_pvalue])
 
-    raise NotImplementedError
+    # raise NotImplementedError
 
 def t_test_paired(expr: Compare, comp_data: CompData):
     raise NotImplementedError
