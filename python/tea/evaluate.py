@@ -115,8 +115,6 @@ class CompData(Value): # TODO probably want to rename this
     # metadata: Any  # not totally sure but could include vardata types? 
     # set of characteristics about the groups that are used to determine statistical test
     properties: SimpleNamespace
-    # distribution: Any  (--> properties.distribution)
-    # variance: Any (--> properties.variance)
 
 
 @attr.s(init=True, auto_attribs=True, str=False)
@@ -604,7 +602,6 @@ def compute_data_properties(dataset, expr: Node):
         props.dist = compute_distribution(dataset.select(expr.dv.name))
         # variance
         props.var = compute_variance(data)
-        import pdb; pdb.set_trace()
 
         # What is the metadata for CompData?
 
