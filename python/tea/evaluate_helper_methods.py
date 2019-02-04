@@ -19,11 +19,13 @@ def compute_data_properties(dataset, expr: Node):
     if isinstance(expr, Compare):
 
         # Build up metadata for CompData to return
-        metadata = SimpleNamespace()
-        metadata.iv_name = expr.iv.name
-        metadata.iv_dtype = expr.iv.dtype
-        metadata.dv_name = expr.dv.name
-        metadata.dv_dtype = expr.dv.dtype
+        # metadata = SimpleNamespace()
+        # metadata.iv_name = expr.iv.name
+        # metadata.iv_dtype = expr.iv.dtype
+        # metadata.dv_name = expr.dv.name
+        # metadata.dv_dtype = expr.dv.dtype
+
+        # predictions = expr.predictions
 
         # Assumes we have categorical IV and continous DV
         # list of groups that we are interested in
@@ -39,6 +41,9 @@ def compute_data_properties(dataset, expr: Node):
             where = expr.iv.name
             where += (" == \'" + g + "\'")
             data[g] = dataset.select(expr.dv.name, [where])
+        # Try to create name that is unlikely for user to use
+        # data['__NUM_GROUPS__'] = len(data) 
+        # if iv is numeric, __NUM_GROUPS__ should be 1
         
         # import pdb; pdb.set_trace()
         # data = SimpleNamespace(**data)
@@ -55,7 +60,8 @@ def compute_data_properties(dataset, expr: Node):
         props.var = compute_variance(data)
 
         # return CompData that has this data and other metadata
-        return CompData(dataframes=data, metadata=metadata, properties=props)
+        return CompData(dataframes=data, properties=props)
+        # return CompData(dataframes=data, metadata=metadata, predictions=predictions, properties=props)
 
 def compute_distribution(data):
     # Check normality of data
@@ -98,19 +104,25 @@ def compute_variance(groups_data):
 
 
 # May want to expose ONLY these functions
-def is_normal(data):
-    norm_test = compute_distribution(data)
-    return (norm_test[2] < .05)
+# def is_normal(data):
+    # norm_test = compute_distribution(data)
+    # return (norm_test[2] < .05)
 
-def is_equal_variance(iv_data: list):
-    # Check variance using Levene's test
-    eq_var = False
-    levene = stats.levene(iv_data[0], iv_data[1])
-    test_res = (levene.statistic, levene.pvalue)
-    if test_res[1] > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
-        eq_var = True
+def is_normal(comp_data: CompData, alpha):
+    return comp_data.properties.dist[1] < alpha
+
+# def is_equal_variance(iv_data: list):
+#     # Check variance using Levene's test
+#     eq_var = False
+#     levene = stats.levene(iv_data[0], iv_data[1])
+#     test_res = (levene.statistic, levene.pvalue)
+#     if test_res[1] > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
+#         eq_var = True
     
-    return (eq_var, test_res)
+#     return (eq_var, test_res)
+
+def is_equal_variance(comp_data: CompData, alpha):
+    return comp_data.properties.var[1] < alpha
 
 def is_numeric(data_type: DataType):
     return data_type is DataType.INTERVAL or data_type is DataType.RATIO
@@ -128,16 +140,74 @@ def is_independent_samples(var_name: str, design: Dict[str, str]):
 def is_dependent_samples(var_name: str, design: Dict[str, str]):
     return var_name in design['within subjects'] if ('between subjects' in design) else False
 
+def t_test_ind(expr: Compare, comp_data: CompData):
+    # 2-tailed vs. 1 -tailed ttest -- based on hypothesis#
+    # if (isinstance(expr.prediction, Equal) or isinstance(expr.prediction, NotEqual)):
+                #     # two-tailed test
+                #     raise NotImplemented
+                # elif (isinstance(expr.prediction, LessThan) or isinstance(expr.prediction, LessThanEqual)): 
+                #     # 1-tailed test
+                #     # ??? How should treat the Les than EQUAL TO? 
+                #     raise NotImplemented
+                # elif (isinstance(expr.prediction, GreaterThan) or isinstance(expr.prediction, GreaterThanEqual)): 
+                #     # 1-tailed test
+                    # ??? How should treat the Les than EQUAL TO?
+
+        # ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
+
+    #                 corrected_pvalue = None
+    #                 if (ttest.statistic > 0):
+    #                     corrected_pvalue = ttest.pvalue * .5 
+    #                 elif (ttest.statistic < 0): 
+    #                     corrected_pvalue = 1 - (ttest.pvalue * .5)
+    #                 else: 
+    #                     raise ValueError(f"T statistic equals 0: {ttest.statistic}")
+                    
+    #                 return ResData(expr.iv, expr.dv, None, f"one-sided ttest with equal variance={eq_var}", [ttest.statistic, corrected_pvalue])
+
+    raise NotImplementedError
+
+def t_test_paired(expr: Compare, comp_data: CompData):
+    raise NotImplementedError
+
 ## NAIVE IMPLEMENTATION RIGHT NOW
 # TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
 # Based on the properties of data, find the most appropriate test to conduct
 # Return the test but do not execute
-def find_test(comp_data: CompData, design: Dict[str, str], **kwargs):
-    if (is_nominal(comp_data.metadata.iv_dtype) and is_independent_samples(comp_data.metadata.iv_name, design)):
-        import pdb; pdb.set_trace()
+def find_test(expr: Compare, comp_data: CompData, design: Dict[str, str], **kwargs):
+    import pdb; pdb.set_trace()
+    # Two IV groups (only applies to nominal/ordinal IVs)
+    if (len(comp_data.dataframes) == 2):
+        if (is_nominal(expr.iv.dtype) and is_independent_samples(expr.iv.name, design)):
+            if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
+                t_test_ind(expr, comp_data)
+            elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
+                raise AssertionError ('Not implemented - Wilcoxon, Mann Whitney test')
+            elif (is_nominal(expr.dv.dtype)):
+                raise AssertionError ('Not implemnted - Chi square or Fishers Exact Test')
+        elif (is_nominal(expr.iv.dtype) and is_dependent_samples(expr.iv.name, design)):
+            if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
+                t_test_paired(expr, comp_data)
+            elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
+                raise AssertionError('Not implemented - Wilcoxon signed ranks test')
+            elif (is_nominal(expr.dv.dtype)):
+                raise AssertionError('McNemar')
+    elif (len(comp_data.dataframes) == 1 and is_numeric(expr.iv.dtype)): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
+            if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
+                raise AssertionError('Not implemented - Correlation or Simple Linear Regression')
+            elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
+                raise AssertionError ('Not implemented - non-parametric correlation')
+            elif (is_nominal(expr.dv.dtype)):
+                raise AssertionError ('Not implemnted - simple logistic regression')
+    elif (len(comp_data.dataframes) > 2):
+        raise NotImplementedError
+    else: 
+        raise AssertionError('Trying to compare less than 1 variables....?')
+
+                
 
 # This is the function used to determine and then execute test based on CompData
-def execute_test(dataset: Dataset, data_props: CompData, design: Dict[str,str]): 
+def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: Dict[str,str]): 
     # For power we need sample size, effect size, alpha
     sample_size = 0
     # calculate sample size
@@ -149,7 +219,7 @@ def execute_test(dataset: Dataset, data_props: CompData, design: Dict[str,str]):
     alpha = design['alpha'] if ('alpha' in design) else .05
     
     # Find test
-    test = find_test(data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
+    test = find_test(expr, data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
 
     # Execute test
     results = test()
@@ -162,47 +232,8 @@ def execute_test(dataset: Dataset, data_props: CompData, design: Dict[str,str]):
     
     #  # If Nominal x Nominal, do X
     #     if (iv_dtype is DataType.NOMINAL):
-    #         if ((dv.metadata['dtype'] is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO) and isnormal(dv.dataframe)):
-    #             # 2-tailed vs. 1 -tailed -- based on hypothesis
 
-    #             if (isinstance(expr.prediction, Equal) or isinstance(expr.prediction, NotEqual)):
-    #                 # two-tailed test
-    #                 raise NotImplemented
-    #             elif (isinstance(expr.prediction, LessThan) or isinstance(expr.prediction, LessThanEqual)): 
-    #                 # 1-tailed test
-    #                 # ??? How should treat the Les than EQUAL TO? 
-    #                 raise NotImplemented
-    #             elif (isinstance(expr.prediction, GreaterThan) or isinstance(expr.prediction, GreaterThanEqual)): 
-    #                 # 1-tailed test
-    #                 # ??? How should treat the Les than EQUAL TO?
-                    
-    #                 if (expr.iv.name in design['between subjects']):
-    #                     # independent samples
-    #                     ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
-    #                 elif (expr.iv.name in design['within subjects']):
-    #                     # dependent samples
-                        
-    #                     # split the samples
-    #                     import pdb; pdb.set_trace()
-    #                     ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
-
-    #                 corrected_pvalue = None
-    #                 if (ttest.statistic > 0):
-    #                     corrected_pvalue = ttest.pvalue * .5 
-    #                 elif (ttest.statistic < 0): 
-    #                     corrected_pvalue = 1 - (ttest.pvalue * .5)
-    #                 else: 
-    #                     raise ValueError(f"T statistic equals 0: {ttest.statistic}")
-                    
-    #                 return ResData(expr.iv, expr.dv, None, f"one-sided ttest with equal variance={eq_var}", [ttest.statistic, corrected_pvalue])
-
-                
-
-    #         elif (dv.metadata['dtype'] is DataType.ORDINAL or iv_dtype is DataType.INTERVAL or dv.metadata['dtype'] is DataType.RATIO):
-    #             raise AssertionError ('Not implemented - Wilcoxon, Mann Whitney test')
-            
-    #         elif (dv.metadata['dtype'] is DataType.NOMINAL):
-    #             raise AssertionError ('Not implemnted - Chi square or Fishers Exact Test')
+    #         
     #     elif (iv_dtype is DataType.ORDINAL):
 
     #         central_tendencies = []

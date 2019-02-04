@@ -1,5 +1,7 @@
 # Runtime data structures used by interpreter
 
+from .ast import *
+
 import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
@@ -15,7 +17,8 @@ class VarData(Value):
 @attr.s(init=True, auto_attribs=True)
 class CompData(Value): # TODO probably want to rename this
     dataframes: dict # or SimpleNamespace?
-    metadata: SimpleNamespace
+    # metadata: SimpleNamespace
+    # predictions: Node
     # set of characteristics about the groups that are used to determine statistical test
     properties: SimpleNamespace
 
