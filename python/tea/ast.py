@@ -136,7 +136,7 @@ class Compare(Node):
     iv = attr.ib(type=Node) # name of Variable from which the groups come
     # groups = attr.ib(type=Node) # groups to compare
     dv = attr.ib(type=Node) # value/metric to compare the groups on
-    predictions = attr.ib(type=list) # list of Nodes
+    predictions = attr.ib(type=list, default=None) # list of Nodes
 
 
 @attr.s(hash=True, repr=False)

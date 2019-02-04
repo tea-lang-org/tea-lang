@@ -17,6 +17,15 @@ import bootstrapped as bs
 def compute_data_properties(dataset, expr: Node):
 
     if isinstance(expr, Compare):
+
+        # Build up metadata for CompData to return
+        metadata = SimpleNamespace()
+        metadata.iv_name = expr.iv.name
+        metadata.iv_dtype = expr.iv.dtype
+        metadata.dv_name = expr.dv.name
+        metadata.dv_dtype = expr.dv.dtype
+
+        # Assumes we have categorical IV and continous DV
         # list of groups that we are interested in
         groups = []
         for p in expr.predictions:
@@ -36,7 +45,7 @@ def compute_data_properties(dataset, expr: Node):
         # import pdb; pdb.set_trace()
 
         # Calculate various stats/preconditional properties
-        # Assign intermediate values to simplenamespace var (see CompData vars)
+        # Assign intermediate values to Simplenamespace var (see CompData vars)
         props = SimpleNamespace()
         # For debugging: Could change dist values here
         
@@ -45,10 +54,8 @@ def compute_data_properties(dataset, expr: Node):
         # variance
         props.var = compute_variance(data)
 
-        # What is the metadata for CompData?
-
         # return CompData that has this data and other metadata
-        return CompData(data, props)
+        return CompData(dataframes=data, metadata=metadata, properties=props)
 
 def compute_distribution(data):
     # Check normality of data
@@ -62,10 +69,6 @@ def compute_distribution(data):
     return (norm_test[0], norm_test[1])
 
     # TODO: may want to compute/find the best distribution if not normal
-
-def is_normal(data):
-    norm_test = compute_distribution(data)
-    return (norm_test[2] < .05)
 
 def compute_variance(groups_data):
     # compute variance for each group
@@ -93,21 +96,69 @@ def compute_variance(groups_data):
 """
     # raise Exception('Not implemented BOOTSTRAP')
 
-def isnormal(data): 
-    normality = stats.normaltest(data)
+
+# May want to expose ONLY these functions
+def is_normal(data):
+    norm_test = compute_distribution(data)
+    return (norm_test[2] < .05)
 
 def is_equal_variance(iv_data: list):
     # Check variance using Levene's test
     eq_var = False
     levene = stats.levene(iv_data[0], iv_data[1])
-    test_res = (levene.w, levene.pvalue)
+    test_res = (levene.statistic, levene.pvalue)
     if test_res[1] > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
         eq_var = True
     
     return (eq_var, test_res)
 
+def is_numeric(data_type: DataType):
+    return data_type is DataType.INTERVAL or data_type is DataType.RATIO
+
+def is_ordinal(data_type: DataType):
+    return data_type is DataType.ORDINAL
+
+def is_nominal(data_type: DataType):
+    return data_type is DataType.NOMINAL
+
+# TODO make more robust to variables that happen to be between/within -- random effects, not random effects, etc.
+def is_independent_samples(var_name: str, design: Dict[str, str]):
+    return var_name in design['between subjects'] if ('between subjects' in design) else False
+
+def is_dependent_samples(var_name: str, design: Dict[str, str]):
+    return var_name in design['within subjects'] if ('between subjects' in design) else False
+
+## NAIVE IMPLEMENTATION RIGHT NOW
+# TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
+# Based on the properties of data, find the most appropriate test to conduct
+# Return the test but do not execute
+def find_test(comp_data: CompData, design: Dict[str, str], **kwargs):
+    if (is_nominal(comp_data.metadata.iv_dtype) and is_independent_samples(comp_data.metadata.iv_name, design)):
+        import pdb; pdb.set_trace()
+
+# This is the function used to determine and then execute test based on CompData
 def execute_test(dataset: Dataset, data_props: CompData, design: Dict[str,str]): 
-    raise NotImplemented
+    # For power we need sample size, effect size, alpha
+    sample_size = 0
+    # calculate sample size
+    for df in data_props.dataframes:
+        sample_size += len(data_props.dataframes[df])
+
+    effect_size = design['effect size'] if ('effect size' in design) else [.2, .5, .8] # default range unless user defines
+    
+    alpha = design['alpha'] if ('alpha' in design) else .05
+    
+    # Find test
+    test = find_test(data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
+
+    # Execute test
+    results = test()
+
+    # Wrap results in ResData and return
+
+    
+    import pdb; pdb.set_trace()
+
     
     #  # If Nominal x Nominal, do X
     #     if (iv_dtype is DataType.NOMINAL):
