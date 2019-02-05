@@ -15,7 +15,6 @@ import bootstrapped as bs
 
 # Helper methods for Interpreter (in evaluate.py)
 def compute_data_properties(dataset, expr: Node):
-
     if isinstance(expr, Compare):
 
         # Build up metadata for CompData to return
@@ -102,11 +101,9 @@ def compute_variance(groups_data):
 """
     # raise Exception('Not implemented BOOTSTRAP')
 
-
-# May want to expose ONLY these functions
-# def is_normal(data):
-    # norm_test = compute_distribution(data)
-    # return (norm_test[2] < .05)
+def is_normal(data, alpha):
+    norm_test = compute_distribution(data)
+    return (norm_test[2] < .05)
 
 def is_normal(comp_data: CompData, alpha):
     return comp_data.properties.dist[1] < alpha
@@ -140,29 +137,32 @@ def is_independent_samples(var_name: str, design: Dict[str, str]):
 def is_dependent_samples(var_name: str, design: Dict[str, str]):
     return var_name in design['within subjects'] if ('between subjects' in design) else False
 
-def t_test_ind(expr: Compare, comp_data: CompData):
-    # HOW DO WE DEAL WITH MORE THAN ONE PREDICTION???
-    # - should check that all predictions make sense (involve actual/legit values?)
-    # - really a matter of INTREPRETATION for the predictions -- p-value, and maybe multiple comparison corrections??
-
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
+# Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True)
+#                      nan_policy (optional) 
+def t_test_ind(expr: Compare, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
     assert(len(expr.predictions) == 1)
-    pred = expr.predictions[0]
 
-    if (isinstance(pred, Equal) or isinstance(pred, NotEqual)):
-                #     # two-tailed test
-                #     raise NotImplemented
-        pass
-    elif (isinstance(pred, LessThan) or isinstance(pred, LessThanEqual)): 
-                #     # 1-tailed test
-                #     # ??? How should treat the Les than EQUAL TO? 
-                #     raise NotImplemented
-        pass
-    elif (isinstance(pred, GreaterThan) or isinstance(pred, GreaterThanEqual)): 
-                #     # 1-tailed test
-                    # ??? How should treat the Les than EQUAL TO?
-        import pdb; pdb.set_trace()
-        # ttest = stats.ttest_ind(iv_data[0], iv_data[1], equal_var=eq_var)
+    data = []
+    for key, val in comp_data.dataframes.items():
+        data.append(val)
+
+    # What if we just return a lambda and all the test signatures are the same? That way, easy to swap out with constraint version?
+    return stats.ttest_ind(data[0], data[1], equal_var=is_equal_variance(comp_data, kwargs['alpha']))
+    
+    # import pdb; pdb.set_trace()
+
+        # if (isinstance(pred, Equal) or isinstance(pred, NotEqual)):
+    #             #     # two-tailed test
+    #             #     raise NotImplemented
+    #     pass
+    # elif (isinstance(pred, LessThan) or isinstance(pred, LessThanEqual)): 
+    #             #     # 1-tailed test
+    #             #     # ??? How should treat the Les than EQUAL TO? 
+    #             #     raise NotImplemented
+    #     pass
+    # elif (isinstance(pred, GreaterThan) or isinstance(pred, GreaterThanEqual)): 
 
     #                 corrected_pvalue = None
     #                 if (ttest.statistic > 0):
@@ -176,33 +176,94 @@ def t_test_ind(expr: Compare, comp_data: CompData):
 
     # raise NotImplementedError
 
-def t_test_paired(expr: Compare, comp_data: CompData):
-    raise NotImplementedError
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
+# Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
+def mann_whitney_u(expr: Compare, comp_data: CompData, **kwargs):
+    assert(len(comp_data.dataframes) == 2)
+    assert(len(expr.predictions) == 1)
+
+    data = []
+    for key, val in comp_data.dataframes.items():
+        data.append(val)
+
+    # What if we just return a lambda and all the test signatures are the same? That way, easy to swap out with constraint version?
+    return stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+
+# https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
+# Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
+def fishers_exact(expr: Compare, comp_data: CompData, **kwargs):
+    assert(len(comp_data.dataframes) == 2)
+    assert(len(expr.predictions) == 1)
+
+    data = []
+    # calculate the 2 x 2 table 
+    table = []
+    stats.fisher_exact(table, alternative='two-sided')
+
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html
+# Parameters: a, b (array-like) | axis | nan_policy (default is 'propagate', optional)
+def t_test_paired(expr: Compare, comp_data: CompData, **kwargs):
+    assert(len(comp_data.dataframes) == 2)
+    assert(len(expr.predictions) == 1)
+
+    data = []
+    for key, val in comp_data.dataframes.items():
+        data.append(val)
+
+    return stats.ttest_rel(data[0], data[1])
+
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
+# Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
+def wilcoxon_signed_rank(expr: Compare, comp_data: CompData, **kwargs):
+    assert(len(comp_data.dataframes) == 2)
+    assert(len(expr.predictions) == 1)
+
+    data = []
+    for key, val in comp_data.dataframes.items():
+        data.append(val)
+
+    return stats.wilcoxon(data[0], data[1])
+
+# https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
+def linear_regression(expr: Compare, comp_data: CompData, **kwargs):
+
+    return stats.linregress()
+    
 
 ## NAIVE IMPLEMENTATION RIGHT NOW
 # TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
 # Based on the properties of data, find the most appropriate test to conduct
 # Return the test but do not execute
-def find_test(expr: Compare, comp_data: CompData, design: Dict[str, str], **kwargs):
-    import pdb; pdb.set_trace()
+def find_test(dataset: Dataset, expr: Compare, comp_data: CompData, design: Dict[str, str], **kwargs):
     # Two IV groups (only applies to nominal/ordinal IVs)
     if (len(comp_data.dataframes) == 2):
         if (is_nominal(expr.iv.dtype) and is_independent_samples(expr.iv.name, design)):
             if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
-                t_test_ind(expr, comp_data)
+                return lambda : t_test_ind(expr, comp_data, **kwargs)
             elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
-                raise AssertionError ('Not implemented - Wilcoxon, Mann Whitney test')
+                return lambda : mann_whitney_u(expr, comp_data, **kwargs)
             elif (is_nominal(expr.dv.dtype)):
-                raise AssertionError ('Not implemnted - Chi square or Fishers Exact Test')
+                raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
+                return lambda : fishers_exact(expr, comp_data, **kwargs)
         elif (is_nominal(expr.iv.dtype) and is_dependent_samples(expr.iv.name, design)):
             if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
-                t_test_paired(expr, comp_data)
+                return lambda : t_test_paired(expr, comp_data, **kwargs)
             elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
-                raise AssertionError('Not implemented - Wilcoxon signed ranks test')
+                return lambda : wilcoxon_signed_rank(expr, comp_data, **kwargs)
             elif (is_nominal(expr.dv.dtype)):
+                raise AssertionError('Not sure if McNemar is the correct test here - what if have more than 2 x 2 table??')
                 raise AssertionError('McNemar')
     elif (len(comp_data.dataframes) == 1 and is_numeric(expr.iv.dtype)): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
             if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
+                # For Pearson, need to check that both IV and DV are normally distributed
+                # if (is_normal(dataset[expr.iv.name], kwargs['alpha'])):
+                #     # pearson
+                # else: 
+                #     # spearman
+                
+                #simple linear regression
+
+                
                 raise AssertionError('Not implemented - Correlation or Simple Linear Regression')
             elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
                 raise AssertionError ('Not implemented - non-parametric correlation')
@@ -228,15 +289,21 @@ def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: 
     alpha = design['alpha'] if ('alpha' in design) else .05
     
     # Find test
-    test = find_test(expr, data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
-
+    stat_test = find_test(dataset, expr, data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
+    import pdb; pdb.set_trace()
+    
     # Execute test
-    results = test()
+    results = stat_test()
 
     # Wrap results in ResData and return
+    # Here we care about one-tailed vs. two-tailed
+    # Could also account for multiple testing/correction here
+    # HOW DO WE DEAL WITH MORE THAN ONE PREDICTION???
+    # - should check that all predictions make sense (involve actual/legit values?)
+    # - really a matter of INTREPRETATION for the predictions -- p-value, and maybe multiple comparison corrections??
 
-    
-    import pdb; pdb.set_trace()
+
+
 
     
     #  # If Nominal x Nominal, do X

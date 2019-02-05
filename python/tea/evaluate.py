@@ -276,10 +276,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
     # elif isinstance(expr, Relate): 
     #     raise Exception('Not implemented RELATE')
 
-    elif isinstance(expr, Compare): 
-        
-        import pdb; pdb.set_trace()
-              
+    elif isinstance(expr, Compare):               
         data_props = compute_data_properties(dataset, expr) 
 
         res = execute_test(dataset, expr, data_props, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
