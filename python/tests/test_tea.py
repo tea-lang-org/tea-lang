@@ -89,6 +89,7 @@ def test_index_in_dataset():
 def test_select_equals(): 
     for v in variables: 
         all_unique = ds.data[v.name].unique()
+
         for e in all_unique: 
             res = select(v, '==', const(e))
             sub_ds = evaluate(ds, res).dataframe
@@ -109,7 +110,6 @@ def test_select_lt():
         if (v.drange): # is ORDINAL or INTERVAL/RATIO
             if (isordinal(v)):
                 categories = v.categories.keys()
-                
                 # cat_num = v.categories.values()
                 for cat in categories:
                     num = v.categories[cat]
@@ -121,6 +121,7 @@ def test_select_lt():
                     # Selecting using STR or INT should give same answer
                     tmp_res = list(filter(lambda x: v.categories[x] < v.categories[cat], ds.data[v.name]))
                     # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
+                    import pdb; pdb.set_trace()
                     assert (sub_ds_str.tolist() == tmp_res)
                     assert (sub_ds_num.tolist() == tmp_res)
                     
@@ -128,10 +129,12 @@ def test_select_lt():
                 drange = v.drange
                 midpoint = (drange.pop() - drange.pop(0))/2
                 res = select(v, '<', const(midpoint))
+                import pdb; pdb.set_trace()
                 sub_ds = evaluate(ds, res).dataframe
 
                 data = ds.data[v.name]
                 tmp = data[data < midpoint]
+                import pdb; pdb.set_trace()
                 assert(sub_ds.equals(tmp))
 
 def test_select_le(): 

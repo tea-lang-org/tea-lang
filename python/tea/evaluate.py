@@ -17,14 +17,20 @@ import bootstrapped as bs
 # TODO: Pass effect size and alpha value as part of experimental design -- these are used to optimize for power
 def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
     if isinstance(expr, Variable):
-        dataframe = dataset[expr.name]
-        # import pdb; pdb.set_trace()
+        dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
+        # then use query to get raw data later....(for user, not interpreter?)
         metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
+        metadata['var_name'] = expr.name
+        metadata['query'] = ''
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, Literal):
         data = pd.Series([expr.value] * len(dataset.data), index=dataset.data.index) # Series filled with literal value
-        metadata = None # metadata=None means literal
+        # metadata = None # metadata=None means literal
+        metadata = dict() # metadata=None means literal
+        metadata['var_name'] = '' # because not a var in the dataset 
+        metadata['query'] = ''
+        metadata['value'] = expr.value
         return VarData(data, metadata)
 
     elif isinstance(expr, Equal):
@@ -33,8 +39,16 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         assert isinstance(lhs, VarData)
         assert isinstance(rhs, VarData)
         
+        
         dataframe = lhs.dataframe[lhs.dataframe == rhs.dataframe]
         metadata = lhs.metadata
+        if (isinstance(expr.rhs, Literal)):
+            metadata['query'] = f" == \'{rhs.metadata['value']}\'" # override lhs metadata for query
+        elif (isinstance(expr.rhs, Variable)): 
+            metadata['query'] = f" == {rhs.metadata['var_name']}"
+        else: 
+            raise ValueError(f"Not implemented for {rhs}")
+        
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, NotEqual): 
@@ -45,6 +59,12 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         
         dataframe = lhs.dataframe[lhs.dataframe != rhs.dataframe]
         metadata = lhs.metadata
+        if (isinstance(expr.rhs, Literal)):
+            metadata['query'] = " != \'\'" # override lhs metadata for query
+        elif (isinstance(expr.rhs, Variable)): 
+            metadata['query'] = f" != {rhs.metadata['var_name']}"
+        else: 
+            raise ValueError(f"Not implemented for {rhs}")
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, LessThan):
@@ -52,7 +72,6 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         rhs = evaluate(dataset, expr.rhs)
         assert isinstance(lhs, VarData)
         assert isinstance(rhs, VarData)
-
 
         dataframe = None
         metadata = rhs.metadata
@@ -62,7 +81,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         elif (lhs.metadata['dtype'] is DataType.NOMINAL):
             raise ValueError('Cannot compare nominal values with Less Than')
         elif (lhs.metadata['dtype'] is DataType.ORDINAL):
-            assert (rhs.metadata is None) # May want to add a case should RHS and LHS both be variables
+            # TODO May want to add a case should RHS and LHS both be variables
+            # assert (rhs.metadata is None) 
             comparison = rhs.dataframe.iloc[0]
             if (isinstance(comparison, str)):
                 categories = lhs.metadata['categories'] # OrderedDict
@@ -101,7 +121,12 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else:
             raise Exception(f"Invalid Less Than Operation:{lhs} < {rhs}")
 
-        
+        if (isinstance(expr.rhs, Literal)):
+            metadata['query'] = " < \'\'" # override lhs metadata for query
+        elif (isinstance(expr.rhs, Variable)): 
+            metadata['query'] = f" < {rhs.metadata['var_name']}"
+        else: 
+            raise ValueError(f"Not implemented for {rhs}")
         return VarData(dataframe, metadata)
 
     elif isinstance(expr, LessThanEqual):
@@ -119,7 +144,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         elif (lhs.metadata['dtype'] is DataType.NOMINAL):
             raise ValueError('Cannot compare nominal values with Less Than')
         elif (lhs.metadata['dtype'] is DataType.ORDINAL):
-            assert (rhs.metadata is None) # May want to add a case should RHS and LHS both be variables
+            # TODO May want to add a case should RHS and LHS both be variables
+            # assert (rhs.metadata is None)
             comparison = rhs.dataframe.iloc[0]
             if (isinstance(comparison, str)):
                 categories = lhs.metadata['categories'] # OrderedDict
@@ -159,6 +185,13 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             raise Exception(f"Invalid Less Than Equal Operation:{lhs} <= {rhs}")
 
 
+        if (isinstance(expr.rhs, Literal)):
+            metadata['query'] = " <= \'\'" # override lhs metadata for query
+        elif (isinstance(expr.rhs, Variable)): 
+            metadata['query'] = f" <= {rhs.metadata['var_name']}"
+        else: 
+            raise ValueError(f"Not implemented for {rhs}")
+
         return VarData(dataframe, metadata)
     
     elif isinstance(expr, GreaterThan):
@@ -176,7 +209,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         elif (lhs.metadata['dtype'] is DataType.NOMINAL):
             raise ValueError('Cannot compare nominal values with Greater Than')
         elif (lhs.metadata['dtype'] is DataType.ORDINAL):
-            assert (rhs.metadata is None) # May want to add a case should RHS and LHS both be variables
+            # TODO May want to add a case should RHS and LHS both be variables
+            # assert (rhs.metadata is None) 
             comparison = rhs.dataframe.iloc[0]
             if (isinstance(comparison, str)):
                 categories = lhs.metadata['categories'] # OrderedDict
@@ -215,6 +249,13 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else:
             raise Exception(f"Invalid Greater Than Operation:{lhs} > {rhs}")
 
+        if (isinstance(expr.rhs, Literal)):
+            metadata['query'] = " > \'\'" # override lhs metadata for query
+        elif (isinstance(expr.rhs, Variable)): 
+            metadata['query'] = f" > {rhs.metadata['var_name']}"
+        else: 
+            raise ValueError(f"Not implemented for {rhs}")
+
         return VarData(dataframe, metadata) 
    
     elif isinstance(expr, GreaterThanEqual):
@@ -232,7 +273,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         elif (lhs.metadata['dtype'] is DataType.NOMINAL):
             raise ValueError('Cannot compare nominal values with Greater Than Equal')
         elif (lhs.metadata['dtype'] is DataType.ORDINAL):
-            assert (rhs.metadata is None) # May want to add a case should RHS and LHS both be variables
+            # TODO May want to add a case should RHS and LHS both be variables
+            # assert (rhs.metadata is None) 
             comparison = rhs.dataframe.iloc[0]
             if (isinstance(comparison, str)):
                 categories = lhs.metadata['categories'] # OrderedDict
@@ -271,13 +313,29 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else:
             raise Exception(f"Invalid Greater Than Equal Operation:{lhs} >= {rhs}")
 
+
+        if (isinstance(expr.rhs, Literal)):
+            metadata['query'] = " >= \'\'" # override lhs metadata for query
+        elif (isinstance(expr.rhs, Variable)): 
+            metadata['query'] = f" >= {rhs.metadata['var_name']}"
+        else: 
+            raise ValueError(f"Not implemented for {rhs}")
         return VarData(dataframe, metadata) 
 
     # elif isinstance(expr, Relate): 
     #     raise Exception('Not implemented RELATE')
 
-    elif isinstance(expr, Compare):               
-        data_props = compute_data_properties(dataset, expr) 
+
+
+    elif isinstance(expr, Compare):    
+
+        iv = evaluate(dataset, expr.iv)
+        dv = evaluate(dataset, expr.dv)
+        assert isinstance(iv, VarData)
+        assert isinstance(dv, VarData)
+        import pdb; pdb.set_trace()
+
+        data_props = compute_data_properties(dataset, iv, dv, expr.predictions) 
 
         res = execute_test(dataset, expr, data_props, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
 

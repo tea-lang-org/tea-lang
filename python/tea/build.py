@@ -83,12 +83,12 @@ def predict(iv: Variable, prediction: str):
 
     # need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
     
-        lhs = prediction[:prediction.index(comparison)]
-        rhs = prediction[prediction.index(comparison)+1:]
-        assert(lhs in iv.categories)
-        assert(rhs in iv.categories)
+        # lhs = prediction[:prediction.index(comparison)]
+        # rhs = prediction[prediction.index(comparison)+1:]
+        # assert(lhs in iv.categories)
+        # assert(rhs in iv.categories)
 
-        return const(lhs) 
+        # return const(lhs) 
 
 
 # X could be the list of variables/groups want to compare on y - may only want to compare 2 groups, not all conditions

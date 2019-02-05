@@ -14,39 +14,22 @@ import pandas as pd
 import bootstrapped as bs
 
 # Helper methods for Interpreter (in evaluate.py)
-def compute_data_properties(dataset, expr: Node):
-    if isinstance(expr, Compare):
-
-        # Build up metadata for CompData to return
-        # metadata = SimpleNamespace()
-        # metadata.iv_name = expr.iv.name
-        # metadata.iv_dtype = expr.iv.dtype
-        # metadata.dv_name = expr.dv.name
-        # metadata.dv_dtype = expr.dv.dtype
-
-        # predictions = expr.predictions
-
-        # Assumes we have categorical IV and continous DV
+def compute_data_properties(dataset, iv: VarData, dv: VarData, predictions: list):
+    
+    if (is_nominal(iv.metadata['dtype']) or is_ordinal(iv.metadata['dtype'])):
         # list of groups that we are interested in
         groups = []
-        for p in expr.predictions:
+        for p in predictions:
             assert(p.lhs and p.rhs) # assert that each prediction has a lhs and rhs
             groups.append(p.lhs.value)
             groups.append(p.rhs.value)
-
         data = dict()
         #let's get data for those groups
         for g in groups: 
-            where = expr.iv.name
+            where = iv.metadata['name']
             where += (" == \'" + g + "\'")
-            data[g] = dataset.select(expr.dv.name, [where])
-        # Try to create name that is unlikely for user to use
-        # data['__NUM_GROUPS__'] = len(data) 
-        # if iv is numeric, __NUM_GROUPS__ should be 1
+            data[g] = dataset.select(dv.metadata['name'], [where])
         
-        # import pdb; pdb.set_trace()
-        # data = SimpleNamespace(**data)
-        # import pdb; pdb.set_trace()
 
         # Calculate various stats/preconditional properties
         # Assign intermediate values to Simplenamespace var (see CompData vars)
@@ -54,10 +37,9 @@ def compute_data_properties(dataset, expr: Node):
         # For debugging: Could change dist values here
         
         # distribution
-        props.dist = compute_distribution(dataset.select(expr.dv.name))
+        props.dist = compute_distribution(dataset.select(dv.metadata['name']))
         # variance
         props.var = compute_variance(data)
-
         # return CompData that has this data and other metadata
         return CompData(dataframes=data, properties=props)
         # return CompData(dataframes=data, metadata=metadata, predictions=predictions, properties=props)
@@ -296,6 +278,7 @@ def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: 
     results = stat_test()
 
     # Wrap results in ResData and return
+    # Interpret test?
     # Here we care about one-tailed vs. two-tailed
     # Could also account for multiple testing/correction here
     # HOW DO WE DEAL WITH MORE THAN ONE PREDICTION???
