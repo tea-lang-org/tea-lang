@@ -122,7 +122,6 @@ def compute_variance(groups_data):
 def is_normal(comp_data: CompData, alpha, data=None):
     if (data is not None): # raw data being checked for normality
         norm_test = compute_distribution(data)
-        import pdb; pdb.set_trace()
         return (norm_test[1] < .05)
     else: 
         return comp_data.properties.dist[1] < alpha
@@ -170,8 +169,6 @@ def t_test_ind(expr: Compare, comp_data: CompData, **kwargs):
     # What if we just return a lambda and all the test signatures are the same? That way, easy to swap out with constraint version?
     return stats.ttest_ind(data[0], data[1], equal_var=is_equal_variance(comp_data, kwargs['alpha']))
     
-    # import pdb; pdb.set_trace()
-
         # if (isinstance(pred, Equal) or isinstance(pred, NotEqual)):
     #             #     # two-tailed test
     #             #     raise NotImplemented
@@ -204,7 +201,6 @@ def mann_whitney_u(expr: Compare, comp_data: CompData, **kwargs):
     data = []
     for key, val in comp_data.dataframes.items():
         # Use numbers for categories in ordinal data
-        import pdb; pdb.set_trace()
         if (is_ordinal(expr.dv.dtype)):
             numeric = [expr.dv.categories[x] for x in val]
             val = numeric
@@ -311,7 +307,6 @@ def find_test(dataset: Dataset, expr: Compare, comp_data: CompData, design: Dict
             elif (is_nominal(expr.dv.dtype)):
                 raise AssertionError('Not sure if McNemar is the correct test here - what if have more than 2 x 2 table??')
         elif (is_numeric(expr.iv.dtype)): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
-            import pdb; pdb.set_trace()
             if (is_numeric(expr.dv.dtype)):
                 # Check normal distribution of both variables
                 if (is_normal(comp_data, kwargs['alpha'], comp_data.dataframes[expr.dv.name])):
@@ -348,7 +343,6 @@ def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: 
     
     # Find test
     stat_test = find_test(dataset, expr, data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
-    import pdb; pdb.set_trace()
     
     # Execute test
     results = stat_test()
@@ -398,6 +392,5 @@ def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: 
     #     raise Exception('Not implemented Compare')
     
 def bootstrap(data):
-    import pdb; pdb.set_trace()
     print('Do something with incoming data')
 
