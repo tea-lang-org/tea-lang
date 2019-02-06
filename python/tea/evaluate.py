@@ -333,10 +333,10 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         dv = evaluate(dataset, expr.dv)
         assert isinstance(iv, VarData)
         assert isinstance(dv, VarData)
-        import pdb; pdb.set_trace()
 
         data_props = compute_data_properties(dataset, iv, dv, expr.predictions) 
 
+        # data_props has the data that is needed (already filtered and ready) for analyses
         res = execute_test(dataset, expr, data_props, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
 
         import pdb; pdb.set_trace()  
@@ -345,7 +345,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         var = evaluate(dataset, expr.var)
         assert isinstance(var, VarData)
 
-        bs.bootstrap(var.dataframe, stat_func=bs_stats.mean)
+        bs.bootstrap(var.dataframe, stat_func=
+        bs_stats.mean)
         raise Exception('Not implemented Mean')
     
     # elif isinstance(expr, Median):

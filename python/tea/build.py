@@ -69,42 +69,36 @@ def select(var: Variable, op: str, other: Literal):
         raise ValueError(f"Do not support the operator{op}")
 
 # TODO: Likely need to change the signature of this method
-def predict(iv: Variable, prediction: str): 
-    
-    if(iv.dtype is DataType.NOMINAL or iv.dtype is DataType.ORDINAL): 
-        if ('>' in prediction):
-            lhs = prediction[:prediction.index('>')].strip()
-            rhs = prediction[prediction.index('>')+1:].strip()
-            assert(lhs in iv.categories.keys())
-            assert(rhs in iv.categories.keys())
+def predict(iv: Variable, dv: Variable, prediction: str): 
+    if (prediction):
+        if(iv.dtype is DataType.NOMINAL or iv.dtype is DataType.ORDINAL): 
+            if ('>' in prediction):
+                lhs = prediction[:prediction.index('>')].strip()
+                rhs = prediction[prediction.index('>')+1:].strip()
+                assert(lhs in iv.categories.keys())
+                assert(rhs in iv.categories.keys())
 
-            return const(lhs) > const(rhs)
+                return [const(lhs) > const(rhs)]
 
 
-    # need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
-    
-        # lhs = prediction[:prediction.index(comparison)]
-        # rhs = prediction[prediction.index(comparison)+1:]
-        # assert(lhs in iv.categories)
-        # assert(rhs in iv.categories)
+        # need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
+        
+            # lhs = prediction[:prediction.index(comparison)]
+            # rhs = prediction[prediction.index(comparison)+1:]
+            # assert(lhs in iv.categories)
+            # assert(rhs in iv.categories)
 
-        # return const(lhs) 
+            # return const(lhs) 
 
 
 # X could be the list of variables/groups want to compare on y - may only want to compare 2 groups, not all conditions
-def compare(iv, dv: Variable, prediction: str) :
+def compare(iv, dv: Variable, prediction:str=None) :
     ivs = []
     if (isinstance(iv, Variable)):
         if isnominal(iv) or isordinal(iv):
-            #split up based on categories, build ivs and then pass to Compare
-            # groups = list(iv.categories.keys())
-            # for g in groups: 
-            #     ivs.append(select(iv, '==', const(g)))
-            # import pdb; pdb.set_trace()
-            return Compare(iv, dv, [predict(iv, prediction)])
+            return Compare(iv, dv, predict(iv, dv, prediction))
         elif isnumeric(iv):
-            # pass directly to Compare
-            raise AssertionError('NOT IMPLEMENTED')
+            return Compare(iv, dv, predict(iv, dv, prediction))
         else: 
             raise ValueError(f"Invalid Variable type: {iv.dtype}")
     else: # iv is already a list of Variables

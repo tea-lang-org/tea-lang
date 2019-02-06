@@ -121,7 +121,6 @@ def test_select_lt():
                     # Selecting using STR or INT should give same answer
                     tmp_res = list(filter(lambda x: v.categories[x] < v.categories[cat], ds.data[v.name]))
                     # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
-                    import pdb; pdb.set_trace()
                     assert (sub_ds_str.tolist() == tmp_res)
                     assert (sub_ds_num.tolist() == tmp_res)
                     
@@ -129,12 +128,10 @@ def test_select_lt():
                 drange = v.drange
                 midpoint = (drange.pop() - drange.pop(0))/2
                 res = select(v, '<', const(midpoint))
-                import pdb; pdb.set_trace()
                 sub_ds = evaluate(ds, res).dataframe
 
                 data = ds.data[v.name]
                 tmp = data[data < midpoint]
-                import pdb; pdb.set_trace()
                 assert(sub_ds.equals(tmp))
 
 def test_select_le(): 
@@ -231,7 +228,8 @@ def test_compare_bivariate_between():
     # BETWEEN SUBJECTS
     condition = nominal('condition', ['microtask', 'macrotask'])
     accuracy = ratio('accuracy', drange=[0,50])
-    variables = [condition, accuracy]
+    age = ratio('age', drange=[0,99])
+    variables = [condition, accuracy, age]
     file_path = './datasets/bivariate_mini.csv'
     experimental_design = {
                             'independent variables': 'condition',
@@ -245,11 +243,13 @@ def test_compare_bivariate_between():
     # ^^ PREDICTION helps us determine if we should be looking at one or two tailed tests
 
     stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
-    import pdb; pdb.set_trace()
     res = evaluate(ds, stat, experimental_design)
     print(res) # write prettier str
 
-    assert (res.test_results[1] < .05) # need to write better tests 
+    stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
+    res = evaluate(ds, stat, experimental_design)
+    print(res) # write prettier str
+    # assert (res.test_results[1] < .05) # need to write better tests 
 
 # def test_compare_bivariate_within():
 #     # WITHIN SUBJECTS

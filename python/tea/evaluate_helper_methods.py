@@ -15,7 +15,6 @@ import bootstrapped as bs
 
 # Helper methods for Interpreter (in evaluate.py)
 def compute_data_properties(dataset, iv: VarData, dv: VarData, predictions: list):
-    
     if (is_nominal(iv.metadata['dtype']) or is_ordinal(iv.metadata['dtype'])):
         # list of groups that we are interested in
         groups = []
@@ -26,23 +25,60 @@ def compute_data_properties(dataset, iv: VarData, dv: VarData, predictions: list
         data = dict()
         #let's get data for those groups
         for g in groups: 
-            where = iv.metadata['name']
+            assert(not iv.metadata['query'] and not dv.metadata['query'])
+            where = iv.metadata['var_name']
             where += (" == \'" + g + "\'")
-            data[g] = dataset.select(dv.metadata['name'], [where])
+            data[g] = dataset.select(dv.metadata['var_name'], [where])
         
-
         # Calculate various stats/preconditional properties
         # Assign intermediate values to Simplenamespace var (see CompData vars)
         props = SimpleNamespace()
         # For debugging: Could change dist values here
         
-        # distribution
-        props.dist = compute_distribution(dataset.select(dv.metadata['name']))
-        # variance
-        props.var = compute_variance(data)
+        if (is_numeric(dv.metadata['dtype'])):
+            # distribution
+            props.dist = compute_distribution(dataset.select(dv.metadata['var_name']))
+            # variance
+            props.var = compute_variance(data)
+        elif (is_nominal(dv.metadata['dtype'])):
+            raise NotImplementedError
+        elif (is_ordinal(dv.metadata['dtype'])):
+            raise NotImplementedError
+            # could do something with the values (the numeric value of the ordinal keys)
+        else:
+            raise ValueError(f"Invalid dependent variable variable type: {dv.metadata['dtype']}")
+
         # return CompData that has this data and other metadata
         return CompData(dataframes=data, properties=props)
         # return CompData(dataframes=data, metadata=metadata, predictions=predictions, properties=props)
+    elif (is_numeric(iv.metadata['dtype'])):
+        # if (predictions):
+        data = dict()
+        data[iv.metadata['var_name']] = dataset.select(iv.metadata['var_name']) # add where clause as second parameter to dataset.select ??
+        data[dv.metadata['var_name']] = dataset.select(dv.metadata['var_name'])
+        
+        # Calculate various stats/preconditional properties
+        # Assign intermediate values to Simplenamespace var (see CompData vars)
+        props = SimpleNamespace()
+        # For debugging: Could change dist values here
+
+        if (is_numeric(dv.metadata['dtype'])):
+            # distribution
+            props.dist = compute_distribution(dataset.select(dv.metadata['var_name']))
+            # variance
+            props.var = compute_variance(data)
+        elif (is_nominal(dv.metadata['dtype'])):
+            raise NotImplementedError
+        elif (is_ordinal(dv.metadata['dtype'])):
+            raise NotImplementedError
+            # could do something with the values (the numeric value of the ordinal keys)
+        else:
+            raise ValueError(f"Invalid dependent variable variable type: {dv.metadata['dtype']}")
+
+        # return CompData that has this data and other metadata
+        return CompData(dataframes=data, properties=props)
+    else: 
+        raise ValueError(f"Invalid variable type for IV: {iv.metadata['dtype']}")
 
 def compute_distribution(data):
     # Check normality of data
@@ -83,12 +119,13 @@ def compute_variance(groups_data):
 """
     # raise Exception('Not implemented BOOTSTRAP')
 
-def is_normal(data, alpha):
-    norm_test = compute_distribution(data)
-    return (norm_test[2] < .05)
-
-def is_normal(comp_data: CompData, alpha):
-    return comp_data.properties.dist[1] < alpha
+def is_normal(comp_data: CompData, alpha, data=None):
+    if (data is not None): # raw data being checked for normality
+        norm_test = compute_distribution(data)
+        import pdb; pdb.set_trace()
+        return (norm_test[1] < .05)
+    else: 
+        return comp_data.properties.dist[1] < alpha
 
 # def is_equal_variance(iv_data: list):
 #     # Check variance using Levene's test
@@ -166,6 +203,12 @@ def mann_whitney_u(expr: Compare, comp_data: CompData, **kwargs):
 
     data = []
     for key, val in comp_data.dataframes.items():
+        # Use numbers for categories in ordinal data
+        import pdb; pdb.set_trace()
+        if (is_ordinal(expr.dv.dtype)):
+            numeric = [expr.dv.categories[x] for x in val]
+            val = numeric
+
         data.append(val)
 
     # What if we just return a lambda and all the test signatures are the same? That way, easy to swap out with constraint version?
@@ -202,9 +245,42 @@ def wilcoxon_signed_rank(expr: Compare, comp_data: CompData, **kwargs):
 
     data = []
     for key, val in comp_data.dataframes.items():
+        # Use numbers for categories in ordinal data
+        if (is_ordinal(expr.dv.dtype)):
+            numeric = [expr.dv.categories[x] for x in val]
+            val = numeric
         data.append(val)
 
     return stats.wilcoxon(data[0], data[1])
+
+# https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
+# Parameters: x (array-like) | y (array-like)
+def pearson_corr(expr: Compare, comp_data: CompData, **kwargs):
+    assert(len(comp_data.dataframes) == 2)
+
+    data = []
+    for key, val in comp_data.dataframes.items():
+        data.append(val)
+
+    return stats.pearsonr(data[0], data[1])
+
+
+# https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
+# Parameters: a, b (b is optional) | axis (optional) 
+def spearman_corr(expr: Compare, comp_data: CompData, **kwargs):
+    assert(len(comp_data.dataframes) == 2)
+
+    data = []
+    for key, val in comp_data.dataframes.items():
+        # Use numbers for categories in ordinal data
+        if (is_ordinal(expr.dv.dtype)):
+            numeric = [expr.dv.categories[x] for x in val]
+            val = numeric
+
+        data.append(val)
+
+    return stats.spearmanr(data[0], data[1])
+
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
 def linear_regression(expr: Compare, comp_data: CompData, **kwargs):
@@ -234,22 +310,22 @@ def find_test(dataset: Dataset, expr: Compare, comp_data: CompData, design: Dict
                 return lambda : wilcoxon_signed_rank(expr, comp_data, **kwargs)
             elif (is_nominal(expr.dv.dtype)):
                 raise AssertionError('Not sure if McNemar is the correct test here - what if have more than 2 x 2 table??')
-                raise AssertionError('McNemar')
-    elif (len(comp_data.dataframes) == 1 and is_numeric(expr.iv.dtype)): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
-            if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
-                # For Pearson, need to check that both IV and DV are normally distributed
-                # if (is_normal(dataset[expr.iv.name], kwargs['alpha'])):
-                #     # pearson
-                # else: 
-                #     # spearman
-                
-                #simple linear regression
-
-                
-                raise AssertionError('Not implemented - Correlation or Simple Linear Regression')
+        elif (is_numeric(expr.iv.dtype)): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
+            import pdb; pdb.set_trace()
+            if (is_numeric(expr.dv.dtype)):
+                # Check normal distribution of both variables
+                if (is_normal(comp_data, kwargs['alpha'], comp_data.dataframes[expr.dv.name])):
+                    # Check homoscedasticity
+                    if (comp_data.properties.var[1] < kwargs['alpha']): 
+                        return lambda : linear_regression(expr, comp_data, **kwargs)
+                    else:  
+                        return lambda : pearson_corr(expr, comp_data, **kwargs)
+                else: 
+                    return lambda : spearman_corr(expr, comp_data, **kwargs)
             elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
-                raise AssertionError ('Not implemented - non-parametric correlation')
+                return lambda : spearman_corr(expr, comp_data, **kwargs)
             elif (is_nominal(expr.dv.dtype)):
+                # TODO depends on the number of outcome categories for nominal variable
                 raise AssertionError ('Not implemnted - simple logistic regression')
     elif (len(comp_data.dataframes) > 2):
         raise NotImplementedError
