@@ -329,9 +329,13 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         assert isinstance(dv, VarData)
 
         data_props = compute_data_properties(dataset, iv, dv, expr.predictions) 
+        import pdb; pdb.set_trace()
 
         # data_props has the data that is needed (already filtered and ready) for analyses
-        res = execute_test(dataset, expr, data_props, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
+        # TODO may want to pass iv and dv instead of expr (especially since iv/dv may not be variables)
+        res_data = execute_test(dataset, expr, data_props, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
+
+        return res_data
 
 
     elif isinstance(expr, Mean):

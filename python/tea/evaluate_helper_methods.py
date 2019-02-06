@@ -293,8 +293,10 @@ def find_test(dataset: Dataset, expr: Compare, comp_data: CompData, design: Dict
     if (len(comp_data.dataframes) == 2):
         if (is_nominal(expr.iv.dtype) and is_independent_samples(expr.iv.name, design)):
             if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
+                # return ('T test with independent samples', t_test_ind(expr, comp_data, **kwargs))
                 return lambda : t_test_ind(expr, comp_data, **kwargs)
             elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
+                # return ('Mann Whitney U test', mann_whitney_u(expr, comp_data, **kwargs))
                 return lambda : mann_whitney_u(expr, comp_data, **kwargs)
             elif (is_nominal(expr.dv.dtype)):
                 raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
@@ -342,13 +344,17 @@ def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: 
     alpha = design['alpha'] if ('alpha' in design) else .05
     
     # Find test
+    # TODO may want to pass iv and dv instead of expr (especially since iv/dv may not be variables)
     stat_test = find_test(dataset, expr, data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
     
     # Execute test
     results = stat_test()
+    stat_test_name = results.__class__.__name__
 
     # Wrap results in ResData and return
-    # Interpret test?
+    return ResData(iv=iv.metadata['var_name'], dv=dv.metadata['var_name'], test_name=stat_test_name, results=results, properties=data_props.properties)
+    
+    # Interpret test? -- this should be a separate step 
     # Here we care about one-tailed vs. two-tailed
     # Could also account for multiple testing/correction here
     # HOW DO WE DEAL WITH MORE THAN ONE PREDICTION???

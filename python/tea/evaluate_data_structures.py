@@ -25,19 +25,15 @@ class CompData(Value): # TODO probably want to rename this
 
 @attr.s(init=True, auto_attribs=True, str=False)
 class ResData(Value):
-    # groups: Any # What groups were compared?
-    # ci_intervals: Any # CI intervals for each group
-    # point_estimates: Any # point estimate for each group
-    # # interpretation: Any ????
-    
-    ivs: Any # Results from central tendency procedure for groups compared??
-    dv: Any
-    group_results: Any # Results from central tendency procedure for groups compared??
-    test: Any # name? of test conducted to compare groups (whose results are stored in group_results)
-    test_results: Any # result of conducting above test
+    iv: str # Name of IV
+    dv: str # Name of DV
+    test_name: str 
+    results: Any
+    properties: Any
 
     def __str__(self):
-        summary = f"Compared {self.dv} as dependent variables between independent variables: {self.ivs}"
-        test = f"\nConducted {self.test}: test statistic: {self.test_results[0]}, p-value: {self.test_results[1]}"
+        summary = f"Compared {self.dv} as dependent variables between independent variables: {self.iv}"
+        test = f"\nConducted {self.test_name}: test statistic: {self.results[0]}, p-value: {self.results[1]}"
+        reason = f"\nBecause of these properties of the data: {self.properties}"
 
-        return summary + test
+        return summary + test + reason
