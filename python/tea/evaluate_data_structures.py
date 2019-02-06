@@ -30,6 +30,8 @@ class ResData(Value):
     test_name: str 
     results: Any
     properties: Any
+    predictions: Any
+    
 
     def __str__(self):
         summary = f"Compared {self.dv} as dependent variables between independent variables: {self.iv}"

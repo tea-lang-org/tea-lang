@@ -158,9 +158,9 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True)
 #                      nan_policy (optional) 
-def t_test_ind(expr: Compare, comp_data: CompData, **kwargs):
+def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
-    assert(len(expr.predictions) == 1)
+    assert(len(predictions) == 1)
 
     data = []
     for key, val in comp_data.dataframes.items():
@@ -194,15 +194,15 @@ def t_test_ind(expr: Compare, comp_data: CompData, **kwargs):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
-def mann_whitney_u(expr: Compare, comp_data: CompData, **kwargs):
+def mann_whitney_u(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
-    assert(len(expr.predictions) == 1)
+    assert(len(predictions) == 1)
 
     data = []
     for key, val in comp_data.dataframes.items():
         # Use numbers for categories in ordinal data
-        if (is_ordinal(expr.dv.dtype)):
-            numeric = [expr.dv.categories[x] for x in val]
+        if (is_ordinal(dv.metadata['dtype'])):
+            numeric = [dv.metadata['categories'][x] for x in val]
             val = numeric
 
         data.append(val)
@@ -212,9 +212,9 @@ def mann_whitney_u(expr: Compare, comp_data: CompData, **kwargs):
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
 # Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
-def fishers_exact(expr: Compare, comp_data: CompData, **kwargs):
+def fishers_exact(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
-    assert(len(expr.predictions) == 1)
+    assert(len(predictions) == 1)
 
     data = []
     # calculate the 2 x 2 table 
@@ -223,9 +223,9 @@ def fishers_exact(expr: Compare, comp_data: CompData, **kwargs):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html
 # Parameters: a, b (array-like) | axis | nan_policy (default is 'propagate', optional)
-def t_test_paired(expr: Compare, comp_data: CompData, **kwargs):
+def t_test_paired(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
-    assert(len(expr.predictions) == 1)
+    assert(len(predictions) == 1)
 
     data = []
     for key, val in comp_data.dataframes.items():
@@ -235,15 +235,15 @@ def t_test_paired(expr: Compare, comp_data: CompData, **kwargs):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
-def wilcoxon_signed_rank(expr: Compare, comp_data: CompData, **kwargs):
+def wilcoxon_signed_rank(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
-    assert(len(expr.predictions) == 1)
+    assert(len(predictions) == 1)
 
     data = []
     for key, val in comp_data.dataframes.items():
         # Use numbers for categories in ordinal data
-        if (is_ordinal(expr.dv.dtype)):
-            numeric = [expr.dv.categories[x] for x in val]
+        if (is_ordinal(dv.metadata['dtype'])):
+            numeric = [dv.metadata['categories'][x] for x in val]
             val = numeric
         data.append(val)
 
@@ -251,7 +251,7 @@ def wilcoxon_signed_rank(expr: Compare, comp_data: CompData, **kwargs):
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
 # Parameters: x (array-like) | y (array-like)
-def pearson_corr(expr: Compare, comp_data: CompData, **kwargs):
+def pearson_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
 
     data = []
@@ -263,14 +263,14 @@ def pearson_corr(expr: Compare, comp_data: CompData, **kwargs):
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
 # Parameters: a, b (b is optional) | axis (optional) 
-def spearman_corr(expr: Compare, comp_data: CompData, **kwargs):
+def spearman_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
 
     data = []
     for key, val in comp_data.dataframes.items():
         # Use numbers for categories in ordinal data
-        if (is_ordinal(expr.dv.dtype)):
-            numeric = [expr.dv.categories[x] for x in val]
+        if (is_ordinal(dv.metadata['dtype'])):
+            numeric = [dv.metadata['categories'][x] for x in val]
             val = numeric
 
         data.append(val)
@@ -279,49 +279,49 @@ def spearman_corr(expr: Compare, comp_data: CompData, **kwargs):
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
-def linear_regression(expr: Compare, comp_data: CompData, **kwargs):
+# Parameters: x (array-like) | y (array-like)
+def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
 
-    return stats.linregress()
+    return stats.linregress(iv.dataframe, dv.dataframe)
     
 
 ## NAIVE IMPLEMENTATION RIGHT NOW
 # TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
 # Based on the properties of data, find the most appropriate test to conduct
 # Return the test but do not execute
-def find_test(dataset: Dataset, expr: Compare, comp_data: CompData, design: Dict[str, str], **kwargs):
+
+def find_test(dataset: Dataset, comp_data: CompData, iv, dv, predictions, design: Dict[str, str], **kwargs):
     # Two IV groups (only applies to nominal/ordinal IVs)
     if (len(comp_data.dataframes) == 2):
-        if (is_nominal(expr.iv.dtype) and is_independent_samples(expr.iv.name, design)):
-            if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
-                # return ('T test with independent samples', t_test_ind(expr, comp_data, **kwargs))
-                return lambda : t_test_ind(expr, comp_data, **kwargs)
-            elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
-                # return ('Mann Whitney U test', mann_whitney_u(expr, comp_data, **kwargs))
-                return lambda : mann_whitney_u(expr, comp_data, **kwargs)
-            elif (is_nominal(expr.dv.dtype)):
+        if (is_nominal(iv.metadata['dtype']) and is_independent_samples(iv.metadata['var_name'], design)):
+            if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
+                return lambda : t_test_ind(iv, dv, predictions, comp_data, **kwargs)
+            elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
+                return lambda : mann_whitney_u(iv, dv, predictions, comp_data, **kwargs)
+            elif (is_nominal(dv.metadata['dtype'])):
                 raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
-                return lambda : fishers_exact(expr, comp_data, **kwargs)
-        elif (is_nominal(expr.iv.dtype) and is_dependent_samples(expr.iv.name, design)):
-            if (is_numeric(expr.dv.dtype) and is_normal(comp_data, kwargs['alpha'])):
-                return lambda : t_test_paired(expr, comp_data, **kwargs)
-            elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
-                return lambda : wilcoxon_signed_rank(expr, comp_data, **kwargs)
-            elif (is_nominal(expr.dv.dtype)):
+                return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)
+        elif (is_nominal(iv.metadata['dtype']) and is_dependent_samples(iv.metadata['var_name'], design)):
+            if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
+                return lambda : t_test_paired(iv, dv, predictions, comp_data, **kwargs)
+            elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
+                return lambda : wilcoxon_signed_rank(iv, dv, predictions, comp_data, **kwargs)
+            elif (is_nominal(dv.metadata['dtype'])):
                 raise AssertionError('Not sure if McNemar is the correct test here - what if have more than 2 x 2 table??')
-        elif (is_numeric(expr.iv.dtype)): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
-            if (is_numeric(expr.dv.dtype)):
+        elif (is_numeric(iv.metadata['dtype'])): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
+            if (is_numeric(dv.metadata['dtype'])):
                 # Check normal distribution of both variables
-                if (is_normal(comp_data, kwargs['alpha'], comp_data.dataframes[expr.dv.name])):
+                if (is_normal(comp_data, kwargs['alpha'], comp_data.dataframes[dv.metadata['var_name']])):
                     # Check homoscedasticity
                     if (comp_data.properties.var[1] < kwargs['alpha']): 
-                        return lambda : linear_regression(expr, comp_data, **kwargs)
+                        return lambda : linear_regression(iv, dv, predictions, comp_data, **kwargs)
                     else:  
-                        return lambda : pearson_corr(expr, comp_data, **kwargs)
+                        return lambda : pearson_corr(iv, dv, predictions, comp_data, **kwargs)
                 else: 
-                    return lambda : spearman_corr(expr, comp_data, **kwargs)
-            elif (is_numeric(expr.dv.dtype) or is_ordinal(expr.dv.data_type)):
-                return lambda : spearman_corr(expr, comp_data, **kwargs)
-            elif (is_nominal(expr.dv.dtype)):
+                    return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
+            elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
+                return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
+            elif (is_nominal(dv.metadata['dtype'])):
                 # TODO depends on the number of outcome categories for nominal variable
                 raise AssertionError ('Not implemnted - simple logistic regression')
     elif (len(comp_data.dataframes) > 2):
@@ -332,7 +332,7 @@ def find_test(dataset: Dataset, expr: Compare, comp_data: CompData, design: Dict
                 
 
 # This is the function used to determine and then execute test based on CompData
-def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: Dict[str,str]): 
+def execute_test(dataset: Dataset, data_props: CompData, iv: VarData, dv: VarData, predictions: list, design: Dict[str,str]): 
     # For power we need sample size, effect size, alpha
     sample_size = 0
     # calculate sample size
@@ -344,15 +344,14 @@ def execute_test(dataset: Dataset, expr: Compare, data_props: CompData, design: 
     alpha = design['alpha'] if ('alpha' in design) else .05
     
     # Find test
-    # TODO may want to pass iv and dv instead of expr (especially since iv/dv may not be variables)
-    stat_test = find_test(dataset, expr, data_props, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
+    stat_test = find_test(dataset, data_props, iv, dv, predictions, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
     
     # Execute test
     results = stat_test()
     stat_test_name = results.__class__.__name__
 
     # Wrap results in ResData and return
-    return ResData(iv=iv.metadata['var_name'], dv=dv.metadata['var_name'], test_name=stat_test_name, results=results, properties=data_props.properties)
+    return ResData(iv=iv.metadata['var_name'], dv=dv.metadata['var_name'], test_name=stat_test_name, results=results, properties=data_props.properties, predictions=predictions)
     
     # Interpret test? -- this should be a separate step 
     # Here we care about one-tailed vs. two-tailed
