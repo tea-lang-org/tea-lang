@@ -1,14 +1,15 @@
 # from tea import load_data,  explore_summary
-from .tea import (   load_data,
-                    const,
-                    ordinal, isordinal, 
-                    nominal, isnominal,
-                    interval, isinterval,
-                    ratio, isratio, isnumeric,
-                    select,
-                    evaluate,
-                    compare, predict
-                )
+# from tea import (   load_data,
+#                     const,
+#                     ordinal, isordinal, 
+#                     nominal, isnominal,
+#                     interval, isinterval,
+#                     ratio, isratio, isnumeric,
+#                     select,
+#                     evaluate,
+#                     compare, predict
+#                 )
+import tea
 # (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
 #             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
 #             between_experiment, within_experiment, mixed_experiment, equation,
