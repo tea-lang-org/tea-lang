@@ -1,5 +1,5 @@
 # from tea import load_data,  explore_summary
-from tea import (   load_data,
+from .tea import (   load_data,
                     const,
                     ordinal, isordinal, 
                     nominal, isnominal,
@@ -245,10 +245,13 @@ def test_compare_bivariate_between():
     stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
     res = evaluate(ds, stat, experimental_design)
     print(res) # write prettier str
+    # import pdb; pdb.set_trace()
 
     stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
     res = evaluate(ds, stat, experimental_design)
     print(res) # write prettier str
+    import pdb; pdb.set_trace()
+
     # assert (res.test_results[1] < .05) # need to write better tests 
 
 # def test_compare_bivariate_within():
