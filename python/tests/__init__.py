@@ -1,1 +1,1 @@
-import ../tea
+import python/tea
