@@ -251,7 +251,7 @@ def test_compare_bivariate_between():
     stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
     res = evaluate(ds, stat, experimental_design)
     print(res) # write prettier str
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     # assert (res.test_results[1] < .05) # need to write better tests 
 

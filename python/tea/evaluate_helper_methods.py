@@ -9,7 +9,7 @@ from types import SimpleNamespace # allows for dot notation access for dictionar
 from scipy import stats # Stats library used
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
-import numpy as np # Use some stats from numpy instead
+# import numpy as np # Use some stats from numpy instead
 import pandas as pd
 import bootstrapped as bs
 

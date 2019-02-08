@@ -10,6 +10,7 @@ attrs = "*"
 pandas = "*"
 scipy = "*"
 statsmodels = "*"
+bootstrapped = "*"
 
 [requires]
 python_version = "3.7"
