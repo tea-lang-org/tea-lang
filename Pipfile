@@ -9,6 +9,7 @@ verify_ssl = true
 attrs = "*"
 pandas = "*"
 scipy = "*"
+statsmodels = "*"
 
 [requires]
 python_version = "3.7"
