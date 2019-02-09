@@ -135,5 +135,14 @@ class Mean(Node):
 class Literal(Node):
     value = attr.ib(type=Union[int, float, str])
 
+    def __lt__(self, other):
+        return LessThan(self, other)
+
     def __gt__(self, other):
         return GreaterThan(self, other)
+
+    def __eq__(self, other):
+        return Equal(self, other)
+    
+    def __ne__(self, other):
+        return NotEqual(self, other)

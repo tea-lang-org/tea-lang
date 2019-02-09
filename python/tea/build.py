@@ -67,14 +67,55 @@ def select(var: Variable, op: str, other: Literal):
 def predict(iv: Variable, dv: Variable, prediction: str): 
     # TODO: need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
     if (prediction):
-        if(iv.dtype is DataType.NOMINAL or iv.dtype is DataType.ORDINAL): 
-            if ('>' in prediction):
+        import pdb; pdb.set_trace()
+        if(isnominal(iv) or isordinal(iv)): 
+            if ('<' in prediction):
+                lhs = prediction[:prediction.index('<')].strip()
+                rhs = prediction[prediction.index('<')+1:].strip()
+                assert(lhs in iv.categories.keys())
+                assert(rhs in iv.categories.keys())
+                return [const(lhs) < const(rhs)]
+
+            elif ('>' in prediction):
                 lhs = prediction[:prediction.index('>')].strip()
                 rhs = prediction[prediction.index('>')+1:].strip()
                 assert(lhs in iv.categories.keys())
                 assert(rhs in iv.categories.keys())
-
+                import pdb; pdb.set_trace()
                 return [const(lhs) > const(rhs)]
+
+            elif ('==' in prediction):
+                lhs = prediction[:prediction.index('==')].strip()
+                rhs = prediction[prediction.index('==')+1:].strip()
+                assert(lhs in iv.categories.keys())
+                assert(rhs in iv.categories.keys())
+                return [const(lhs) == const(rhs)]
+            
+            elif ('=' in prediction): # in case user wants to use single equals
+                lhs = prediction[:prediction.index('=')].strip()
+                rhs = prediction[prediction.index('=')+1:].strip()
+                assert(lhs in iv.categories.keys())
+                assert(rhs in iv.categories.keys())
+                return [const(lhs) == const(rhs)]
+
+            elif ('!=' in prediction):
+                lhs = prediction[:prediction.index('!=')].strip()
+                rhs = prediction[prediction.index('!=')+1:].strip()
+                assert(lhs in iv.categories.keys())
+                assert(rhs in iv.categories.keys())
+                return [const(lhs) != const(rhs)]
+
+            else: 
+                raise ValueError(f"Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
+        elif (isnumeric(iv.dtype)): 
+            if ('~' in prediction): 
+                lhs = prediction[:prediction.index('~')].strip()
+                rhs = prediction[prediction.index('~')+1:].strip()
+
+                # if ('-')
+            
+
+                
 
 
 # @params: iv could be the list of variables/groups want to compare on dv - may only want to compare 2 groups, not all conditions

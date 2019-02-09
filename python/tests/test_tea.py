@@ -62,9 +62,9 @@ def test_make_ratio():
     assert r.drange == [0, 99]
 
 def test_load_data(): 
-    variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
+    variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', drange=[0,99])]
     file_path = './datasets/mini_test.csv'
-    ds = load_data(file_path, variables)
+    ds = load_data(file_path, variables, 'participant_id')
 
     assert ds.dfile == file_path
     assert ds.variables == variables
