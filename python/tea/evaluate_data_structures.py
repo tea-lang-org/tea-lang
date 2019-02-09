@@ -17,8 +17,6 @@ class VarData(Value):
 @attr.s(init=True, auto_attribs=True)
 class CompData(Value): # TODO probably want to rename this
     dataframes: dict # or SimpleNamespace?
-    # metadata: SimpleNamespace
-    # predictions: Node
     # set of characteristics about the groups that are used to determine statistical test
     properties: SimpleNamespace
 

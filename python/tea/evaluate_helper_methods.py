@@ -80,44 +80,29 @@ def compute_data_properties(dataset, iv: VarData, dv: VarData, predictions: list
     else: 
         raise ValueError(f"Invalid variable type for IV: {iv.metadata['dtype']}")
 
+# Check normality of data
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html
+# Based on D’Agostino, R. B. (1971), “An omnibus test of normality for moderate and large sample size”, Biometrika, 58, 341-348
+# and D’Agostino, R. and Pearson, E. S. (1973), “Tests for departure from normality”, Biometrika, 60, 613-622
+# Null hypothesis is that distribution comes from Normal Distribution
+# Rejecting null means that distribution is NOT normal
 def compute_distribution(data):
-    # Check normality of data
-    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html
-    # Based on D’Agostino, R. B. (1971), “An omnibus test of normality for moderate and large sample size”, Biometrika, 58, 341-348
-    # and D’Agostino, R. and Pearson, E. S. (1973), “Tests for departure from normality”, Biometrika, 60, 613-622
-    # Null hypothesis is that distribution comes from Normal Distribution
-    # Rejecting null means that distribution is NOT normal
     norm_test = stats.normaltest(data, axis=0)
-    # return ('normality', norm_test[0], norm_test[1])
     return (norm_test[0], norm_test[1])
-
     # TODO: may want to compute/find the best distribution if not normal
+
+# Levene test to test for equal variances - Leven is more robust to nonnormal data than Bartlett's test
+# Null Hypothesis is that samples have the same variances
+# Rejecting null means that samples have different variances
+# Default/currently using .05 alpha level
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
 
 def compute_variance(groups_data):
     # compute variance for each group
-
-    # Levene test to test for equal variances - Leven is more robust to nonnormal data than Bartlett's test
-    # Null Hypothesis is that samples have the same variances
-    # Rejecting null means that samples have different variances
-    # Default/currently using .05 alpha level
-    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
-    
     keys = list(groups_data.keys())
-    # levene_test = stats.levene({groups_data[k].values} for k in keys)
     
     levene_test = stats.levene(groups_data[keys[0]], groups_data[keys[1]])
-    # return ('equal_variance', levene_test[0], levene_test[1])
     return (levene_test[0], levene_test[1])
-
-"""
-    return {
-            'var_name': '',
-            'ci_interval': '',
-            'point_name': '',
-            'point_est': '', 
-            }
-"""
-    # raise Exception('Not implemented BOOTSTRAP')
 
 def is_normal(comp_data: CompData, alpha, data=None):
     if (data is not None): # raw data being checked for normality
@@ -125,16 +110,6 @@ def is_normal(comp_data: CompData, alpha, data=None):
         return (norm_test[1] < .05)
     else: 
         return comp_data.properties.dist[1] < alpha
-
-# def is_equal_variance(iv_data: list):
-#     # Check variance using Levene's test
-#     eq_var = False
-#     levene = stats.levene(iv_data[0], iv_data[1])
-#     test_res = (levene.statistic, levene.pvalue)
-#     if test_res[1] > .05: # cannot reject null hypothesis that two groups are from populations with equal variances
-#         eq_var = True
-    
-#     return (eq_var, test_res)
 
 def is_equal_variance(comp_data: CompData, alpha):
     return comp_data.properties.var[1] < alpha
@@ -156,8 +131,7 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
     return var_name in design['within subjects'] if ('between subjects' in design) else False
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
-# Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True)
-#                      nan_policy (optional) 
+# Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
 def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
     assert(len(predictions) == 1)
@@ -168,29 +142,6 @@ def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CompData,
 
     # What if we just return a lambda and all the test signatures are the same? That way, easy to swap out with constraint version?
     return stats.ttest_ind(data[0], data[1], equal_var=is_equal_variance(comp_data, kwargs['alpha']))
-    
-        # if (isinstance(pred, Equal) or isinstance(pred, NotEqual)):
-    #             #     # two-tailed test
-    #             #     raise NotImplemented
-    #     pass
-    # elif (isinstance(pred, LessThan) or isinstance(pred, LessThanEqual)): 
-    #             #     # 1-tailed test
-    #             #     # ??? How should treat the Les than EQUAL TO? 
-    #             #     raise NotImplemented
-    #     pass
-    # elif (isinstance(pred, GreaterThan) or isinstance(pred, GreaterThanEqual)): 
-
-    #                 corrected_pvalue = None
-    #                 if (ttest.statistic > 0):
-    #                     corrected_pvalue = ttest.pvalue * .5 
-    #                 elif (ttest.statistic < 0): 
-    #                     corrected_pvalue = 1 - (ttest.pvalue * .5)
-    #                 else: 
-    #                     raise ValueError(f"T statistic equals 0: {ttest.statistic}")
-                    
-    #                 return ResData(expr.iv, expr.dv, None, f"one-sided ttest with equal variance={eq_var}", [ttest.statistic, corrected_pvalue])
-
-    # raise NotImplementedError
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
@@ -289,7 +240,6 @@ def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: Co
 # TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
 # Based on the properties of data, find the most appropriate test to conduct
 # Return the test but do not execute
-
 def find_test(dataset: Dataset, comp_data: CompData, iv, dv, predictions, design: Dict[str, str], **kwargs):
     # Two IV groups (only applies to nominal/ordinal IVs)
     if (len(comp_data.dataframes) == 2):
@@ -352,49 +302,6 @@ def execute_test(dataset: Dataset, data_props: CompData, iv: VarData, dv: VarDat
 
     # Wrap results in ResData and return
     return ResData(iv=iv.metadata['var_name'], dv=dv.metadata['var_name'], test_name=stat_test_name, results=results, properties=data_props.properties, predictions=predictions)
-    
-    # Interpret test? -- this should be a separate step 
-    # Here we care about one-tailed vs. two-tailed
-    # Could also account for multiple testing/correction here
-    # HOW DO WE DEAL WITH MORE THAN ONE PREDICTION???
-    # - should check that all predictions make sense (involve actual/legit values?)
-    # - really a matter of INTREPRETATION for the predictions -- p-value, and maybe multiple comparison corrections??
-
-
-
-
-    
-    #  # If Nominal x Nominal, do X
-    #     if (iv_dtype is DataType.NOMINAL):
-
-    #         
-    #     elif (iv_dtype is DataType.ORDINAL):
-
-    #         central_tendencies = []
-    #         for group in ivs: 
-    #             # get the iv data for ivs
-    #             data = dv.dataframe.loc(axis=0)[group.dataframe.index.values]
-
-    #             # calculate some central tendency metric
-    #             # Wilcoxon Mann Whitney U test
-    #             import pdb; pdb.set_trace()
-    #             metric = bootstrap(data) # how know which central tendency metric to calculate? -- based on data properties
-            
-    #         # compare these measures of central tendency
-    #         # estimates (confidence intervals, etc)
-    #         # ResData([{}, {}], test: '', test_results: '')
-    #         # NHST tests?
-            
-            
-    #         raise AssertionError('Not implemented - IV is ORDINAL -- may have some overlap with iv == NOMINAL')
-    #     elif (iv_dtype is DataType.INTERVAL or iv_dtype is DataType.RATIO):
-    #         raise AssertionError('Not implemented - IV is INTERVAL OR RATIO')
-    #     else:
-    #         raise ValueError('Should never get here. ')
-
-
-
-    #     raise Exception('Not implemented Compare')
     
 def bootstrap(data):
     print('Do something with incoming data')

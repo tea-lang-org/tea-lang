@@ -12,9 +12,10 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np # Use some stats from numpy instead
 import pandas as pd
-import bootstrapped as bs
+# import bootstrapped as bs
 
-# TODO: Pass effect size and alpha value as part of experimental design -- these are used to optimize for power
+# TODO: Pass effect size and alpha values as part of experimental design -- these are used to optimize for power
+# TODO: Pass participant_id as part of experimental design, not load_data
 def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
     if isinstance(expr, Variable):
         dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
@@ -340,16 +341,6 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         var = evaluate(dataset, expr.var)
         assert isinstance(var, VarData)
 
-        bs.bootstrap(var.dataframe, stat_func=
-        bs_stats.mean)
+        # bs.bootstrap(var.dataframe, stat_func=
+        # bs_stats.mean)
         raise Exception('Not implemented Mean')
-    
-    # elif isinstance(expr, Median):
-    #     raise Exception('Not implemented Median')
-
-
-    
-    # elif isinstance(expr, Add): 
-    #     raise Exception('Not implemented Add')
-
-    # TODO all the other arithmetic....

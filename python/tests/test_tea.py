@@ -1,4 +1,3 @@
-# from tea import load_data,  explore_summary
 from tea import (   load_data,
                     const,
                     ordinal, isordinal, 
@@ -9,11 +8,6 @@ from tea import (   load_data,
                     evaluate,
                     compare, predict
                 )
-# import tea
-# (evaluate, ordinal, nominal, interval, ratio, load_data, model, 
-#             mean, median, standard_deviation, variance, kurtosis, skew, normality, frequency,
-#             between_experiment, within_experiment, mixed_experiment, equation,
-#             load_data_arrs, hypothesis, experiment_design)
 
 from collections import OrderedDict
 import numpy as np
@@ -67,13 +61,13 @@ def test_make_ratio():
     assert r.categories == None
     assert r.drange == [0, 99]
 
-# def test_load_data(): 
-#     variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
-#     file_path = './datasets/mini_test.csv'
-#     ds = load_data(file_path, variables)
+def test_load_data(): 
+    variables = [ordinal('education', ['high school', 'college', 'PhD']), ratio('age', range=[0,99])]
+    file_path = './datasets/mini_test.csv'
+    ds = load_data(file_path, variables)
 
-#     assert ds.dfile == file_path
-#     assert ds.variables == variables
+    assert ds.dfile == file_path
+    assert ds.variables == variables
 
 categories = ['high school', 'college', 'PhD']
 # variables = [ordinal('education', categories)]
@@ -111,7 +105,6 @@ def test_select_lt():
         if (v.drange): # is ORDINAL or INTERVAL/RATIO
             if (isordinal(v)):
                 categories = v.categories.keys()
-                # cat_num = v.categories.values()
                 for cat in categories:
                     num = v.categories[cat]
                     res_str = select(v, '<', const(cat))
@@ -140,8 +133,6 @@ def test_select_le():
         if (v.drange): # is ORDINAL or INTERVAL/RATIO
             if (isordinal(v)):
                 categories = v.categories.keys()
-                
-                # cat_num = v.categories.values()
                 for cat in categories:
                     num = v.categories[cat]
                     res_str = select(v, '<=', const(cat))
@@ -225,57 +216,38 @@ def test_select_ge():
                 tmp = data[data >= midpoint]
                 assert(sub_ds.equals(tmp))
 
-def test_compare_bivariate_between():
-    # BETWEEN SUBJECTS
-    condition = nominal('condition', ['microtask', 'macrotask'])
-    accuracy = ratio('accuracy', drange=[0,50])
-    age = ratio('age', drange=[0,99])
-    variables = [condition, accuracy, age]
-    file_path = './datasets/bivariate_mini.csv'
-    experimental_design = {
-                            'independent variables': 'condition',
-                            'dependent variables': 'accuracy',
-                            'between subjects': 'condition',
-                            # 'alpha': 1
-                        }
+# Bivariate test, between subjects
+# X: Categorical (nominal) | Y: Numeric (ratio)
+condition = nominal('condition', ['microtask', 'macrotask'])
+accuracy = ratio('accuracy', drange=[0,50])
+age = ratio('age', drange=[0,99])
+variables = [condition, accuracy, age]
+file_path = './datasets/bivariate_mini.csv'
+experimental_design = {
+                        'independent variables': 'condition',
+                        'dependent variables': 'accuracy',
+                        'between subjects': 'condition',
+                        # 'alpha': 1
+                    }
+ds = load_data(file_path, variables, 'participant_id')
 
-    ds = load_data(file_path, variables, 'participant_id')
-    # hyp = hypothesize(iv='condition', dv='accuracy', prediction='microtask > macrotask') #-- maybe this is just compare by another name
-    # ^^ PREDICTION helps us determine if we should be looking at one or two tailed tests
-
+# Bivariate test, between subjects
+# X: Numeric (ratio) | Y: Numeric (ratio)
+def test_compare_bivariate_between_cat_num():
     stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
     res = evaluate(ds, stat, experimental_design)
-    print(res) # write prettier str
-    # import pdb; pdb.set_trace()
-
-    stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
-    res = evaluate(ds, stat, experimental_design)
-    print(res) # write prettier str
-    # import pdb; pdb.set_trace()
+    print(res)
 
     # assert (res.test_results[1] < .05) # need to write better tests 
 
-# def test_compare_bivariate_within():
-#     # WITHIN SUBJECTS
-#     condition = nominal('condition', ['microtask', 'macrotask'])
-#     accuracy = ratio('accuracy', drange=[0,50])
-#     variables = [condition, accuracy]
-#     file_path = './datasets/bivariate_mini_within.csv'
-    
-#     experimental_design = {
-#                             'independent variables': 'condition',
-#                             'dependent variables': 'accuracy',
-#                             'within subjects': 'condition',
-#                         }
+def test_compare_bivariate_between_num_num(): 
+    stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
+    res = evaluate(ds, stat, experimental_design)
+    print(res) # write prettier str
 
-#     ds = load_data(file_path, variables, 'participant_id')
-#     # hyp = hypothesize(iv='condition', dv='accuracy', prediction='microtask > macrotask') #-- maybe this is just compare by another name
-#     # ^^ PREDICTION helps us determine if we should be looking at one or two tailed tests
 
-#     stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too
-#     res = evaluate(ds, stat, experimental_design)
-#     print(res) # write prettier str
-#     assert (res.test_results[1] < .05) # need to write better tests 
+def test_compare_bivariate_within_cat_num(): 
+    pass
     
 def test_dataset_query():
     condition = nominal('condition', ['microtask', 'macrotask'])
@@ -292,205 +264,3 @@ def test_dataset_query():
     ds = load_data(file_path, variables, 'participant_id')
 
     ds.select('accuracy', ["condition == 'microtask'"]) # this is the correct way to build up a query
-
-# age_data = [32,35,45,23,50,32,35,45,23,50]
-# edu_data = ['high school','college','high school','PhD','PhD','high school','college','high school','PhD','PhD']
-# edu_num = [1,2,1,3,3,1,2,1,3,3]
-# def test_mean_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, mean(age)) == np.mean(age_data)
-
-# def test_mean_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, mean(edu)) == np.mean(edu_num)
-
-# def test_median_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, median(age)) == np.median(age_data)
-
-# def test_median_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, median(edu)) == np.median(edu_num)
-
-# def test_std_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, standard_deviation(age)) == np.std(age_data)
-
-# def test_std_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, standard_deviation(edu)) == np.std(edu_num)
-
-# def test_variance_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, variance(age)) == np.var(age_data)
-
-# def test_variance_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, variance(edu)) == np.var(edu_num)
-
-# def test_kurtosis_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, kurtosis(age)) == stats.kurtosis(age_data)
-
-# def test_kurtosis_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, kurtosis(edu)) == stats.kurtosis(edu_num)
-
-# def test_skew_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, skew(age)) == stats.skew(age_data)
-
-# def test_skew_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, skew(edu)) == stats.skew(edu_num)
-
-# def test_normality_num(): 
-#     age = ds.get_variable('age')
-#     assert evaluate(ds, normality(age)) == (stats.kurtosistest(age_data), stats.skewtest(age_data))
-
-# def test_normality_ordinal(): 
-#     edu = ds.get_variable('education')
-#     assert evaluate(ds, normality(edu)) == (stats.kurtosistest(edu_num), stats.skewtest(edu_num))
-
-# def test_frequency(): 
-#     pass
-
-
-# variables = [nominal('block_number', ['1', '2', '3', '4']), nominal('number_of_symbols_to_memorize', ['0', '1', '2', '3', '4', '6']), nominal('web_usage', ['1', '2', '3', '4'])]
-# file_path = './datasets/2016.12.10-gajos17personality-data.csv'
-# ds2 = load_data(file_path, variables)
-# def test_between_experiment(): 
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     sets_exp = between_experiment([sets])
-#     assert sets_exp.between_vars == [sets]
-#     assert sets_exp.within_vars == None
-
-# def test_within_experiment(): 
-#     block = ds2.get_variable('block_number')
-#     block_exp = within_experiment([block])
-#     assert block_exp.between_vars == None
-#     assert block_exp.within_vars == [block]
-
-# def test_mixed_experiment():
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     block = ds2.get_variable('block_number')
-#     mixed_exp = mixed_experiment([sets], [block])
-#     assert mixed_exp.between_vars == [sets]
-#     assert mixed_exp.within_vars == [block]
-
-# # TODO: Write test case based on linear regression found in paper
-# def test_build_equation(): 
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     web = ds2.get_variable('web_usage')
-#     block = ds2.get_variable('block_number')
-#     eq = equation(sets + web + block + web*block)
-#     assert eq.eq_handle == sets + web + block + web*block
-
-# def test_build_model(): 
-#     sets = ds2.get_variable('number_of_symbols_to_memorize')
-#     web = ds2.get_variable('web_usage')
-#     block = ds2.get_variable('block_number')
-#     # exp = between_experiment([sets])
-#     m = model(sets, (web + block) + web*block)
-#     assert m.eq_independent_vars == web + block + web*block
-#     assert m.dependent_var == sets
-
-# variables = [interval('participant', ['1', '10']), nominal('condition', ['a', 'b']), ratio('accuracy', ['0', '10'])]
-# file_path = './datasets/mini_test2.csv'
-# ds3 = load_data(file_path, variables, 'participant')
-# def test_build_hypothesis(): 
-#     condition = ds3.get_variable('condition')
-#     acc = ds3.get_variable('accuracy')
-#     m = model(acc, condition)
-#     h = hypothesis('a'>'b')
-#     exp = experiment_design([condition, acc])
-#     results = evaluate(ds3, exp, m, h)
-    # TODO May want to do something similar to the summary() method -- https://www.statsmodels.org/stable/_modules/statsmodels/base/model.html#GenericLikelihoodModelResults.summary
-    
-
-# def test_model(): 
-#     Y = [1,3,4,5,2,3,4]
-#     X = range(1,8)
-
-#     ds = load_data_arrs(Y, X)
-#     X = sm.add_constant(X)
-
-#     model = sm.OLS(Y,X)
-#     results = model.fit()
-#     stats = results._results.__dict__.keys()
-
-#     for s in stats: 
-#         # Do something
-#         pass
-
-
-#     import pdb; pdb.set_trace()
-
-
-#     # ds = load_data('./dataasets/mini_test.csv', [ 
-#     #     {
-#     #         'name': 'education',
-#     #         'dtype': DataType.ORDINAL,
-#     #         'categories': ['high school', 'college', 'PhD'],
-#     #         'drange': None
-#     #     }, 
-#     #     {
-#     #         'name': 'age',
-#     #         'dtype': DataType.RATIO,
-#     #         'categories': None,
-#     #         'drange': [0,99]
-#     #     }
-#     # ])
-# #     ds = Dataset()
-# #     ds.load_data(source)
-
-# #     for var_name in vars: 
-# #         v = vars[var_name]
-# #         data_type = None
-# #         categories = None
-# #         if (v['type'] == 'ordinal' or v['type'] == 'nominal'): 
-# #             # Create order tuple
-# #             categories = OrderedDict()
-# #             for i, c in enumerate(v['categories']):
-# #                 categories[c] = i+1
-# #         if (v['type'] == 'ordinal'): 
-# #             data_type = DataType.ORDINAL
-# #         elif (v['type'] == 'nominal'): 
-# #             data_type = DataType.NOMINAL
-# #         elif (v['type'] == 'interval'): 
-# #             data_type = DataType.INTERVAL
-# #         elif (v['type'] == 'ratio'): 
-# #             data_type = DataType.RATIO
-# #         else: 
-# #             raise Exception('Variables must be specified as being ordinal, nominal, interval, or ratio')
-# #         ds.set_variable(var_name, data_type, categories)
-    
-
-# # def test():
-# #     assert True
-
-# # def test_prog1():
-# #     ############ TEST PROGRAM ###########
-# #     dataset1 = load_data('mini_test.csv', {
-# #         'education': {
-# #             'type': 'ordinal', 
-# #             'categories': ['high school', 'college', 'PhD']
-# #         }, 
-# #         'age': {
-# #             'type': 'ratio'
-# #         }
-# #     })
-
-# #     explore_summary('dataset1', {
-# #         'variable': 'age',
-# #         'characteristics': ['mean', 'median', 'standard deviation', 'variance']
-# #     })
-
-# #     explore_summary('dataset1', {
-# #         'variable': 'education',
-# #         'characteristics': ['frequency']
-# #         # 'characteristics': ['mean', 'median', 'standard deviation', 'variance']
-# #     })
-
-# #     # test comparison()
-
