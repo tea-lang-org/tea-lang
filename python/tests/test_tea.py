@@ -248,7 +248,28 @@ def test_compare_bivariate_between_num_num():
 
 def test_compare_bivariate_within_cat_num(): 
     pass
-    
+
+def test_compare_variant_ds(): 
+    variant = interval('variant', drange=[1,267]) #Is there a better way to shortcut cateories -- if we wanted to call this column nominal? 
+    naive_time = ratio('naive', drange=[0,1000]) # does it make sense to require a drange for ratio data? (supposed to be used for filtering)
+    caching_time = ratio('caching', drange=[0,1000])
+    forking_time = ratio('forking', drange=[0,1000])
+    equivalent = nominal('equivalent', ['0', '1']) # what if I did 0 and 1 in no strings? 
+    first_order = nominal('first.order', ['0', '1']) # what if I did 0 and 1 in no strings? 
+    run = interval('run', drange=[1,5])
+    subject = nominal('subject', ['tictactoe', 'tax', 'triangle'])
+
+    variables = [variant, naive_time, caching_time, forking_time, equivalent, first_order, run, subject]
+    file_path = './datasets/timing.csv'
+    experimental_design = {
+                            'independent variables': 'subject',
+                            'dependent variables': ['forking', 'caching', 'naive'],
+                            'between subjects': 'subject',
+                            'within subjects': 'run', # what if I put 'variant' here -- would there be a cross-checking that the things listed in design exhibit behavior that would expect from between and within subjects? 
+                            # 'alpha': 1
+                        }
+    ds = load_data(file_path, variables, 'subject')
+
 def test_dataset_query():
     condition = nominal('condition', ['microtask', 'macrotask'])
     accuracy = ratio('accuracy', drange=[0,50])

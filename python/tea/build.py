@@ -67,7 +67,6 @@ def select(var: Variable, op: str, other: Literal):
 def predict(iv: Variable, dv: Variable, prediction: str): 
     # TODO: need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
     if (prediction):
-        import pdb; pdb.set_trace()
         if(isnominal(iv) or isordinal(iv)): 
             if ('<' in prediction):
                 lhs = prediction[:prediction.index('<')].strip()
@@ -81,7 +80,6 @@ def predict(iv: Variable, dv: Variable, prediction: str):
                 rhs = prediction[prediction.index('>')+1:].strip()
                 assert(lhs in iv.categories.keys())
                 assert(rhs in iv.categories.keys())
-                import pdb; pdb.set_trace()
                 return [const(lhs) > const(rhs)]
 
             elif ('==' in prediction):
