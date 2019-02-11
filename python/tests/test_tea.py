@@ -224,6 +224,7 @@ age = ratio('age', drange=[0,99])
 variables = [condition, accuracy, age]
 file_path = './datasets/bivariate_mini.csv'
 experimental_design = {
+                        'participant id': 'participant_id',
                         'independent variables': 'condition',
                         'dependent variables': 'accuracy',
                         'between subjects': 'condition',
@@ -262,6 +263,7 @@ def test_compare_variant_ds():
     variables = [variant, naive_time, caching_time, forking_time, equivalent, first_order, run, subject]
     file_path = './datasets/timing.csv'
     experimental_design = {
+                            # 'participant id': 'participant_id'
                             'independent variables': 'subject',
                             'dependent variables': ['forking', 'caching', 'naive'],
                             'between subjects': 'subject',
@@ -269,6 +271,7 @@ def test_compare_variant_ds():
                             # 'alpha': 1
                         }
     ds = load_data(file_path, variables, 'subject')
+    
 
 def test_dataset_query():
     condition = nominal('condition', ['microtask', 'macrotask'])
@@ -280,6 +283,7 @@ def test_dataset_query():
                             'independent variables': 'condition',
                             'dependent variables': 'accuracy',
                             'between subjects': 'condition',
+                            'participant id': 'participant_id'
                         }
 
     ds = load_data(file_path, variables, 'participant_id')

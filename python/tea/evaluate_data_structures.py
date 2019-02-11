@@ -20,7 +20,6 @@ class CompData(Value): # TODO probably want to rename this
     # set of characteristics about the groups that are used to determine statistical test
     properties: SimpleNamespace
 
-
 @attr.s(init=True, auto_attribs=True, str=False)
 class ResData(Value):
     iv: str # Name of IV
