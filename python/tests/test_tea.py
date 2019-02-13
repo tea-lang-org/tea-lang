@@ -272,6 +272,28 @@ def test_compare_variant_ds():
                         }
     ds = load_data(file_path, variables, 'subject')
     
+    # Main RQ: Is Forking significantly better than caching/naive for all (first-order) variants?
+    # wrangling data
+    # can refer to variables or column names
+    comp = compare(forking_time, caching_time, 'forking < caching')  #if pass variables as strings to compare, need transfer to be Variables
+    res = evaluate(ds, comp, experimental_design)
+    import pdb; pdb.set_trace()
+
+    # Natural Language: Strategy has a significant effect on time when <first-order is equal to '1'>
+    comp = compare(strategy, time, 'forking < caching', when='first_order == 1')
+    comp = compare(forking_time, caching_time, 'forking < caching') ## But neither is an IV/DV! --> 
+
+    time = aggregate('forking', 'caching', 'naive') # column names to combine into 1 mega variable
+    
+    # for each subject, were the runs any different from each other?  -- maybe this is the multivariate case to try to solve
+    comp = compare(study, run, time) or group_comparison(study, run, time)
+
+
+
+    
+
+    
+    
 
 def test_dataset_query():
     condition = nominal('condition', ['microtask', 'macrotask'])

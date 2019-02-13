@@ -104,13 +104,27 @@ def predict(iv: Variable, dv: Variable, prediction: str):
                 return [const(lhs) != const(rhs)]
 
             else: 
-                raise ValueError(f"Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
-        elif (isnumeric(iv.dtype)): 
+                raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
+        elif (isnumeric(iv)): 
             if ('~' in prediction): 
                 lhs = prediction[:prediction.index('~')].strip()
                 rhs = prediction[prediction.index('~')+1:].strip()
 
                 # if ('-')
+            elif ('<' in prediction):
+                # raise NotImplementedError
+                lhs = prediction[:prediction.index('<')].strip()
+                rhs = prediction[prediction.index('<')+1:].strip()
+                return [const(lhs) < const(rhs)]
+            elif ('>' in prediction):
+                raise NotImplementedError
+            elif ('==' in prediction): 
+                raise NotImplementedError
+            elif ('!=' in prediction): 
+                raise NotImplementedError
+            else: 
+                raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
+                
             
 
                 

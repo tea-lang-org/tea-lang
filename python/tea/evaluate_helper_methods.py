@@ -232,7 +232,7 @@ def spearman_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CompDa
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
 # Parameters: x (array-like) | y (array-like)
 def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
-
+    import pdb; pdb.set_trace()
     return stats.linregress(iv.dataframe, dv.dataframe)
     
 
