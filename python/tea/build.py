@@ -28,13 +28,13 @@ def nominal(var_name: str, unordered_categories: list):
 def isnominal(var: Variable):
     return var.dtype is DataType.NOMINAL
 
-def interval(var_name: str, drange: list):
+def interval(var_name: str, drange: list=None):
     return Variable.from_spec(var_name, DataType.INTERVAL, None, drange) # treat range like categories, check that all values are within range
 
 def isinterval(var: Variable):
     return var.dtype is DataType.INTERVAL
 
-def ratio(var_name: str, drange: list):
+def ratio(var_name: str, drange: list=None):
     return Variable.from_spec(var_name, DataType.RATIO, None, drange) # treat range like categories, check that all values are within range
 
 def isratio(var: Variable):
@@ -131,8 +131,11 @@ def predict(iv: Variable, dv: Variable, prediction: str):
 
 
 # @params: iv could be the list of variables/groups want to compare on dv - may only want to compare 2 groups, not all conditions
-def compare(iv, dv: Variable, prediction:str=None) :
-    ivs = []
+def compare(iv, dv, prediction:str=None, when:str=None) :
+    # iv_var = iv
+    # dv_var = dv 
+    # if (isinstance(iv, str)):
+    #     iv_var = 
     if (isinstance(iv, Variable)):
         if isnominal(iv) or isordinal(iv):
             return Compare(iv, dv, predict(iv, dv, prediction))
@@ -141,4 +144,14 @@ def compare(iv, dv: Variable, prediction:str=None) :
         else: 
             raise ValueError(f"Invalid Variable type: {iv.dtype}")
     else: # iv is already a list of Variables
-        return Compare(iv, dv)
+            return Compare(iv, dv)
+
+# def compare(var, var, semantically_same=True): # Compare two groups
+#     pass
+
+# compare(iv, dv, predictions)
+# compare(dv, dv, groups=False) or compare (iv, iv, groups=False) 
+# # Are they the same groups? 
+
+# strategy = nominal('strategy', ['forking', 'caching', 'naive'])
+# ratio('time', drange=[0, 10000], comes_from=(strategy, ['forking', 'caching', 'naive']))

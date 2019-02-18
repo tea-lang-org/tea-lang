@@ -250,7 +250,7 @@ def find_test(dataset: Dataset, comp_data: CompData, iv, dv, predictions, design
                 return lambda : mann_whitney_u(iv, dv, predictions, comp_data, **kwargs)
             elif (is_nominal(dv.metadata['dtype'])):
                 raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
-                return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)
+                return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)x
         elif (is_nominal(iv.metadata['dtype']) and is_dependent_samples(iv.metadata['var_name'], design)):
             if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
                 return lambda : t_test_paired(iv, dv, predictions, comp_data, **kwargs)
@@ -297,12 +297,16 @@ def execute_test(dataset: Dataset, data_props: CompData, iv: VarData, dv: VarDat
     stat_test = find_test(dataset, data_props, iv, dv, predictions, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
     
     # Execute test
-    results = stat_test()
+    if stat_test: 
+        results = stat_test()
+    else: 
+        results = bootstrap()
     stat_test_name = results.__class__.__name__
 
     # Wrap results in ResData and return
     return ResData(iv=iv.metadata['var_name'], dv=dv.metadata['var_name'], test_name=stat_test_name, results=results, properties=data_props.properties, predictions=predictions)
     
-def bootstrap(data):
+# def bootstrap(data):
+def bootstrap():
     print('Do something with incoming data')
 

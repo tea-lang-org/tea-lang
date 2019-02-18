@@ -251,32 +251,43 @@ def test_compare_bivariate_within_cat_num():
     pass
 
 def test_compare_variant_ds(): 
-    variant = interval('variant', drange=[1,267]) #Is there a better way to shortcut cateories -- if we wanted to call this column nominal? 
-    naive_time = ratio('naive', drange=[0,1000]) # does it make sense to require a drange for ratio data? (supposed to be used for filtering)
-    caching_time = ratio('caching', drange=[0,1000])
-    forking_time = ratio('forking', drange=[0,1000])
-    equivalent = nominal('equivalent', ['0', '1']) # what if I did 0 and 1 in no strings? 
-    first_order = nominal('first.order', ['0', '1']) # what if I did 0 and 1 in no strings? 
-    run = interval('run', drange=[1,5])
-    subject = nominal('subject', ['tictactoe', 'tax', 'triangle'])
+    # variant = interval('variant', drange=[1,267]) #Is there a better way to shortcut categories -- if we wanted to call this column nominal? 
+    # naive_time = ratio('naive', drange=[0,1000]) # does it make sense to require a drange for ratio data? (supposed to be used for filtering)
+    # caching_time = ratio('caching', drange=[0,1000])
+    # forking_time = ratio('forking', drange=[0,1000])
+    # equivalent = nominal('equivalent', ['0', '1']) # what if I did 0 and 1 in no strings? 
+    # first_order = nominal('first.order', ['0', '1']) # what if I did 0 and 1 in no strings? 
+    # run = interval('run', drange=[1,5])
+    # subject = nominal('subject', ['tictactoe', 'tax', 'triangle'])
+    # variables = [variant, naive_time, caching_time, forking_time, equivalent, first_order, run, subject]
+    # file_path = './datasets/timing.csv'
 
-    variables = [variant, naive_time, caching_time, forking_time, equivalent, first_order, run, subject]
-    file_path = './datasets/timing.csv'
+    subject = nominal('subject', ['tictactoe', 'tax', 'triangle'])
+    run = interval('run', drange=[1,5])
+    first_order = nominal('first.order', [0, 1]) 
+    equivalent = nominal('equivalent', [0, 1]) 
+    variant = interval('variant', drange=[1,267]) 
+    strategy = nominal('strategy', ['naive', 'caching', 'forking'])
+    time = ratio('time')
+    variables = [subject, run, first_order, equivalent, variant, strategy, time]
+
+
+    file_path = './datasets/timing_long_format.csv'
     experimental_design = {
-                            # 'participant id': 'participant_id'
-                            'independent variables': 'subject',
-                            'dependent variables': ['forking', 'caching', 'naive'],
-                            'between subjects': 'subject',
-                            'within subjects': 'run', # what if I put 'variant' here -- would there be a cross-checking that the things listed in design exhibit behavior that would expect from between and within subjects? 
+                            'key': 'subject', # does not have to be unique, used to disambiguate between/within subjects
+                            'independent variables': 'strategy',
+                            'dependent variables': 'time',
+                            # 'between subjects': 'subject',
+                            # 'within subjects': 'strategy', # what if I put 'variant' here -- would there be a cross-checking that the things listed in design exhibit behavior that would expect from between and within subjects? 
                             # 'alpha': 1
                         }
-    ds = load_data(file_path, variables, 'subject')
+    ds2 = load_data(file_path, variables, 'subject')
     
     # Main RQ: Is Forking significantly better than caching/naive for all (first-order) variants?
     # wrangling data
     # can refer to variables or column names
-    comp = compare(forking_time, caching_time, 'forking < caching')  #if pass variables as strings to compare, need transfer to be Variables
-    res = evaluate(ds, comp, experimental_design)
+    comp = compare(strategy, time, 'forking < caching')  #if pass variables as strings to compare, need transfer to be Variables
+    res = evaluate(ds2, comp, experimental_design)
     import pdb; pdb.set_trace()
 
     # Natural Language: Strategy has a significant effect on time when <first-order is equal to '1'>

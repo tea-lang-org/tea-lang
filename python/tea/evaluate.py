@@ -21,6 +21,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
         # then use query to get raw data later....(for user, not interpreter?)
         metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
+        if expr.name == 'strategy':
+            import pdb; pdb.set_trace()
         metadata['var_name'] = expr.name
         metadata['query'] = ''
         return VarData(dataframe, metadata)
@@ -324,6 +326,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         return VarData(dataframe, metadata) 
 
     elif isinstance(expr, Compare):    
+        # import pdb; pdb.set_trace()
         iv = evaluate(dataset, expr.iv)
         dv = evaluate(dataset, expr.dv)
         assert isinstance(iv, VarData)
