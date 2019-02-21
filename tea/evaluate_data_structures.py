@@ -6,6 +6,10 @@ import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
 
+## TODO Store keys here
+#global variance_key = 'variance'
+# properties[variance_key]
+
 class Value(object):
     pass
 

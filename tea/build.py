@@ -64,71 +64,79 @@ def select(var: Variable, op: str, other: Literal):
         raise ValueError(f"Do not support the operator{op}")
 
 # TODO: Likely need to change the signature of this method
-def predict(iv: Variable, dv: Variable, prediction: str): 
-    # TODO: need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
+# TODO: need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
+
+def predict(ivs: list, dv: Variable, prediction: str):     
     if (prediction):
-        if(isnominal(iv) or isordinal(iv)): 
-            if ('<' in prediction):
-                lhs = prediction[:prediction.index('<')].strip()
-                rhs = prediction[prediction.index('<')+1:].strip()
-                assert(lhs in iv.categories.keys())
-                assert(rhs in iv.categories.keys())
-                return [const(lhs) < const(rhs)]
+        if (len(ivs) == 1): # Bivariate case
+            iv = ivs[0]
+            if(isnominal(iv) or isordinal(iv)): 
+                if ('<' in prediction):
+                    lhs = prediction[:prediction.index('<')].strip()
+                    rhs = prediction[prediction.index('<')+1:].strip()
+                    assert(lhs in iv.categories.keys())
+                    assert(rhs in iv.categories.keys())
+                    return [const(lhs) < const(rhs)]
 
-            elif ('>' in prediction):
-                lhs = prediction[:prediction.index('>')].strip()
-                rhs = prediction[prediction.index('>')+1:].strip()
-                assert(lhs in iv.categories.keys())
-                assert(rhs in iv.categories.keys())
-                return [const(lhs) > const(rhs)]
+                elif ('>' in prediction):
+                    lhs = prediction[:prediction.index('>')].strip()
+                    rhs = prediction[prediction.index('>')+1:].strip()
+                    assert(lhs in iv.categories.keys())
+                    assert(rhs in iv.categories.keys())
+                    return [const(lhs) > const(rhs)]
 
-            elif ('==' in prediction):
-                lhs = prediction[:prediction.index('==')].strip()
-                rhs = prediction[prediction.index('==')+1:].strip()
-                assert(lhs in iv.categories.keys())
-                assert(rhs in iv.categories.keys())
-                return [const(lhs) == const(rhs)]
-            
-            elif ('=' in prediction): # in case user wants to use single equals
-                lhs = prediction[:prediction.index('=')].strip()
-                rhs = prediction[prediction.index('=')+1:].strip()
-                assert(lhs in iv.categories.keys())
-                assert(rhs in iv.categories.keys())
-                return [const(lhs) == const(rhs)]
-
-            elif ('!=' in prediction):
-                lhs = prediction[:prediction.index('!=')].strip()
-                rhs = prediction[prediction.index('!=')+1:].strip()
-                assert(lhs in iv.categories.keys())
-                assert(rhs in iv.categories.keys())
-                return [const(lhs) != const(rhs)]
-
-            else: 
-                raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
-        elif (isnumeric(iv)): 
-            if ('~' in prediction): 
-                lhs = prediction[:prediction.index('~')].strip()
-                rhs = prediction[prediction.index('~')+1:].strip()
-
-                # if ('-')
-            elif ('<' in prediction):
-                # raise NotImplementedError
-                lhs = prediction[:prediction.index('<')].strip()
-                rhs = prediction[prediction.index('<')+1:].strip()
-                return [const(lhs) < const(rhs)]
-            elif ('>' in prediction):
-                raise NotImplementedError
-            elif ('==' in prediction): 
-                raise NotImplementedError
-            elif ('!=' in prediction): 
-                raise NotImplementedError
-            else: 
-                raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
+                elif ('==' in prediction):
+                    lhs = prediction[:prediction.index('==')].strip()
+                    rhs = prediction[prediction.index('==')+1:].strip()
+                    assert(lhs in iv.categories.keys())
+                    assert(rhs in iv.categories.keys())
+                    return [const(lhs) == const(rhs)]
                 
+                elif ('=' in prediction): # in case user wants to use single equals
+                    lhs = prediction[:prediction.index('=')].strip()
+                    rhs = prediction[prediction.index('=')+1:].strip()
+                    assert(lhs in iv.categories.keys())
+                    assert(rhs in iv.categories.keys())
+                    return [const(lhs) == const(rhs)]
+
+                elif ('!=' in prediction):
+                    lhs = prediction[:prediction.index('!=')].strip()
+                    rhs = prediction[prediction.index('!=')+1:].strip()
+                    assert(lhs in iv.categories.keys())
+                    assert(rhs in iv.categories.keys())
+                    return [const(lhs) != const(rhs)]
+
+                else: 
+                    raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
+            elif (isnumeric(iv)): 
+                if ('~' in prediction): 
+                    lhs = prediction[:prediction.index('~')].strip()
+                    rhs = prediction[prediction.index('~')+1:].strip()
+
+                    # if ('-')
+                elif ('<' in prediction):
+                    # raise NotImplementedError
+                    lhs = prediction[:prediction.index('<')].strip()
+                    rhs = prediction[prediction.index('<')+1:].strip()
+                    return [const(lhs) < const(rhs)]
+                elif ('>' in prediction):
+                    raise NotImplementedError
+                elif ('==' in prediction): 
+                    raise NotImplementedError
+                elif ('!=' in prediction): 
+                    raise NotImplementedError
+                else: 
+                    raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
+        elif (len(ivs) > 1): # Multivariate analysis 
+            raise NotImplementedError
             
-
-                
-
+# Generic interface for observing relationships among variables (observational studies and experiments)
+# @params: vars should be a list of Variables
+def relate(vars: dict, prediction: str=None) : 
+    ivs = vars['iv']
+    dv = vars['dv']
+    assert (len(dv) == 1)
+    return Relate(ivs, dv, predict(prediction))
 
 # @params: iv could be the list of variables/groups want to compare on dv - may only want to compare 2 groups, not all conditions
 def compare(iv, dv, prediction:str=None, when:str=None) :
@@ -138,9 +146,9 @@ def compare(iv, dv, prediction:str=None, when:str=None) :
     #     iv_var = 
     if (isinstance(iv, Variable)):
         if isnominal(iv) or isordinal(iv):
-            return Compare(iv, dv, predict(iv, dv, prediction))
+            return Compare(iv, dv, predict([iv], dv, prediction))
         elif isnumeric(iv):
-            return Compare(iv, dv, predict(iv, dv, prediction))
+            return Compare(iv, dv, predict([iv], dv, prediction))
         else: 
             raise ValueError(f"Invalid Variable type: {iv.dtype}")
     else: # iv is already a list of Variables
