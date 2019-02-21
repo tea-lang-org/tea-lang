@@ -126,6 +126,17 @@ class Compare(Node):
     dv = attr.ib(type=Node) # value/metric to compare the groups on
     predictions = attr.ib(type=list, default=None) # list of Nodes
 
+    @classmethod
+    def from_str_names(cls, iv: str, dv: str, predictions: list):
+
+        data = {'X': x, 'Y': y}
+        df = pd.DataFrame.from_dict(data)
+
+        x_var = Variable('X', dtype=DataType.INTERVAL, categories=None, drange=None)
+        y_var = Variable('Y', dtype=DataType.INTERVAL, categories=None, drange=None)
+
+        return cls(dfile='', variables=[x_var,y_var], data=df)
+
 @attr.s(hash=True, repr=False)
 class Mean(Node):
     var = attr.ib(type=Node)

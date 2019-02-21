@@ -250,7 +250,7 @@ def find_test(dataset: Dataset, comp_data: CompData, iv, dv, predictions, design
                 return lambda : mann_whitney_u(iv, dv, predictions, comp_data, **kwargs)
             elif (is_nominal(dv.metadata['dtype'])):
                 raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
-                return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)x
+                return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)
         elif (is_nominal(iv.metadata['dtype']) and is_dependent_samples(iv.metadata['var_name'], design)):
             if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
                 return lambda : t_test_paired(iv, dv, predictions, comp_data, **kwargs)

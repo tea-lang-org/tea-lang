@@ -284,9 +284,9 @@ def test_compare_variant_ds():
     ds2 = load_data(file_path, variables, 'subject')
     
     # Main RQ: Is Forking significantly better than caching/naive for all (first-order) variants?
-    # wrangling data
+    # Assumption: Data will be in long format (For Variant dataset, I wrangled in R using melt command)
     # can refer to variables or column names
-    comp = compare(strategy, time, 'forking < caching')  #if pass variables as strings to compare, need transfer to be Variables
+    comp = compare(strategy, time, 'forking < caching')  # TODO if pass variables as strings to compare, need transfer to be Variables
     res = evaluate(ds2, comp, experimental_design)
     import pdb; pdb.set_trace()
 
