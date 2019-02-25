@@ -325,16 +325,19 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             raise ValueError(f"Not implemented for {rhs}")
         return VarData(dataframe, metadata) 
 
-    elif isinstance(expr, Compare):    
-        # import pdb; pdb.set_trace()
-        iv = evaluate(dataset, expr.iv)
-        dv = evaluate(dataset, expr.dv)
-        assert isinstance(iv, VarData)
-        assert isinstance(dv, VarData)
+    elif isinstance(expr, Relate):    
+        vars = []
 
-        data_props = compute_data_properties(dataset, iv, dv, expr.predictions) 
+        for v in expr.vars: 
+            eval_v = evaluate(dataset, v, design)         
+            assert isinstance(eval_v, VarData)
+
+            vars.append(eval_v)
+
+        data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
 
         # data_props has the data that is needed (already filtered and ready) for analyses
+        import pdb; pdb.set_trace()
         res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
 
         return res_data

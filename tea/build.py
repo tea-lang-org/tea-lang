@@ -1,9 +1,13 @@
 from typing import Dict, Union
 from collections import OrderedDict
 from .ast import (  Variable, DataType, Literal,
-                    Compare
+                    Relate, Relationship
                 )
 from .dataset import Dataset 
+
+iv_identifier = 'independent variable'
+dv_identifier = 'dependent variable'
+var_identifier = 'variable'
 
 def const(val):
     return Literal(val)
@@ -63,96 +67,147 @@ def select(var: Variable, op: str, other: Literal):
     else: 
         raise ValueError(f"Do not support the operator{op}")
 
-# TODO: Likely need to change the signature of this method
-# TODO: need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
+# @param vars: list of all vars in tuple form (Variable, 'iv/dv/variable')
+# @param role: "role" of Variable (i.e., independent variable, dependent variable, variable)
+# @returns new list of vars with specified role
+# def get_vars(role: str, vars: list): 
+#     vars_role = []
+#     for v,r in vars:
+#         if r == role: 
+#             vars_role.append(v)
+    
+#     return vars_role
 
-def predict(ivs: list, dv: Variable, prediction: str):     
+# TODO: need to check that the prediction is well-formed (VALUES that are ordered exist, for example)
+"""
+    Grammar for predictions: 
+    # Cat x Numeric
+    # what matters is that the var using to form groups in comparison is nominal/categorical 
+    <, >, ==, != --> Tests null hypothesis that there is no difference OR ask for one-sidedness in tests (as constraint?)
+    predict(groups: Variable, outcome: Variable, prediction: str=None)
+    # Cat x Cat
+    Frequency(??)
+    predict(groups: Variable, outcome: Variable, prediction: str=None)
+    # Numeric x Cat
+    # we need to know which variable is factor vs. predictor
+    logistic regression
+    predict(var: Variable, outcome: Variable, prediction: str=None)
+    # Numeric x Numeric --> Should allow for both
+    # Need to know which variable is factor vs predictor
+    Prediction: y ~ - var + var + var (e.g., time ~ + condition + age || prediction: condition:a > condition:b)
+    Prediction: + var, - var
+    predict(outcome: Variable, factors: list of variables, prediction: str=None)
+    predict(factors: list, outcome: Variable, prediction: str=None)
+    --> check type of outcome
+    --> check number of factors: if > 1 then multivariate case else bivariate case, check for factor type
+    --> in multivariate case, the types of factors don't have a bearing on the ....?
+"""
+def predict(factors: list, outcome: Variable, prediction: str=None):    
+    global iv_identifier
+
     if (prediction):
-        if (len(ivs) == 1): # Bivariate case
-            iv = ivs[0]
-            if(isnominal(iv) or isordinal(iv)): 
+        if (len(factors) == 1): # Bivariate case
+            factor = factors[0]
+            if(isnominal(factor) or isordinal(factor)): 
+                # TODO: Should the below change if Outcome is Cat or Numeric???
                 if ('<' in prediction):
                     lhs = prediction[:prediction.index('<')].strip()
                     rhs = prediction[prediction.index('<')+1:].strip()
-                    assert(lhs in iv.categories.keys())
-                    assert(rhs in iv.categories.keys())
+                    assert(lhs in factor.categories.keys())
+                    assert(rhs in factor.categories.keys())
                     return [const(lhs) < const(rhs)]
 
                 elif ('>' in prediction):
                     lhs = prediction[:prediction.index('>')].strip()
                     rhs = prediction[prediction.index('>')+1:].strip()
-                    assert(lhs in iv.categories.keys())
-                    assert(rhs in iv.categories.keys())
+                    assert(lhs in factor.categories.keys())
+                    assert(rhs in factor.categories.keys())
                     return [const(lhs) > const(rhs)]
 
                 elif ('==' in prediction):
                     lhs = prediction[:prediction.index('==')].strip()
                     rhs = prediction[prediction.index('==')+1:].strip()
-                    assert(lhs in iv.categories.keys())
-                    assert(rhs in iv.categories.keys())
+                    assert(lhs in factor.categories.keys())
+                    assert(rhs in factor.categories.keys())
                     return [const(lhs) == const(rhs)]
                 
                 elif ('=' in prediction): # in case user wants to use single equals
                     lhs = prediction[:prediction.index('=')].strip()
                     rhs = prediction[prediction.index('=')+1:].strip()
-                    assert(lhs in iv.categories.keys())
-                    assert(rhs in iv.categories.keys())
+                    assert(lhs in factor.categories.keys())
+                    assert(rhs in factor.categories.keys())
                     return [const(lhs) == const(rhs)]
 
                 elif ('!=' in prediction):
                     lhs = prediction[:prediction.index('!=')].strip()
                     rhs = prediction[prediction.index('!=')+1:].strip()
-                    assert(lhs in iv.categories.keys())
-                    assert(rhs in iv.categories.keys())
+                    assert(lhs in factor.categories.keys())
+                    assert(rhs in factor.categories.keys())
                     return [const(lhs) != const(rhs)]
 
                 else: 
-                    raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
-            elif (isnumeric(iv)): 
+                    raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {factor.dtype}!\nThe following are supported: <, >, ==, !=")
+            
+            elif (isnumeric(factor)): 
+                # TODO: Should the below change if Outcome is Cat or Numeric???
                 if ('~' in prediction): 
                     lhs = prediction[:prediction.index('~')].strip()
                     rhs = prediction[prediction.index('~')+1:].strip()
 
-                    # if ('-')
-                elif ('<' in prediction):
-                    # raise NotImplementedError
-                    lhs = prediction[:prediction.index('<')].strip()
-                    rhs = prediction[prediction.index('<')+1:].strip()
-                    return [const(lhs) < const(rhs)]
-                elif ('>' in prediction):
-                    raise NotImplementedError
-                elif ('==' in prediction): 
-                    raise NotImplementedError
-                elif ('!=' in prediction): 
-                    raise NotImplementedError
-                else: 
-                    raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
-        elif (len(ivs) > 1): # Multivariate analysis 
+                    if ('-' in lhs): # "as LHS decreases,..."
+                        lhs = lhs[lhs.index('-')+1:]
+                        if ('-' in rhs): # "as RHS decreases,..."
+                            rhs = rhs[rhs.index('-')+1:]
+                            return [Relationship(lhs).positive(Relationship(rhs))]
+                        else: # "as RHS increases,..."
+                            rhs = rhs[rhs.index('+')+1:]
+                        return [Relationship(lhs).negative(Relationship(rhs))]
+                    else: # "as LHS increases,..."
+                        lhs = lhs[lhs.index('+')+1:]
+                        if ('-' in rhs): # "as RHS decreases,..."
+                            rhs = rhs[rhs.index('-')+1:]
+                            return [Relationship(lhs).negative(Relationship(rhs))]
+                        else: # "as RHS increases,..."
+                            rhs = rhs[rhs.index('+')+1:]
+                        return [Relationship(lhs).positive(Relationship(rhs))]
+                    # Multivariate case?: if there is a categorical variable as an iV,can allow for : access on groups (e.g., condition:a > condition:b)
+
+                # else: 
+                    # raise ValueError(f"{prediction}: Trying to use a comparison operator that is not supported for IV of type {iv.dtype}!\nThe following are supported: <, >, ==, !=")
+        elif (len(factors) > 1): # Multivariate analysis 
             raise NotImplementedError
             
 # Generic interface for observing relationships among variables (observational studies and experiments)
 # @params: vars should be a list of Variables
-def relate(vars: dict, prediction: str=None) : 
-    ivs = vars['iv']
-    dv = vars['dv']
-    assert (len(dv) == 1)
-    return Relate(ivs, dv, predict(prediction))
+def relate(vars: list, prediction: str=None) : 
+    # ivs = vars['iv']
+    # dv = vars['dv']
+    # assert (len(dv) == 1)
+    return Relate(vars, predict(vars, prediction))
 
 # @params: iv could be the list of variables/groups want to compare on dv - may only want to compare 2 groups, not all conditions
-def compare(iv, dv, prediction:str=None, when:str=None) :
-    # iv_var = iv
-    # dv_var = dv 
-    # if (isinstance(iv, str)):
-    #     iv_var = 
-    if (isinstance(iv, Variable)):
-        if isnominal(iv) or isordinal(iv):
-            return Compare(iv, dv, predict([iv], dv, prediction))
-        elif isnumeric(iv):
-            return Compare(iv, dv, predict([iv], dv, prediction))
-        else: 
-            raise ValueError(f"Invalid Variable type: {iv.dtype}")
-    else: # iv is already a list of Variables
-            return Compare(iv, dv)
+# def compare(var_1: Variable, var_2: Variable, prediction: str=None, when: str=None) :
+
+def compare(iv: Variable, dv: Variable, prediction: str=None, when: str=None) :
+    
+    # vars = [(var_1, 'variable'), (var_2, 'variable')]
+    return Relate([iv, dv], predict([iv], dv, prediction))
+    
+    # if (isinstance(iv, Variable)):
+    #     vars = [(iv, iv_identifier), (dv, dv_identifier)]
+    #     if isnominal(iv) or isordinal(iv):
+    #         return Relate(vars, predict(vars, prediction))
+    #     elif isnumeric(iv):
+    #         return Relate(vars, predict(vars, prediction))
+    #     else: 
+    #         raise ValueError(f"Invalid Variable type: {iv.dtype}")
+    # elif (isinstance(iv, list)): 
+    #     vars = []
+    #     for i in iv: 
+    #         vars.append((i, iv_identifier))
+    #     return Relate(vars, predict(vars, prediction))
+    # else: 
+    #     raise ValueError (f"IV (first parameter) is not a Variable or list of Variables: {f.type}")
 
 # def compare(var, var, semantically_same=True): # Compare two groups
 #     pass
