@@ -18,7 +18,9 @@ experiment_identifier = 'experiment'
 observational_identifier = 'observational'
 iv_identifier = 'independent variables'
 dv_identifier = 'dependent variables'
-null_identifier = 'variable'
+null_identifier = 'variables'
+outcome_identifier = 'outcome variables'
+contributor_identifier = 'contributor variables'
 #quasi_experiment = 'quasi_experiment'
 
 # GLOBAL Property names
@@ -44,20 +46,37 @@ def assign_roles_to_vars(vars_data: list, design: Dict[str, str]):
 
 # @returns list of VarData objects with same info as @param var but with one an updated role characteristic
 def assign_roles(vars: list, design: Dict[str, str]):
-    # if design: 
-    #     if (study_type_identifier in design and design[study_type_identifier] == experiment_identifier):
-            
-    #     elif (study_type_identifier in design and design[study_type_identifier] == experiment_identifier):
-        
-    #     elif (study_type_identifier not in design):
-            
-    #     else: 
-    #         # observational study OR
-    #         # deduce based on if independent variables/dependent variables is present
+    if design: 
+        # Is the study type explicit? If so...
+        if (study_type_identifier in design):
 
-    # elif: # observational study
-    # else: 
-    #     # assign as if all unknown factors
+            # Is this study an experiment?
+            if (design[study_type_identifier] == experiment_identifier):
+            
+            # Is this study an observational study?
+            elif (design[study_type_identifier] == observational_identifier):
+
+            # We don't know what kind of study this is.
+            else: 
+                raise ValueError(f"Type of study is not supported:{design[study_type_identifier]}. Is it an experiment or an observational study?")
+        
+        # The study type is not explicit, so let's check the other properties...
+        else: 
+            # This might be an experiment.
+            if (iv_identifier in design):
+            elif ()
+
+        # elif (study_type_identifier in design and design[study_type_identifier] == experiment_identifier):
+        # Is this an observational study? (default is that if study type is not defined, it is an observational study)
+        else: #(study_type_identifier not in design):
+        
+            # observational study OR
+        
+        # deduce based on if independent variables/dependent variables is present
+
+    elif: # observational study
+    else: 
+        # assign as if all unknown factors
     return vars
 
 

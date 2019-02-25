@@ -24,9 +24,22 @@ class VarData(Value):
 class CombinedData(Value): # TODO probably want to rename this
     # dataframes: dict # or SimpleNamespace? maybe just a list???
     vars: list # list of VarData objects 
-    
+
     # set of characteristics about the groups that are used to determine statistical test
     properties: SimpleNamespace
+
+    def is_normal(self, alpha):
+        reutrn self.properties[distribution] < alpha 
+
+    # TODO add functions that return bools about the properties
+
+@attr.s(init=True, auto_attribs=True)
+class BivariateData(CombinedData):
+    pass
+
+@attr.s(init=True, auto_attribs=True)
+class MultivariateData(CombinedData):
+    pass
 
 @attr.s(init=True, auto_attribs=True, str=False)
 class ResData(Value):
