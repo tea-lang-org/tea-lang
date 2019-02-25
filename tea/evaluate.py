@@ -1,7 +1,7 @@
 from .ast import *
 from .dataset import Dataset
-from .evaluate_data_structures import VarData, CompData, ResData # runtime data structures
-from .evaluate_helper_methods import compute_data_properties, execute_test
+from .evaluate_data_structures import VarData, CombinedData, ResData # runtime data structures
+from .evaluate_helper_methods import assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
 
 import attr
 from typing import Any
@@ -334,16 +334,20 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
             vars.append(eval_v)
 
-        # list of CompData objects that contains the data and properties that we are interested in...
-        data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
+        # list of CombinedData objects that contains the data and properties that we are interested in...
+        vars = assign_roles(vars, design)
+        vars = compute_data_properties(dataset, vars)
+
+        agg = compute_combined_data_properties(dataset, vars, design)
+        # data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
 
 
         # data_props has the data that is needed (already filtered and ready) for analyses
         import pdb; pdb.set_trace()
-        # TODO execute_test needs to be able to handle list of CompData 
+        # TODO execute_test needs to be able to handle list of CombinedData 
         # TODO split into find and execute test
         # res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
-
+        # res_data = execute_test(dataset, agg) ????
         # return res_data
 
 

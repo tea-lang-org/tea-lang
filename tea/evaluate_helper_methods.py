@@ -1,6 +1,6 @@
 from .ast import *
 from .dataset import Dataset
-from .evaluate_data_structures import VarData, CompData, ResData
+from .evaluate_data_structures import VarData, CombinedData, ResData
 
 import attr
 from typing import Any
@@ -42,9 +42,38 @@ def assign_roles_to_vars(vars_data: list, design: Dict[str, str]):
 
     return labeled_vars
 
+# @returns list of VarData objects with same info as @param var but with one an updated role characteristic
+def assign_roles(vars: list, design: Dict[str, str]):
+    # if design: 
+    #     if (study_type_identifier in design and design[study_type_identifier] == experiment_identifier):
+            
+    #     elif (study_type_identifier in design and design[study_type_identifier] == experiment_identifier):
+        
+    #     elif (study_type_identifier not in design):
+            
+    #     else: 
+    #         # observational study OR
+    #         # deduce based on if independent variables/dependent variables is present
+
+    # elif: # observational study
+    # else: 
+    #     # assign as if all unknown factors
+    return vars
+
+
+
 # Helper methods for Interpreter (in evaluate.py)
+# Compute properties about the VarData objects in @param vars using data in @param dataset
+def compute_data_properties(dataset, vars: list):
+    return vars
+
+# Create
+def compute_combined_data_properties(dataset, vars, design):
+    # return CombinedData()
+    return vars
+
 # @param vars is a list of VarData containing VarData objects of the variables we are interested in relating/analyzing
-def compute_data_properties(dataset, vars: list, predictions: list=None, design: Dict[str, str]=None):
+def compute_data_properties_og(dataset, vars: list, predictions: list=None, design: Dict[str, str]=None):
     global experiment_identifier, observational_identifier
 
     # Is this an experiment?
@@ -108,8 +137,8 @@ def compute_data_properties(dataset, vars: list, predictions: list=None, design:
             else:
                 raise ValueError(f"Invalid dependent variable variable type: {dv.metadata['dtype']}")
 
-            # return CompData that has this data and other metadata
-            comp_data.append(CompData(dataframes=data, properties=props))
+            # return CombinedData that has this data and other metadata
+            comp_data.append(CombinedData(dataframes=data, properties=props))
     # We are looking at an observational study
     else:
         raise NotImplementedError
@@ -141,14 +170,14 @@ def compute_variance(groups_data):
     levene_test = stats.levene(groups_data[keys[0]], groups_data[keys[1]])
     return (levene_test[0], levene_test[1])
 
-def is_normal(comp_data: CompData, alpha, data=None):
+def is_normal(comp_data: CombinedData, alpha, data=None):
     if (data is not None): # raw data being checked for normality
         norm_test = compute_distribution(data)
         return (norm_test[1] < .05)
     else: 
         return comp_data.properties.dist[1] < alpha
 
-def is_equal_variance(comp_data: CompData, alpha):
+def is_equal_variance(comp_data: CombinedData, alpha):
     return comp_data.properties.var[1] < alpha
 
 def is_numeric(data_type: DataType):
@@ -169,7 +198,7 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
     assert(len(predictions) == 1)
 
@@ -182,7 +211,7 @@ def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CompData,
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
-def mann_whitney_u(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def mann_whitney_u(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
     assert(len(predictions) == 1)
 
@@ -200,7 +229,7 @@ def mann_whitney_u(iv: VarData, dv: VarData, predictions: list, comp_data: CompD
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
 # Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
-def fishers_exact(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def fishers_exact(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
     assert(len(predictions) == 1)
 
@@ -211,7 +240,7 @@ def fishers_exact(iv: VarData, dv: VarData, predictions: list, comp_data: CompDa
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html
 # Parameters: a, b (array-like) | axis | nan_policy (default is 'propagate', optional)
-def t_test_paired(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def t_test_paired(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
     assert(len(predictions) == 1)
 
@@ -223,7 +252,7 @@ def t_test_paired(iv: VarData, dv: VarData, predictions: list, comp_data: CompDa
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
-def wilcoxon_signed_rank(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def wilcoxon_signed_rank(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
     assert(len(predictions) == 1)
 
@@ -239,7 +268,7 @@ def wilcoxon_signed_rank(iv: VarData, dv: VarData, predictions: list, comp_data:
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
 # Parameters: x (array-like) | y (array-like)
-def pearson_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def pearson_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
 
     data = []
@@ -251,7 +280,7 @@ def pearson_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CompDat
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
 # Parameters: a, b (b is optional) | axis (optional) 
-def spearman_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def spearman_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     assert(len(comp_data.dataframes) == 2)
 
     data = []
@@ -268,7 +297,7 @@ def spearman_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CompDa
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
 # Parameters: x (array-like) | y (array-like)
-def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CompData, **kwargs):
+def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     import pdb; pdb.set_trace()
     return stats.linregress(iv.dataframe, dv.dataframe)
     
@@ -277,7 +306,7 @@ def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: Co
 # TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
 # Based on the properties of data, find the most appropriate test to conduct
 # Return the test but do not execute
-def find_test(dataset: Dataset, comp_data: CompData, iv, dv, predictions, design: Dict[str, str], **kwargs):
+def find_test(dataset: Dataset, comp_data: CombinedData, iv, dv, predictions, design: Dict[str, str], **kwargs):
     # Two IV groups (only applies to nominal/ordinal IVs)
     if (len(comp_data.dataframes) == 2):
         if (is_nominal(iv.metadata['dtype']) and is_independent_samples(iv.metadata['var_name'], design)):
@@ -318,8 +347,8 @@ def find_test(dataset: Dataset, comp_data: CompData, iv, dv, predictions, design
 
                 
 
-# This is the function used to determine and then execute test based on CompData
-def execute_test(dataset: Dataset, data_props: CompData, iv: VarData, dv: VarData, predictions: list, design: Dict[str,str]): 
+# This is the function used to determine and then execute test based on CombinedData
+def execute_test(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: VarData, predictions: list, design: Dict[str,str]): 
     # For power we need sample size, effect size, alpha
     sample_size = 0
     # calculate sample size
