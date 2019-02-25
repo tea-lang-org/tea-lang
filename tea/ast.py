@@ -11,8 +11,8 @@ class Node(object):
     def relate(self, other):
         return Relate(self, other)
 
-    def compare(self, other):
-        return Compare(self, other)
+    # def compare(self, other):
+    #     return Compare(self, other)
     
     def select(self, other):
         return Select(self, other)
@@ -121,9 +121,8 @@ class GreaterThanEqual(Node):
     rhs = attr.ib(type=Node)
 
 @attr.s(hash=True, repr=False)
-class Compare(Node):
-    iv = attr.ib(type=Node) # name of Variable from which the groups come
-    dv = attr.ib(type=Node) # value/metric to compare the groups on
+class Relate(Node):
+    vars = attr.ib(type=list) # list of vars that are imbued meaning as IV/DV/Variables at runtime during interpretation
     predictions = attr.ib(type=list, default=None) # list of Nodes
 
     @classmethod
@@ -157,3 +156,21 @@ class Literal(Node):
     
     def __ne__(self, other):
         return NotEqual(self, other)
+
+@attr.s(hash=True, cmp=False)
+class Relationship(Node):
+    var = attr.ib(type=Node)
+    
+    def positive(self, other):
+        return PositiveRelationship(self, other)
+
+    def negative(self, other):
+        return NegativeRelationship(self, other)
+
+class PositiveRelationship(Node):
+    lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)
+
+class NegativeRelationship(Node):
+    lhs = attr.ib(type=Node)
+    rhs = attr.ib(type=Node)

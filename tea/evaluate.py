@@ -1,7 +1,7 @@
 from .ast import *
 from .dataset import Dataset
-from .evaluate_data_structures import VarData, CompData, ResData # runtime data structures
-from .evaluate_helper_methods import compute_data_properties, execute_test
+from .evaluate_data_structures import VarData, CombinedData, ResData # runtime data structures
+from .evaluate_helper_methods import assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
 
 import attr
 from typing import Any
@@ -25,7 +25,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             import pdb; pdb.set_trace()
         metadata['var_name'] = expr.name
         metadata['query'] = ''
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, Literal):
         data = pd.Series([expr.value] * len(dataset.data), index=dataset.data.index) # Series filled with literal value
@@ -52,7 +52,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             raise ValueError(f"Not implemented for {rhs}")
         
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, NotEqual): 
         rhs = evaluate(dataset, expr.rhs)
@@ -68,7 +68,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             metadata['query'] = f" != {rhs.metadata['var_name']}"
         else: 
             raise ValueError(f"Not implemented for {rhs}")
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, LessThan):
         lhs = evaluate(dataset, expr.lhs)
@@ -130,7 +130,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             metadata['query'] = f" < {rhs.metadata['var_name']}"
         else: 
             raise ValueError(f"Not implemented for {rhs}")
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, LessThanEqual):
         lhs = evaluate(dataset, expr.lhs)
@@ -195,7 +195,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             raise ValueError(f"Not implemented for {rhs}")
 
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
     
     elif isinstance(expr, GreaterThan):
         lhs = evaluate(dataset, expr.lhs)
@@ -259,7 +259,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             raise ValueError(f"Not implemented for {rhs}")
 
-        return VarData(dataframe, metadata) 
+        return VarData(metadata) 
    
     elif isinstance(expr, GreaterThanEqual):
         lhs = evaluate(dataset, expr.lhs)
@@ -323,21 +323,32 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             metadata['query'] = f" >= {rhs.metadata['var_name']}"
         else: 
             raise ValueError(f"Not implemented for {rhs}")
-        return VarData(dataframe, metadata) 
+        return VarData(metadata) 
 
-    elif isinstance(expr, Compare):    
-        # import pdb; pdb.set_trace()
-        iv = evaluate(dataset, expr.iv)
-        dv = evaluate(dataset, expr.dv)
-        assert isinstance(iv, VarData)
-        assert isinstance(dv, VarData)
+    elif isinstance(expr, Relate):    
+        vars = []
 
-        data_props = compute_data_properties(dataset, iv, dv, expr.predictions) 
+        for v in expr.vars: 
+            eval_v = evaluate(dataset, v, design)         
+            assert isinstance(eval_v, VarData)
+
+            vars.append(eval_v)
+
+        # list of CombinedData objects that contains the data and properties that we are interested in...
+        vars = assign_roles(vars, design)
+        vars = compute_data_properties(dataset, vars)
+
+        agg = compute_combined_data_properties(dataset, vars, design)
+        # data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
+
 
         # data_props has the data that is needed (already filtered and ready) for analyses
-        res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
-
-        return res_data
+        import pdb; pdb.set_trace()
+        # TODO execute_test needs to be able to handle list of CombinedData 
+        # TODO split into find and execute test
+        # res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
+        # res_data = execute_test(dataset, agg) ????
+        # return res_data
 
 
     elif isinstance(expr, Mean):

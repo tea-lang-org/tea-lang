@@ -6,17 +6,25 @@ import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
 
+## TODO Store keys here
+#global variance_key = 'variance'
+# properties[variance_key]
+
 class Value(object):
     pass
 
-@attr.s(init=True, auto_attribs=True)
+@attr.s(init=True)
 class VarData(Value):
-    dataframe: Any
-    metadata: Any
+    # dataframe: Any
+    metadata = attr.ib()
+    properties = attr.ib(default=None)
+    role = attr.ib(default=None)
 
 @attr.s(init=True, auto_attribs=True)
-class CompData(Value): # TODO probably want to rename this
-    dataframes: dict # or SimpleNamespace?
+class CombinedData(Value): # TODO probably want to rename this
+    # dataframes: dict # or SimpleNamespace? maybe just a list???
+    vars: list # list of VarData objects 
+    
     # set of characteristics about the groups that are used to determine statistical test
     properties: SimpleNamespace
 
