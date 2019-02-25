@@ -15,7 +15,7 @@ class Value(object):
 
 @attr.s(init=True, auto_attribs=True)
 class VarData(Value):
-    dataframe: Any
+    # dataframe: Any
     metadata: Any
 
 @attr.s(init=True, auto_attribs=True)

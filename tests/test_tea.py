@@ -81,140 +81,140 @@ def test_index_in_dataset():
     for v in variables:
         assert(ds[v.name].equals(ds.data[v.name]))
     
-def test_select_equals(): 
-    for v in variables: 
-        all_unique = ds.data[v.name].unique()
+# def test_select_equals(): 
+#     for v in variables: 
+#         all_unique = ds.data[v.name].unique()
 
-        for e in all_unique: 
-            res = select(v, '==', const(e))
-            sub_ds = evaluate(ds, res).dataframe
-            tmp = ds.data[v.name]
-            assert (sub_ds.equals(tmp[tmp == e]))
+#         for e in all_unique: 
+#             res = select(v, '==', const(e))
+#             sub_ds = evaluate(ds, res).dataframe
+#             tmp = ds.data[v.name]
+#             assert (sub_ds.equals(tmp[tmp == e]))
 
-def test_select_not_equals(): 
-    for v in variables: 
-        all_unique = ds.data[v.name].unique()
-        for e in all_unique: 
-            res = select(v, '!=', const(e))
-            sub_ds = evaluate(ds, res).dataframe
-            tmp = ds.data[v.name]
-            assert (sub_ds.equals(tmp[tmp != e]))
+# def test_select_not_equals(): 
+#     for v in variables: 
+#         all_unique = ds.data[v.name].unique()
+#         for e in all_unique: 
+#             res = select(v, '!=', const(e))
+#             sub_ds = evaluate(ds, res).dataframe
+#             tmp = ds.data[v.name]
+#             assert (sub_ds.equals(tmp[tmp != e]))
 
-def test_select_lt(): 
-    for v in variables: 
-        if (v.drange): # is ORDINAL or INTERVAL/RATIO
-            if (isordinal(v)):
-                categories = v.categories.keys()
-                for cat in categories:
-                    num = v.categories[cat]
-                    res_str = select(v, '<', const(cat))
-                    res_num = select(v, '<', const(num))
-                    sub_ds_str = evaluate(ds, res_str).dataframe
-                    sub_ds_num = evaluate(ds, res_num).dataframe
+# def test_select_lt(): 
+#     for v in variables: 
+#         if (v.drange): # is ORDINAL or INTERVAL/RATIO
+#             if (isordinal(v)):
+#                 categories = v.categories.keys()
+#                 for cat in categories:
+#                     num = v.categories[cat]
+#                     res_str = select(v, '<', const(cat))
+#                     res_num = select(v, '<', const(num))
+#                     sub_ds_str = evaluate(ds, res_str).dataframe
+#                     sub_ds_num = evaluate(ds, res_num).dataframe
                     
-                    # Selecting using STR or INT should give same answer
-                    tmp_res = list(filter(lambda x: v.categories[x] < v.categories[cat], ds.data[v.name]))
-                    # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
-                    assert (sub_ds_str.tolist() == tmp_res)
-                    assert (sub_ds_num.tolist() == tmp_res)
+#                     # Selecting using STR or INT should give same answer
+#                     tmp_res = list(filter(lambda x: v.categories[x] < v.categories[cat], ds.data[v.name]))
+#                     # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
+#                     assert (sub_ds_str.tolist() == tmp_res)
+#                     assert (sub_ds_num.tolist() == tmp_res)
                     
-            elif (isnumeric(v)):
-                drange = v.drange
-                midpoint = (drange.pop() - drange.pop(0))/2
-                res = select(v, '<', const(midpoint))
-                sub_ds = evaluate(ds, res).dataframe
+#             elif (isnumeric(v)):
+#                 drange = v.drange
+#                 midpoint = (drange.pop() - drange.pop(0))/2
+#                 res = select(v, '<', const(midpoint))
+#                 sub_ds = evaluate(ds, res).dataframe
 
-                data = ds.data[v.name]
-                tmp = data[data < midpoint]
-                assert(sub_ds.equals(tmp))
+#                 data = ds.data[v.name]
+#                 tmp = data[data < midpoint]
+#                 assert(sub_ds.equals(tmp))
 
-def test_select_le(): 
-    for v in variables: 
-        if (v.drange): # is ORDINAL or INTERVAL/RATIO
-            if (isordinal(v)):
-                categories = v.categories.keys()
-                for cat in categories:
-                    num = v.categories[cat]
-                    res_str = select(v, '<=', const(cat))
-                    res_num = select(v, '<=', const(num))
-                    sub_ds_str = evaluate(ds, res_str).dataframe
-                    sub_ds_num = evaluate(ds, res_num).dataframe
+# def test_select_le(): 
+#     for v in variables: 
+#         if (v.drange): # is ORDINAL or INTERVAL/RATIO
+#             if (isordinal(v)):
+#                 categories = v.categories.keys()
+#                 for cat in categories:
+#                     num = v.categories[cat]
+#                     res_str = select(v, '<=', const(cat))
+#                     res_num = select(v, '<=', const(num))
+#                     sub_ds_str = evaluate(ds, res_str).dataframe
+#                     sub_ds_num = evaluate(ds, res_num).dataframe
                     
-                    # Selecting using STR or INT should give same answer
-                    tmp_res = list(filter(lambda x: v.categories[x] <= v.categories[cat], ds.data[v.name]))
-                    # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
-                    assert (sub_ds_str.tolist() == tmp_res)
-                    assert (sub_ds_num.tolist() == tmp_res)
+#                     # Selecting using STR or INT should give same answer
+#                     tmp_res = list(filter(lambda x: v.categories[x] <= v.categories[cat], ds.data[v.name]))
+#                     # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
+#                     assert (sub_ds_str.tolist() == tmp_res)
+#                     assert (sub_ds_num.tolist() == tmp_res)
                     
-            elif (isnumeric(v)):
-                drange = v.drange
-                midpoint = (drange.pop() - drange.pop(0))/2
-                res = select(v, '<=', const(midpoint))
-                sub_ds = evaluate(ds, res).dataframe
+#             elif (isnumeric(v)):
+#                 drange = v.drange
+#                 midpoint = (drange.pop() - drange.pop(0))/2
+#                 res = select(v, '<=', const(midpoint))
+#                 sub_ds = evaluate(ds, res).dataframe
 
-                data = ds.data[v.name]
-                tmp = data[data <= midpoint]
-                assert(sub_ds.equals(tmp))
+#                 data = ds.data[v.name]
+#                 tmp = data[data <= midpoint]
+#                 assert(sub_ds.equals(tmp))
 
-def test_select_gt(): 
-    for v in variables: 
-        if (v.drange): # is ORDINAL or INTERVAL/RATIO
-            if (isordinal(v)):
-                categories = v.categories.keys()
+# def test_select_gt(): 
+#     for v in variables: 
+#         if (v.drange): # is ORDINAL or INTERVAL/RATIO
+#             if (isordinal(v)):
+#                 categories = v.categories.keys()
                 
-                # cat_num = v.categories.values()
-                for cat in categories:
-                    num = v.categories[cat]
-                    res_str = select(v, '>', const(cat))
-                    res_num = select(v, '>', const(num))
-                    sub_ds_str = evaluate(ds, res_str).dataframe
-                    sub_ds_num = evaluate(ds, res_num).dataframe
+#                 # cat_num = v.categories.values()
+#                 for cat in categories:
+#                     num = v.categories[cat]
+#                     res_str = select(v, '>', const(cat))
+#                     res_num = select(v, '>', const(num))
+#                     sub_ds_str = evaluate(ds, res_str).dataframe
+#                     sub_ds_num = evaluate(ds, res_num).dataframe
                     
-                    # Selecting using STR or INT should give same answer
-                    tmp_res = list(filter(lambda x: v.categories[x] > v.categories[cat], ds.data[v.name]))
-                    # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
-                    assert (sub_ds_str.tolist() == tmp_res)
-                    assert (sub_ds_num.tolist() == tmp_res)
+#                     # Selecting using STR or INT should give same answer
+#                     tmp_res = list(filter(lambda x: v.categories[x] > v.categories[cat], ds.data[v.name]))
+#                     # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
+#                     assert (sub_ds_str.tolist() == tmp_res)
+#                     assert (sub_ds_num.tolist() == tmp_res)
                     
-            elif (isnumeric(v)):
-                drange = v.drange
-                midpoint = (drange.pop() - drange.pop(0))/2
-                res = select(v, '>', const(midpoint))
-                sub_ds = evaluate(ds, res).dataframe
+#             elif (isnumeric(v)):
+#                 drange = v.drange
+#                 midpoint = (drange.pop() - drange.pop(0))/2
+#                 res = select(v, '>', const(midpoint))
+#                 sub_ds = evaluate(ds, res).dataframe
 
-                data = ds.data[v.name]
-                tmp = data[data > midpoint]
-                assert(sub_ds.equals(tmp))
+#                 data = ds.data[v.name]
+#                 tmp = data[data > midpoint]
+#                 assert(sub_ds.equals(tmp))
 
-def test_select_ge(): 
-    for v in variables: 
-        if (v.drange): # is ORDINAL or INTERVAL/RATIO
-            if (isordinal(v)):
-                categories = v.categories.keys()
+# def test_select_ge(): 
+#     for v in variables: 
+#         if (v.drange): # is ORDINAL or INTERVAL/RATIO
+#             if (isordinal(v)):
+#                 categories = v.categories.keys()
                 
-                # cat_num = v.categories.values()
-                for cat in categories:
-                    num = v.categories[cat]
-                    res_str = select(v, '>=', const(cat))
-                    res_num = select(v, '>=', const(num))
-                    sub_ds_str = evaluate(ds, res_str).dataframe
-                    sub_ds_num = evaluate(ds, res_num).dataframe
+#                 # cat_num = v.categories.values()
+#                 for cat in categories:
+#                     num = v.categories[cat]
+#                     res_str = select(v, '>=', const(cat))
+#                     res_num = select(v, '>=', const(num))
+#                     sub_ds_str = evaluate(ds, res_str).dataframe
+#                     sub_ds_num = evaluate(ds, res_num).dataframe
                     
-                    # Selecting using STR or INT should give same answer
-                    tmp_res = list(filter(lambda x: v.categories[x] >= v.categories[cat], ds.data[v.name]))
-                    # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
-                    assert (sub_ds_str.tolist() == tmp_res)
-                    assert (sub_ds_num.tolist() == tmp_res)
+#                     # Selecting using STR or INT should give same answer
+#                     tmp_res = list(filter(lambda x: v.categories[x] >= v.categories[cat], ds.data[v.name]))
+#                     # TODO: ??? Checking for "user equivalence" -- that the data that is selected is what I expect to be selected
+#                     assert (sub_ds_str.tolist() == tmp_res)
+#                     assert (sub_ds_num.tolist() == tmp_res)
                     
-            elif (isnumeric(v)):
-                drange = v.drange
-                midpoint = (drange.pop() - drange.pop(0))/2
-                res = select(v, '>=', const(midpoint))
-                sub_ds = evaluate(ds, res).dataframe
+#             elif (isnumeric(v)):
+#                 drange = v.drange
+#                 midpoint = (drange.pop() - drange.pop(0))/2
+#                 res = select(v, '>=', const(midpoint))
+#                 sub_ds = evaluate(ds, res).dataframe
 
-                data = ds.data[v.name]
-                tmp = data[data >= midpoint]
-                assert(sub_ds.equals(tmp))
+#                 data = ds.data[v.name]
+#                 tmp = data[data >= midpoint]
+#                 assert(sub_ds.equals(tmp))
 
 # Bivariate test, between subjects
 # X: Categorical (nominal) | Y: Numeric (ratio)
@@ -241,9 +241,9 @@ def test_compare_bivariate_between_cat_num():
 
     # assert (res.test_results[1] < .05) # need to write better tests 
 
-# def test_compare_bivariate_between_num_num(): 
-#     stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
-#     res = evaluate(ds, stat, experimental_design)
+def test_compare_bivariate_between_num_num(): 
+    stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
+    res = evaluate(ds, stat, experimental_design)
 
 # def test_compare_bivariate_within_cat_num(): 
 #     pass
@@ -272,6 +272,7 @@ def test_compare_bivariate_between_cat_num():
 
 #     file_path = './datasets/timing_long_format.csv'
 #     experimental_design = {
+#                             # 'study type': 'observational study'
 #                             'key': 'subject', # does not have to be unique, used to disambiguate between/within subjects
 #                             'independent variables': 'strategy',
 #                             'dependent variables': 'time',
@@ -338,4 +339,5 @@ def test_compare_bivariate_between_cat_num():
 #         'outcome': # frequency or value of a variable
 #         '(contributing) variables': 
 #     }
+# A variable can be a IV in one design and then a DV in another design
 # """

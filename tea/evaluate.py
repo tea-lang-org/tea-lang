@@ -25,7 +25,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             import pdb; pdb.set_trace()
         metadata['var_name'] = expr.name
         metadata['query'] = ''
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, Literal):
         data = pd.Series([expr.value] * len(dataset.data), index=dataset.data.index) # Series filled with literal value
@@ -52,7 +52,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             raise ValueError(f"Not implemented for {rhs}")
         
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, NotEqual): 
         rhs = evaluate(dataset, expr.rhs)
@@ -68,7 +68,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             metadata['query'] = f" != {rhs.metadata['var_name']}"
         else: 
             raise ValueError(f"Not implemented for {rhs}")
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, LessThan):
         lhs = evaluate(dataset, expr.lhs)
@@ -130,7 +130,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             metadata['query'] = f" < {rhs.metadata['var_name']}"
         else: 
             raise ValueError(f"Not implemented for {rhs}")
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
 
     elif isinstance(expr, LessThanEqual):
         lhs = evaluate(dataset, expr.lhs)
@@ -195,7 +195,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             raise ValueError(f"Not implemented for {rhs}")
 
-        return VarData(dataframe, metadata)
+        return VarData(metadata)
     
     elif isinstance(expr, GreaterThan):
         lhs = evaluate(dataset, expr.lhs)
@@ -259,7 +259,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             raise ValueError(f"Not implemented for {rhs}")
 
-        return VarData(dataframe, metadata) 
+        return VarData(metadata) 
    
     elif isinstance(expr, GreaterThanEqual):
         lhs = evaluate(dataset, expr.lhs)
@@ -323,7 +323,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             metadata['query'] = f" >= {rhs.metadata['var_name']}"
         else: 
             raise ValueError(f"Not implemented for {rhs}")
-        return VarData(dataframe, metadata) 
+        return VarData(metadata) 
 
     elif isinstance(expr, Relate):    
         vars = []
@@ -334,13 +334,17 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
             vars.append(eval_v)
 
+        # list of CompData objects that contains the data and properties that we are interested in...
         data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
+
 
         # data_props has the data that is needed (already filtered and ready) for analyses
         import pdb; pdb.set_trace()
-        res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
+        # TODO execute_test needs to be able to handle list of CompData 
+        # TODO split into find and execute test
+        # res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
 
-        return res_data
+        # return res_data
 
 
     elif isinstance(expr, Mean):

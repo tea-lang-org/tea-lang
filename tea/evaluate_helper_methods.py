@@ -52,9 +52,18 @@ def compute_data_properties(dataset, vars: list, predictions: list=None, design:
 
         ivs = [v for v in vars if v.metadata['var_name'] in design[iv_identifier]]
         dvs = [v for v in vars if v.metadata['var_name'] in design[dv_identifier]]
+        covariates = [v for v in vars if v not in ivs and v not in dvs]
+        
+        if (len(covariates) > 0):
+            # TODO Ask the user if they really want to do this analysis?
+            pass
+        
+        ## WHAT IF WANT TO COMPARE COVARIATES?, COVARIATE + IV, COVARIATE + DV, DV + DV, IV + IV, etc???
 
+        
         comp_data = []
         for dv in dvs: 
+            data = dict() # Store data for which we want to compute properties
             for iv in ivs: 
                 if (is_nominal(iv.metadata['dtype']) or is_ordinal(iv.metadata['dtype'])):
                     # list of groups that we are interested in
@@ -64,8 +73,7 @@ def compute_data_properties(dataset, vars: list, predictions: list=None, design:
                         groups.append(p.lhs.value)
                         groups.append(p.rhs.value)
                     
-                    #let's get data for those groups
-                    data = dict()
+                    #Let's get data for those groups
                     for g in groups: 
                         assert(not iv.metadata['query'] and not dv.metadata['query'])
                         where = iv.metadata['var_name']
@@ -73,9 +81,9 @@ def compute_data_properties(dataset, vars: list, predictions: list=None, design:
                         data[g] = dataset.select(dv.metadata['var_name'], [where])
 
                 elif (is_numeric(iv.metadata['dtype'])):
+                    import pdb; pdb.set_trace()
                     
                     # Get data from dataset
-                    data = dict()
                     data[iv.metadata['var_name']] = dataset.select(iv.metadata['var_name']) # add where clause as second parameter to dataset.select ??
                     data[dv.metadata['var_name']] = dataset.select(dv.metadata['var_name'])
                 else: 
@@ -90,6 +98,7 @@ def compute_data_properties(dataset, vars: list, predictions: list=None, design:
                 # distribution
                 props[distribution] = compute_distribution(dataset.select(dv.metadata['var_name']))
                 # variance
+                import pdb; pdb.set_trace()
                 props[variance] = compute_variance(data)
             elif (is_nominal(dv.metadata['dtype'])):
                 raise NotImplementedError
@@ -128,6 +137,7 @@ def compute_variance(groups_data):
     # compute variance for each group
     keys = list(groups_data.keys())
     
+    import pdb; pdb.set_trace()
     levene_test = stats.levene(groups_data[keys[0]], groups_data[keys[1]])
     return (levene_test[0], levene_test[1])
 
