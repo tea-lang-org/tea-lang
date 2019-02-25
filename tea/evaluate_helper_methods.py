@@ -49,8 +49,6 @@ def compute_data_properties(dataset, vars: list, predictions: list=None, design:
 
     # Is this an experiment?
     if (design and (study_type_identifier in design.keys()) and (experiment_identifier == design[study_type_identifier])):
-        # labeled_vars = assign_roles_to_vars(vars, design)
-        # iv = labeled_vars
 
         ivs = [v for v in vars if v.metadata['var_name'] in design[iv_identifier]]
         dvs = [v for v in vars if v.metadata['var_name'] in design[dv_identifier]]
@@ -65,65 +63,44 @@ def compute_data_properties(dataset, vars: list, predictions: list=None, design:
                         assert(p.lhs and p.rhs) # assert that each prediction has a lhs and rhs
                         groups.append(p.lhs.value)
                         groups.append(p.rhs.value)
-                    data = dict()
+                    
                     #let's get data for those groups
+                    data = dict()
                     for g in groups: 
                         assert(not iv.metadata['query'] and not dv.metadata['query'])
                         where = iv.metadata['var_name']
                         where += (" == \'" + g + "\'")
                         data[g] = dataset.select(dv.metadata['var_name'], [where])
-                    
-                    # Calculate various stats/preconditional properties
-                    # Assign intermediate values to Simplenamespace var (see CompData vars)
-                    # props = SimpleNamespace()
-                    props = dict()
-                    # For debugging: Could change dist values here
-                    
-                    if (is_numeric(dv.metadata['dtype'])):
-                        # distribution
-                        props[distribution] = compute_distribution(dataset.select(dv.metadata['var_name']))
-                        # variance
-                        props[variance] = compute_variance(data)
-                    elif (is_nominal(dv.metadata['dtype'])):
-                        raise NotImplementedError
-                    elif (is_ordinal(dv.metadata['dtype'])):
-                        raise NotImplementedError
-                        # could do something with the values (the numeric value of the ordinal keys)
-                    else:
-                        raise ValueError(f"Invalid dependent variable variable type: {dv.metadata['dtype']}")
 
-                    # return CompData that has this data and other metadata
-                    # return CompData(dataframes=data, properties=props)
-                    comp_data.append(CompData(dataframes=data, properties=props))
-                    # return CompData(dataframes=data, metadata=metadata, predictions=predictions, properties=props)
                 elif (is_numeric(iv.metadata['dtype'])):
-                    # if (predictions):
+                    
+                    # Get data from dataset
                     data = dict()
                     data[iv.metadata['var_name']] = dataset.select(iv.metadata['var_name']) # add where clause as second parameter to dataset.select ??
                     data[dv.metadata['var_name']] = dataset.select(dv.metadata['var_name'])
-                    
-                    # Calculate various stats/preconditional properties
-                    # Assign intermediate values to Simplenamespace var (see CompData vars)
-                    props = SimpleNamespace()
-                    # For debugging: Could change dist values here
-
-                    if (is_numeric(dv.metadata['dtype'])):
-                        # distribution
-                        props.dist = compute_distribution(dataset.select(dv.metadata['var_name']))
-                        # variance
-                        props.var = compute_variance(data)
-                    elif (is_nominal(dv.metadata['dtype'])):
-                        raise NotImplementedError
-                    elif (is_ordinal(dv.metadata['dtype'])):
-                        raise NotImplementedError
-                        # could do something with the values (the numeric value of the ordinal keys)
-                    else:
-                        raise ValueError(f"Invalid dependent variable variable type: {dv.metadata['dtype']}")
-
-                    # return CompData that has this data and other metadata
-                    comp_data.append(CompData(dataframes=data, properties=props))
                 else: 
                     raise ValueError(f"Invalid variable type for IV: {iv.metadata['dtype']}")
+
+            # Calculate various stats/preconditional properties for the data we are interested in
+            # for d in data: ....
+            props = dict()
+            # For debugging: Could change dist values here
+
+            if (is_numeric(dv.metadata['dtype'])):
+                # distribution
+                props[distribution] = compute_distribution(dataset.select(dv.metadata['var_name']))
+                # variance
+                props[variance] = compute_variance(data)
+            elif (is_nominal(dv.metadata['dtype'])):
+                raise NotImplementedError
+            elif (is_ordinal(dv.metadata['dtype'])):
+                raise NotImplementedError
+                # could do something with the values (the numeric value of the ordinal keys)
+            else:
+                raise ValueError(f"Invalid dependent variable variable type: {dv.metadata['dtype']}")
+
+            # return CompData that has this data and other metadata
+            comp_data.append(CompData(dataframes=data, properties=props))
     # We are looking at an observational study
     else:
         raise NotImplementedError
