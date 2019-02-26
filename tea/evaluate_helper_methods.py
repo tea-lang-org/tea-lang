@@ -102,13 +102,48 @@ def assign_roles(vars_data: list, design: Dict[str, str]):
 
     return vars
 
+# @returns a CombinedData instance that has VarData related to the roles/VarData objects? 
+def split_vars(vars_data: list, predictions: list): 
+    pass
+"""
+    for v in vars: 
+
+        IF THIS IS AN EXPERIMENT
+        if v is iv: 
+            if it is a categorical variable, 
+                split into multiple VarData (add queries to the objects)
+            elif it is a continous variable, 
+                    skip/do nothing
+            else: 
+                nothing should get here. 
+        
+        if v is a dv: 
+            # Is there a time when the IV would be categorical and the DV categorical but the DV should not be counted/a frequency? (Chi square test)
+            if iv and dv are both categorical: 
+                create a new VarData for the IV and DV that are just the counts/frequnecies???? ----- should this be done here or in SOLVER? 
+            
+            # HMM, Do we need to do anything with the DV data???
+            if v is numeric: 
+                do nothing
+            elif v is categorical: (and IV is NOT categorical)
+                do nothing
+            else: 
+                ...shouldnt get here
+            
+        IF THIS IS AN OBSERVATIONAL STUDY
+        if v is contributor variable: 
+
+
+BOOTSTRAPPING!! 
+"""
 
 # Helper methods for Interpreter (in evaluate.py)
 # Compute properties about the VarData objects in @param vars using data in @param dataset
 def compute_data_properties(dataset, vars_data: list):
     vars = copy.deepcopy(vars_data)
 
-    for v in vars: 
+    for v in vars:
+        import pdb; pdb.set_trace() 
         if v.role == iv_identifier: 
             pass
 

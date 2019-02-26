@@ -337,6 +337,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         # list of CombinedData objects that contains the data and properties that we are interested in...
         vars = assign_roles(vars, design)
         import pdb; pdb.set_trace()
+        vars = split_vars(vars, expr.predictions) # should return a CombinedData object?? --> This basically preps the data to have properties computed and then ingested by SOLVER
+
         vars = compute_data_properties(dataset, vars)
 
         agg = compute_combined_data_properties(dataset, vars, design)
@@ -350,6 +352,9 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         # res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
         res_data = execute_test(dataset, agg) #????
         # return res_data
+
+        # calculate_effect_size()
+        # interpret_test()
 
 
     elif isinstance(expr, Mean):
