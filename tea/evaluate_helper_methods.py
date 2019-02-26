@@ -25,6 +25,7 @@ contributor_identifier = 'contributor variables'
 #quasi_experiment = 'quasi_experiment'
 
 name = 'var_name'
+data_type = 'dtype'
 
 # GLOBAL Property names
 distribution = 'distribution'
@@ -104,7 +105,24 @@ def assign_roles(vars_data: list, design: Dict[str, str]):
 
 # Helper methods for Interpreter (in evaluate.py)
 # Compute properties about the VarData objects in @param vars using data in @param dataset
-def compute_data_properties(dataset, vars: list):
+def compute_data_properties(dataset, vars_data: list):
+    vars = copy.deepcopy(vars_data)
+
+    for v in vars: 
+        if v.role == iv_identifier: 
+            pass
+
+        elif v.role == dv_identifier: 
+            assert (isinstance(v, VarData))
+            if (v.is_categorical()): 
+                pass
+            elif (v.is_continuous()): 
+                import pdb; pdb.set_trace()
+                pass
+        else: 
+            pass
+
+
     return vars
 
 # Create
