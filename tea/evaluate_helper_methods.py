@@ -30,26 +30,9 @@ name = 'var_name'
 distribution = 'distribution'
 variance = 'variance'
 
-def assign_roles_to_vars(vars_data: list, design: Dict[str, str]):
-    labeled_vars = []
-    if (experiment_identifier == design[study_type_identifier]):
-        ivs = design[iv_identifier] if (len(design[iv_identifier]) > 1) else [design[iv_identifier]]
-        dv = design[dv_identifier] if (len(design[dv_identifier]) > 1) else [design[dv_identifier]]
-
-        for v in vars_data: 
-            # import pdb; pdb.set_trace()
-            if v.metadata['var_name'] in ivs: 
-                labeled_vars.append((v, iv_identifier))
-            elif v.metadata['var_name'] in dv: 
-                labeled_vars.append((v, dv_identifier))
-            else: # not IV or DV
-                labeled_vars.append((v, null_identifier))
-
-    return labeled_vars
-
 # @returns list of VarData objects with same info as @param vars but with one updated role characteristic
-def assign_roles(vars: list, design: Dict[str, str]):
-    vars_roles = []
+def assign_roles(vars_data: list, design: Dict[str, str]):
+    vars = copy.deepcopy(vars_data)
 
     if design: 
         # Is the study type explicit? If so...
@@ -62,11 +45,11 @@ def assign_roles(vars: list, design: Dict[str, str]):
 
                 for v in vars:
                     if v.metadata[name] in ivs:
-                        vars_roles.append((v,iv_identifier))
+                        setattr(v, 'role', iv_identifier)
                     elif v.metadata[name] in dvs: 
-                        vars_roles.append((v, dv_identifier))
+                        setattr(v, 'role', dv_identifier)
                     else: 
-                        vars_roles.append((v, null_identifier)) ## may need to be the covariates
+                        setattr(v, 'role', null_identifier) ## may need to be the covariates
             
             # Is this study an observational study?
             elif (design[study_type_identifier] == observational_identifier):
@@ -75,11 +58,11 @@ def assign_roles(vars: list, design: Dict[str, str]):
 
                 for v in vars: 
                     if v.metadata[name] in contributors:
-                        vars_roles.append((v, contributor_identifier))
+                        setattr(v, 'role', contributor_identifier)
                     elif v.metadata[name] in outcomes: 
-                        vars_roles.append((v, outcome_identifier))
+                        setattr(v, 'role', outcome_identifier)
                     else: 
-                        vars_roles.append((v, null_identifier)) ## may need to change
+                        setattr(v, 'role', null_identifier) ## may need to change
 
             # We don't know what kind of study this is.
             else: 
@@ -94,28 +77,29 @@ def assign_roles(vars: list, design: Dict[str, str]):
 
                 for v in vars:
                     if v.metadata[name] in ivs:
-                        vars_roles.append((v,iv_identifier))
+                        setattr(v, 'role', iv_identifier)
                     elif v.metadata[name] in dvs: 
-                        vars_roles.append((v, dv_identifier))
+                        setattr(v, 'role', dv_identifier)
                     else: 
-                        vars_roles.append((v, null_identifier)) ## may need to be the covariates
+                        setattr(v, 'role', null_identifier) ## may need to be the covariates
+
             elif (contributor_identifier in design and outcome_identifier in design):
                 contributors = design[contributor_identifier] if isinstance(design[contributor_identifier], list) else [design[contributor_identifier]]
                 outcomes = design[outcome_identifier] if isinstance(design[outcome_identifier], list) else [design[outcome_identifier]]
 
                 for v in vars: 
                     if v.metadata[name] in contributors:
-                        vars_roles.append((v, contributor_identifier))
+                        setattr(v, 'role', contributor_identifier)
                     elif v.metadata[name] in outcomes: 
-                        vars_roles.append((v, outcome_identifier))
+                        setattr(v, 'role', outcome_identifier)
                     else: 
-                        vars_roles.append((v, null_identifier)) ## may need to change
+                        setattr(v, 'role', null_identifier) ## may need to change
+
             # We don't know what kind of study this is.
             else: 
                 raise ValueError(f"Type of study is not supported:{design}. Is it an experiment or an observational study?") 
-    
-    return vars_roles
 
+    return vars
 
 
 # Helper methods for Interpreter (in evaluate.py)
