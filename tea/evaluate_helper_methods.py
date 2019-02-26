@@ -5,6 +5,7 @@ from .evaluate_data_structures import VarData, CombinedData, ResData
 import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
+import copy
 
 from scipy import stats # Stats library used
 import statsmodels.api as sm
@@ -22,6 +23,8 @@ null_identifier = 'variables'
 outcome_identifier = 'outcome variables'
 contributor_identifier = 'contributor variables'
 #quasi_experiment = 'quasi_experiment'
+
+name = 'var_name'
 
 # GLOBAL Property names
 distribution = 'distribution'
@@ -44,17 +47,39 @@ def assign_roles_to_vars(vars_data: list, design: Dict[str, str]):
 
     return labeled_vars
 
-# @returns list of VarData objects with same info as @param var but with one an updated role characteristic
+# @returns list of VarData objects with same info as @param vars but with one updated role characteristic
 def assign_roles(vars: list, design: Dict[str, str]):
+    vars_roles = []
+
     if design: 
         # Is the study type explicit? If so...
         if (study_type_identifier in design):
 
             # Is this study an experiment?
             if (design[study_type_identifier] == experiment_identifier):
+                ivs = design[iv_identifier] if isinstance(design[iv_identifier], list) else [design[iv_identifier]]
+                dvs = design[dv_identifier] if isinstance(design[dv_identifier], list) else [design[dv_identifier]]
+
+                for v in vars:
+                    if v.metadata[name] in ivs:
+                        vars_roles.append((v,iv_identifier))
+                    elif v.metadata[name] in dvs: 
+                        vars_roles.append((v, dv_identifier))
+                    else: 
+                        vars_roles.append((v, null_identifier)) ## may need to be the covariates
             
             # Is this study an observational study?
             elif (design[study_type_identifier] == observational_identifier):
+                contributors = design[contributor_identifier] if isinstance(design[contributor_identifier], list) else [design[contributor_identifier]]
+                outcomes = design[outcome_identifier] if isinstance(design[outcome_identifier], list) else [design[outcome_identifier]]
+
+                for v in vars: 
+                    if v.metadata[name] in contributors:
+                        vars_roles.append((v, contributor_identifier))
+                    elif v.metadata[name] in outcomes: 
+                        vars_roles.append((v, outcome_identifier))
+                    else: 
+                        vars_roles.append((v, null_identifier)) ## may need to change
 
             # We don't know what kind of study this is.
             else: 
@@ -63,21 +88,33 @@ def assign_roles(vars: list, design: Dict[str, str]):
         # The study type is not explicit, so let's check the other properties...
         else: 
             # This might be an experiment.
-            if (iv_identifier in design):
-            elif ()
+            if (iv_identifier in design and dv_identifier in design): # dv_identifier??
+                ivs = design[iv_identifier] if isinstance(design[iv_identifier], list) else [design[iv_identifier]]
+                dvs = design[dv_identifier] if isinstance(design[dv_identifier], list) else [design[dv_identifier]]
 
-        # elif (study_type_identifier in design and design[study_type_identifier] == experiment_identifier):
-        # Is this an observational study? (default is that if study type is not defined, it is an observational study)
-        else: #(study_type_identifier not in design):
-        
-            # observational study OR
-        
-        # deduce based on if independent variables/dependent variables is present
+                for v in vars:
+                    if v.metadata[name] in ivs:
+                        vars_roles.append((v,iv_identifier))
+                    elif v.metadata[name] in dvs: 
+                        vars_roles.append((v, dv_identifier))
+                    else: 
+                        vars_roles.append((v, null_identifier)) ## may need to be the covariates
+            elif (contributor_identifier in design and outcome_identifier in design):
+                contributors = design[contributor_identifier] if isinstance(design[contributor_identifier], list) else [design[contributor_identifier]]
+                outcomes = design[outcome_identifier] if isinstance(design[outcome_identifier], list) else [design[outcome_identifier]]
 
-    elif: # observational study
-    else: 
-        # assign as if all unknown factors
-    return vars
+                for v in vars: 
+                    if v.metadata[name] in contributors:
+                        vars_roles.append((v, contributor_identifier))
+                    elif v.metadata[name] in outcomes: 
+                        vars_roles.append((v, outcome_identifier))
+                    else: 
+                        vars_roles.append((v, null_identifier)) ## may need to change
+            # We don't know what kind of study this is.
+            else: 
+                raise ValueError(f"Type of study is not supported:{design}. Is it an experiment or an observational study?") 
+    
+    return vars_roles
 
 
 

@@ -336,6 +336,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
         # list of CombinedData objects that contains the data and properties that we are interested in...
         vars = assign_roles(vars, design)
+        import pdb; pdb.set_trace()
         vars = compute_data_properties(dataset, vars)
 
         agg = compute_combined_data_properties(dataset, vars, design)
