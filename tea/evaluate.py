@@ -347,7 +347,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         # TODO execute_test needs to be able to handle list of CombinedData 
         # TODO split into find and execute test
         # res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
-        # res_data = execute_test(dataset, agg) ????
+        res_data = execute_test(dataset, agg) #????
         # return res_data
 
 
