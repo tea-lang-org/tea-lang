@@ -13,6 +13,34 @@ class Tests(Flag):
     NONPARAMETRIC = CHISQUARE | UTEST
 
 
+class Assumptions(Flag):
+    NONE = 0
+    INDEPENDENT_OBSERVATIONS = auto()
+    NORMALLY_DISTRIBUTED_VARIABLES = auto()
+    NORMALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES = auto()
+    SIMILAR_VARIANCES = auto()
+    LARGE_SAMPLE_SIZE = auto()
+    VALUES_ARE_FREQUENCIES = auto()
+    PAIRED_OBSERVATIONS = auto()
+
+
+def assumptions_for_test(test: Tests) -> Assumptions:
+    assumptions = Assumptions.NONE
+
+    if test & Tests.STUDENTST:
+        assumptions |= Assumptions.INDEPENDENT_OBSERVATIONS \
+                       | Assumptions.NORMALLY_DISTRIBUTED_VARIABLES \
+                       | Assumptions.SIMILAR_VARIANCES \
+                       | Assumptions.LARGE_SAMPLE_SIZE
+
+    if test & Tests.CHISQUARE:
+        assumptions |= Assumptions.INDEPENDENT_OBSERVATIONS \
+                       | Assumptions.LARGE_SAMPLE_SIZE \
+                       | Assumptions.VALUES_ARE_FREQUENCIES
+
+    return assumptions
+
+
 class VariableInformation:
     """Class for keeping track of information about a variable."""
 
@@ -114,19 +142,19 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
     max_sat.add_soft(students_t)
     max_sat.add_soft(chi_square)
 
-    applicable_tests = Tests.NONE
+    tests_and_assumptions = { }
     if max_sat.check() == sat:
         model = max_sat.model()
         if model[students_t]:
-            applicable_tests |= Tests.STUDENTST
+            tests_and_assumptions[Tests.STUDENTST] = assumptions_for_test(Tests.STUDENTST)
         if model[chi_square]:
-            applicable_tests |= Tests.CHISQUARE
+            tests_and_assumptions[Tests.CHISQUARE] = assumptions_for_test(Tests.CHISQUARE)
 
-    return applicable_tests
+    return tests_and_assumptions
 
 
 # Test by creating some sample data.
-normal_variable1 = VariableInformation(has_independent_samples =True, is_normal=True, variance=0.06, sample_size=35,
+normal_variable1 = VariableInformation(has_independent_samples=True, is_normal=True, variance=0.06, sample_size=35,
                                        is_continuous=True)
 normal_variable2 = VariableInformation(has_independent_samples=True, is_normal=True, variance=0.06, sample_size=55,
                                        is_continuous=True)
