@@ -6,9 +6,10 @@ import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
 
-## TODO Store keys here
-#global variance_key = 'variance'
-# properties[variance_key]
+# GLOBAL Property names
+data_type = 'dtype'
+distribution = 'distribution'
+variance = 'variance'
 
 class Value(object):
     pass
@@ -20,18 +21,34 @@ class VarData(Value):
     properties = attr.ib(default=None)
     role = attr.ib(default=None)
 
+    def is_normal(self, alpha):
+        global distribution
+        return self.properties[distribution] < alpha
+
+    def is_continuous(self): # may want to change this to be is_numeric to be consistent with rest of runtime system?
+        global data_type
+        return self.metadata[data_type] is DataType.INTERVAL or self.metadata[data_type] is DataType.RATIO
+    
+    def is_categorical(self): 
+        global data_type
+        return self.metadata[data_type] is DataType.NOMINAL or self.metadata[data_type] is DataType.ORDINAL
+    
+    def get_sample_size(self): 
+        return len()
+
+
 @attr.s(init=True, auto_attribs=True)
 class CombinedData(Value): # TODO probably want to rename this
     # dataframes: dict # or SimpleNamespace? maybe just a list???
     vars: list # list of VarData objects 
-
     # set of characteristics about the groups that are used to determine statistical test
     properties: SimpleNamespace
-
-    def is_normal(self, alpha):
-        reutrn self.properties[distribution] < alpha 
+    alpha: attr.ib(default=0.05)
 
     # TODO add functions that return bools about the properties
+    def has_equal_variance(self): 
+        global variance
+        return self.properties[variance][1] < self.alpha
 
 @attr.s(init=True, auto_attribs=True)
 class BivariateData(CombinedData):
