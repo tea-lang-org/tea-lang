@@ -23,7 +23,7 @@ class VarData(Value):
 
     def is_normal(self, alpha):
         global distribution
-        return self.properties[distribution] < alpha
+        return self.properties[distribution] >= alpha
 
     def is_continuous(self): # may want to change this to be is_numeric to be consistent with rest of runtime system?
         global data_type
