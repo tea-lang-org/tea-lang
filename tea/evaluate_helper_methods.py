@@ -31,111 +31,96 @@ data_type = 'dtype'
 distribution = 'distribution'
 variance = 'variance'
 
-# @returns list of VarData objects with same info as @param vars but with one updated role characteristic
-def assign_roles(vars_data: list, design: Dict[str, str]):
-    vars = copy.deepcopy(vars_data)
-
+def determine_study_type(vars_data: list, design: Dict[str, str]):
     if design: 
         # Is the study type explicit? If so...
         if (study_type_identifier in design):
-
             # Is this study an experiment?
             if (design[study_type_identifier] == experiment_identifier):
-                ivs = design[iv_identifier] if isinstance(design[iv_identifier], list) else [design[iv_identifier]]
-                dvs = design[dv_identifier] if isinstance(design[dv_identifier], list) else [design[dv_identifier]]
-
-                for v in vars:
-                    if v.metadata[name] in ivs:
-                        setattr(v, 'role', iv_identifier)
-                    elif v.metadata[name] in dvs: 
-                        setattr(v, 'role', dv_identifier)
-                    else: 
-                        setattr(v, 'role', null_identifier) ## may need to be the covariates
-            
+                return experiment_identifier
             # Is this study an observational study?
             elif (design[study_type_identifier] == observational_identifier):
-                contributors = design[contributor_identifier] if isinstance(design[contributor_identifier], list) else [design[contributor_identifier]]
-                outcomes = design[outcome_identifier] if isinstance(design[outcome_identifier], list) else [design[outcome_identifier]]
-
-                for v in vars: 
-                    if v.metadata[name] in contributors:
-                        setattr(v, 'role', contributor_identifier)
-                    elif v.metadata[name] in outcomes: 
-                        setattr(v, 'role', outcome_identifier)
-                    else: 
-                        setattr(v, 'role', null_identifier) ## may need to change
-
+                return observational_identifier
             # We don't know what kind of study this is.
             else: 
                 raise ValueError(f"Type of study is not supported:{design[study_type_identifier]}. Is it an experiment or an observational study?")
-        
         # The study type is not explicit, so let's check the other properties...
         else: 
             # This might be an experiment.
             if (iv_identifier in design and dv_identifier in design): # dv_identifier??
-                ivs = design[iv_identifier] if isinstance(design[iv_identifier], list) else [design[iv_identifier]]
-                dvs = design[dv_identifier] if isinstance(design[dv_identifier], list) else [design[dv_identifier]]
-
-                for v in vars:
-                    if v.metadata[name] in ivs:
-                        setattr(v, 'role', iv_identifier)
-                    elif v.metadata[name] in dvs: 
-                        setattr(v, 'role', dv_identifier)
-                    else: 
-                        setattr(v, 'role', null_identifier) ## may need to be the covariates
-
+                return experiment_identifier
             elif (contributor_identifier in design and outcome_identifier in design):
-                contributors = design[contributor_identifier] if isinstance(design[contributor_identifier], list) else [design[contributor_identifier]]
-                outcomes = design[outcome_identifier] if isinstance(design[outcome_identifier], list) else [design[outcome_identifier]]
-
-                for v in vars: 
-                    if v.metadata[name] in contributors:
-                        setattr(v, 'role', contributor_identifier)
-                    elif v.metadata[name] in outcomes: 
-                        setattr(v, 'role', outcome_identifier)
-                    else: 
-                        setattr(v, 'role', null_identifier) ## may need to change
-
+                return observational_identifier
             # We don't know what kind of study this is.
             else: 
                 raise ValueError(f"Type of study is not supported:{design}. Is it an experiment or an observational study?") 
+        
 
+
+# @returns list of VarData objects with same info as @param vars but with one updated role characteristic
+def assign_roles(vars_data: list, study_type: str, design: Dict[str, str]):
+    vars = copy.deepcopy(vars_data)
+
+    if study_type == experiment_identifier:
+        ivs = design[iv_identifier] if isinstance(design[iv_identifier], list) else [design[iv_identifier]]
+        dvs = design[dv_identifier] if isinstance(design[dv_identifier], list) else [design[dv_identifier]]
+
+        for v in vars:
+            if v.metadata[name] in ivs:
+                setattr(v, 'role', iv_identifier)
+            elif v.metadata[name] in dvs: 
+                setattr(v, 'role', dv_identifier)
+            else: 
+                setattr(v, 'role', null_identifier) ## may need to be the covariates
+    elif study_type == observational_identifier:
+        contributors = design[contributor_identifier] if isinstance(design[contributor_identifier], list) else [design[contributor_identifier]]
+        outcomes = design[outcome_identifier] if isinstance(design[outcome_identifier], list) else [design[outcome_identifier]]
+
+        for v in vars: 
+            if v.metadata[name] in contributors:
+                setattr(v, 'role', contributor_identifier)
+            elif v.metadata[name] in outcomes: 
+                setattr(v, 'role', outcome_identifier)
+            else: 
+                setattr(v, 'role', null_identifier) ## may need to change
+
+            # We don't know what kind of study this is.
+    else: 
+        raise ValueError(f"Type of study is not supported:{design[study_type_identifier]}. Is it an experiment or an observational study?")
+    
     return vars
 
 # @returns a CombinedData instance that has VarData related to the roles/VarData objects? 
-def split_vars(vars_data: list, predictions: list): 
-    pass
-"""
-    for v in vars: 
-
-        IF THIS IS AN EXPERIMENT
-        if v is iv: 
-            if it is a categorical variable, 
-                split into multiple VarData (add queries to the objects)
-            elif it is a continous variable, 
-                    skip/do nothing
-            else: 
-                nothing should get here. 
+def split_vars(vars_data: list, study_type: str, predictions: list): 
+    for v in vars_data: 
+        import pdb; pdb.set_trace()
+        # Do these vars come from an experiment
+        # if v.role  == iv: 
+#             if it is a categorical variable, 
+#                 split into multiple VarData (add queries to the objects)
+#             elif it is a continous variable, 
+#                     skip/do nothing
+#             else: 
+#                 nothing should get here. 
         
-        if v is a dv: 
-            # Is there a time when the IV would be categorical and the DV categorical but the DV should not be counted/a frequency? (Chi square test)
-            if iv and dv are both categorical: 
-                create a new VarData for the IV and DV that are just the counts/frequnecies???? ----- should this be done here or in SOLVER? 
+#         if v is a dv: 
+#             # Is there a time when the IV would be categorical and the DV categorical but the DV should not be counted/a frequency? (Chi square test)
+#             if iv and dv are both categorical: 
+#                 create a new VarData for the IV and DV that are just the counts/frequnecies???? ----- should this be done here or in SOLVER? 
             
-            # HMM, Do we need to do anything with the DV data???
-            if v is numeric: 
-                do nothing
-            elif v is categorical: (and IV is NOT categorical)
-                do nothing
-            else: 
-                ...shouldnt get here
+#             # HMM, Do we need to do anything with the DV data???
+#             if v is numeric: 
+#                 do nothing
+#             elif v is categorical: (and IV is NOT categorical)
+#                 do nothing
+#             else: 
+#                 ...shouldnt get here
             
-        IF THIS IS AN OBSERVATIONAL STUDY
-        if v is contributor variable: 
+#         IF THIS IS AN OBSERVATIONAL STUDY
+#         if v is contributor variable: 
 
 
-BOOTSTRAPPING!! 
-"""
+# BOOTSTRAPPING!! 
 
 # Helper methods for Interpreter (in evaluate.py)
 # Compute properties about the VarData objects in @param vars using data in @param dataset

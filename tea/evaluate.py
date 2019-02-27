@@ -1,7 +1,7 @@
 from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, CombinedData, ResData # runtime data structures
-from .evaluate_helper_methods import assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
+from .evaluate_helper_methods import determine_study_type, assign_roles, split_vars, compute_data_properties, compute_combined_data_properties, execute_test
 
 import attr
 from typing import Any
@@ -334,10 +334,12 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
             vars.append(eval_v)
 
+        study_type = determine_study_type(vars, design)
+
         # list of CombinedData objects that contains the data and properties that we are interested in...
-        vars = assign_roles(vars, design)
-        import pdb; pdb.set_trace()
-        vars = split_vars(vars, expr.predictions) # should return a CombinedData object?? --> This basically preps the data to have properties computed and then ingested by SOLVER
+        vars = assign_roles(vars, study_type, design)
+        
+        vars = split_vars(vars, study_type, expr.predictions) # should return a CombinedData object?? --> This basically preps the data to have properties computed and then ingested by SOLVER
 
         vars = compute_data_properties(dataset, vars)
 
