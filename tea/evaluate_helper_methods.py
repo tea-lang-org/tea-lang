@@ -95,8 +95,8 @@ def split_vars(vars_data: list, study_type: str, predictions: list):
     for v in vars_data: 
         import pdb; pdb.set_trace()
         # Do these vars come from an experiment
-        # if v.role  == iv: 
-#             if it is a categorical variable, 
+        if v.role  == iv_identifier: 
+            # if it is a categorical variable, 
 #                 split into multiple VarData (add queries to the objects)
 #             elif it is a continous variable, 
 #                     skip/do nothing
