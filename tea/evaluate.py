@@ -1,7 +1,7 @@
 from .ast import *
 from .dataset import Dataset
-from .evaluate_data_structures import VarData, CombinedData, ResData # runtime data structures
-from .evaluate_helper_methods import determine_study_type, assign_roles, split_vars, compute_data_properties, compute_combined_data_properties, execute_test
+from .evaluate_data_structures import VarData, BivariateData, MultivariateData, ResData # runtime data structures
+from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
 
 import attr
 from typing import Any
@@ -14,7 +14,6 @@ import numpy as np # Use some stats from numpy instead
 import pandas as pd
 # import bootstrapped as bs
 
-# TODO: Pass effect size and alpha values as part of experimental design -- these are used to optimize for power
 # TODO: Pass participant_id as part of experimental design, not load_data
 def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
     if isinstance(expr, Variable):
@@ -336,14 +335,18 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
         study_type = determine_study_type(vars, design)
 
-        # list of CombinedData objects that contains the data and properties that we are interested in...
         vars = assign_roles(vars, study_type, design)
+        vars = compute_data_properties(dataset, vars) # compute individual level properties
         
-        vars = split_vars(vars, study_type, expr.predictions) # should return a CombinedData object?? --> This basically preps the data to have properties computed and then ingested by SOLVER
+        # We have a Bivariate Test
+        combined_data = None
+        if len(vars) == 2: 
+            combined_data = BivariateData(vars) 
+        else: 
+            combined_data = MultivariateData(vars)
+        
 
-        vars = compute_data_properties(dataset, vars)
-
-        agg = compute_combined_data_properties(dataset, vars, design)
+        combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
         # data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
 
 

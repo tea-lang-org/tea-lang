@@ -10,6 +10,8 @@ from types import SimpleNamespace # allows for dot notation access for dictionar
 data_type = 'dtype'
 distribution = 'distribution'
 variance = 'variance'
+sample_size = 'sample size'
+num_categories = 'number of categories'
 
 class Value(object):
     pass
@@ -18,7 +20,7 @@ class Value(object):
 class VarData(Value):
     # dataframe: Any
     metadata = attr.ib()
-    properties = attr.ib(default=None)
+    properties = attr.ib(default=dict())
     role = attr.ib(default=None)
 
     def is_normal(self, alpha):
@@ -34,21 +36,33 @@ class VarData(Value):
         return self.metadata[data_type] is DataType.NOMINAL or self.metadata[data_type] is DataType.ORDINAL
     
     def get_sample_size(self): 
-        return len()
+        return self.properties[sample_size]
+    
+    def get_number_categories(self): 
+        if num_categories in self.properties: 
+            return self.properties[num_categories]
 
 
-@attr.s(init=True, auto_attribs=True)
+@attr.s(init=True)
 class CombinedData(Value): # TODO probably want to rename this
-    # dataframes: dict # or SimpleNamespace? maybe just a list???
-    vars: list # list of VarData objects 
+    vars = attr.ib(default=[]) # list of VarData objects 
     # set of characteristics about the groups that are used to determine statistical test
-    properties: SimpleNamespace
-    alpha: attr.ib(default=0.05)
+    properties = attr.ib(default=dict())
+    alpha = attr.ib(type=float, default=0.05)
 
     # TODO add functions that return bools about the properties
     def has_equal_variance(self): 
         global variance
         return self.properties[variance][1] < self.alpha
+    
+    # @return list of VarData instances that are in this object's vars that have the @param role
+    def get_vars(self, role: str): 
+        role_vars = []
+        for v in self.vars:
+            if v.role == role: 
+                role_vars.append(v) 
+        
+        return role_vars
 
 @attr.s(init=True, auto_attribs=True)
 class BivariateData(CombinedData):
