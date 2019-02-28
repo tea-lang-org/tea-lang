@@ -1,10 +1,11 @@
 from .ast import *
 from .dataset import Dataset
-from .evaluate_data_structures import VarData, CombinedData, ResData
+from .evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
 
 import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
+import copy
 
 from scipy import stats # Stats library used
 import statsmodels.api as sm
@@ -23,73 +24,166 @@ outcome_identifier = 'outcome variables'
 contributor_identifier = 'contributor variables'
 #quasi_experiment = 'quasi_experiment'
 
+name = 'var_name'
+data_type = 'dtype'
+categories = 'categories'
+
 # GLOBAL Property names
 distribution = 'distribution'
 variance = 'variance'
+sample_size = 'sample size'
+num_categories = 'number of categories'
+eq_variance = 'equal variance'
 
-def assign_roles_to_vars(vars_data: list, design: Dict[str, str]):
-    labeled_vars = []
-    if (experiment_identifier == design[study_type_identifier]):
-        ivs = design[iv_identifier] if (len(design[iv_identifier]) > 1) else [design[iv_identifier]]
-        dv = design[dv_identifier] if (len(design[dv_identifier]) > 1) else [design[dv_identifier]]
-
-        for v in vars_data: 
-            # import pdb; pdb.set_trace()
-            if v.metadata['var_name'] in ivs: 
-                labeled_vars.append((v, iv_identifier))
-            elif v.metadata['var_name'] in dv: 
-                labeled_vars.append((v, dv_identifier))
-            else: # not IV or DV
-                labeled_vars.append((v, null_identifier))
-
-    return labeled_vars
-
-# @returns list of VarData objects with same info as @param var but with one an updated role characteristic
-def assign_roles(vars: list, design: Dict[str, str]):
+def determine_study_type(vars_data: list, design: Dict[str, str]):
     if design: 
         # Is the study type explicit? If so...
         if (study_type_identifier in design):
-
             # Is this study an experiment?
             if (design[study_type_identifier] == experiment_identifier):
-            
+                return experiment_identifier
             # Is this study an observational study?
             elif (design[study_type_identifier] == observational_identifier):
-
+                return observational_identifier
             # We don't know what kind of study this is.
             else: 
                 raise ValueError(f"Type of study is not supported:{design[study_type_identifier]}. Is it an experiment or an observational study?")
-        
         # The study type is not explicit, so let's check the other properties...
         else: 
             # This might be an experiment.
-            if (iv_identifier in design):
-            elif ()
-
-        # elif (study_type_identifier in design and design[study_type_identifier] == experiment_identifier):
-        # Is this an observational study? (default is that if study type is not defined, it is an observational study)
-        else: #(study_type_identifier not in design):
+            if (iv_identifier in design and dv_identifier in design): # dv_identifier??
+                return experiment_identifier
+            elif (contributor_identifier in design and outcome_identifier in design):
+                return observational_identifier
+            # We don't know what kind of study this is.
+            else: 
+                raise ValueError(f"Type of study is not supported:{design}. Is it an experiment or an observational study?") 
         
-            # observational study OR
-        
-        # deduce based on if independent variables/dependent variables is present
 
-    elif: # observational study
+
+# @returns list of VarData objects with same info as @param vars but with one updated role characteristic
+def assign_roles(vars_data: list, study_type: str, design: Dict[str, str]):
+    vars = copy.deepcopy(vars_data)
+
+    if study_type == experiment_identifier:
+        ivs = design[iv_identifier] if isinstance(design[iv_identifier], list) else [design[iv_identifier]]
+        dvs = design[dv_identifier] if isinstance(design[dv_identifier], list) else [design[dv_identifier]]
+
+        for v in vars:
+            if v.metadata[name] in ivs:
+                setattr(v, 'role', iv_identifier)
+            elif v.metadata[name] in dvs: 
+                setattr(v, 'role', dv_identifier)
+            else: 
+                setattr(v, 'role', null_identifier) ## may need to be the covariates
+    elif study_type == observational_identifier:
+        contributors = design[contributor_identifier] if isinstance(design[contributor_identifier], list) else [design[contributor_identifier]]
+        outcomes = design[outcome_identifier] if isinstance(design[outcome_identifier], list) else [design[outcome_identifier]]
+
+        for v in vars: 
+            if v.metadata[name] in contributors:
+                setattr(v, 'role', contributor_identifier)
+            elif v.metadata[name] in outcomes: 
+                setattr(v, 'role', outcome_identifier)
+            else: 
+                setattr(v, 'role', null_identifier) ## may need to change
+
+            # We don't know what kind of study this is.
     else: 
-        # assign as if all unknown factors
+        raise ValueError(f"Type of study is not supported:{design[study_type_identifier]}. Is it an experiment or an observational study?")
+    
     return vars
 
-
+# BOOTSTRAPPING!! 
 
 # Helper methods for Interpreter (in evaluate.py)
 # Compute properties about the VarData objects in @param vars using data in @param dataset
-def compute_data_properties(dataset, vars: list):
+def compute_data_properties(dataset, vars_data: list):
+    vars = copy.deepcopy(vars_data)
+
+    for v in vars_data:
+        v.properties[sample_size] = len(dataset.select(v.metadata[name]))
+        if v.is_continuous(): 
+            v.properties[distribution] = compute_distribution(dataset.select(v.metadata[name]))
+            v.properties[variance] = compute_variance(dataset.select(v.metadata[name]))
+        elif v.is_categorical(): 
+            v.properties[num_categories] = len(v.metadata[categories])
+        else: 
+            raise ValueError (f"Not supported data type: {v.metadata[data_type]}")
+
     return vars
 
-# Create
-def compute_combined_data_properties(dataset, vars, design):
-    # return CombinedData()
-    return vars
+# Add equal variance property to @param combined_data
+def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: str): 
+    vars = combined_data.vars
+    num_vars = len(vars)
+    xs = None
+    ys = None
+    cat_xs = []
+    cont_ys = []
+    grouped_data = []
+
+    if study_type == experiment_identifier: 
+        xs = combined_data.get_vars(iv_identifier)
+        ys = combined_data.get_vars(dv_identifier) if combined_data.get_vars(dv_identifier) else combined_data.get_vars(null_identifier)
+        
+    else: # study_type == observational_identifier
+        xs = combined_data.get_vars(contributor_identifier)
+        ys = combined_data.get_vars(outcome_identifier) if combined_data.get_vars(outcome_identifier) else combined_data.get_vars(null_identifier)
+    
+    for x in xs: 
+        if x.is_categorical(): 
+            cat_xs.append(x)
+    
+    for y in ys: 
+        if y.is_continuous(): 
+            cont_ys.append(y)
+    
+    if cat_xs and cont_ys: 
+        for y in ys:
+            for x in xs: 
+                cat = [k for k,v in x.metadata[categories].items()]
+                for c in cat: 
+                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                    grouped_data.append(data)
+
+                if isinstance(combined_data, BivariateData):
+                    combined_data.properties[eq_variance] = compute_eq_variance(grouped_data)
+                elif isinstance(combined_data, MultivariateData):
+                    combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
+                else: 
+                    raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
+    
+
+# Compute properties that are between/among VarData objects
+def compute_combined_data_properties(dataset, combined_data: CombinedData, study_type: str, design: Dict[str, str]=None):
+    assert (study_type == experiment_identifier or study_type == observational_identifier)
+    combined = copy.deepcopy(combined_data)
+
+    add_eq_variance_property(dataset, combined, study_type)
+    import pdb; pdb.set_trace()
+
+    
+
+            
+    
+    # combined has a categorical iv --> then select data for each group from dataset 
+    # -- dv/other variable can be continuous (maybe not nominal)
+    # change levene test implementation to allow for more than 2 groups
+    # calculate leven test and assign to eq_variance
+
+
+    # cacluclate distribvution here (differnt from indivdiual variable distribution info)
+    ## TODO: Does it make sense to calculate equal variance when this is not the case???
+
+    # for v in vars: 
+        # import pdb; pdb.set_trace()
+        
+        # combined.properties[eq_variance] = compute_eq_variance(dataset.select())
+
+
+
+    return combined
 
 # @param vars is a list of VarData containing VarData objects of the variables we are interested in relating/analyzing
 def compute_data_properties_og(dataset, vars: list, predictions: list=None, design: Dict[str, str]=None):
@@ -172,8 +266,13 @@ def compute_data_properties_og(dataset, vars: list, predictions: list=None, desi
 # Rejecting null means that distribution is NOT normal
 def compute_distribution(data):
     norm_test = stats.normaltest(data, axis=0)
+    # could just reutrn norm_test directly???
     return (norm_test[0], norm_test[1])
     # TODO: may want to compute/find the best distribution if not normal
+ 
+# @returns bootstrapped variance for @param data
+def compute_variance(data): 
+    return -1
 
 # Levene test to test for equal variances - Leven is more robust to nonnormal data than Bartlett's test
 # Null Hypothesis is that samples have the same variances
@@ -181,7 +280,7 @@ def compute_distribution(data):
 # Default/currently using .05 alpha level
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
 
-def compute_variance(groups_data):
+def compute_eq_variance(groups_data):
     # compute variance for each group
     keys = list(groups_data.keys())
     

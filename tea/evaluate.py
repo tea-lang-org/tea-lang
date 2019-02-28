@@ -1,7 +1,7 @@
 from .ast import *
 from .dataset import Dataset
-from .evaluate_data_structures import VarData, CombinedData, ResData # runtime data structures
-from .evaluate_helper_methods import assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
+from .evaluate_data_structures import VarData, BivariateData, MultivariateData, ResData # runtime data structures
+from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
 
 import attr
 from typing import Any
@@ -14,7 +14,6 @@ import numpy as np # Use some stats from numpy instead
 import pandas as pd
 # import bootstrapped as bs
 
-# TODO: Pass effect size and alpha values as part of experimental design -- these are used to optimize for power
 # TODO: Pass participant_id as part of experimental design, not load_data
 def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
     if isinstance(expr, Variable):
@@ -334,11 +333,20 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
             vars.append(eval_v)
 
-        # list of CombinedData objects that contains the data and properties that we are interested in...
-        vars = assign_roles(vars, design)
-        vars = compute_data_properties(dataset, vars)
+        study_type = determine_study_type(vars, design)
 
-        agg = compute_combined_data_properties(dataset, vars, design)
+        vars = assign_roles(vars, study_type, design)
+        vars = compute_data_properties(dataset, vars) # compute individual level properties
+        
+        # We have a Bivariate Test
+        combined_data = None
+        if len(vars) == 2: 
+            combined_data = BivariateData(vars) 
+        else: 
+            combined_data = MultivariateData(vars)
+        
+
+        combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
         # data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
 
 
@@ -349,6 +357,9 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         # res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)
         res_data = execute_test(dataset, agg) #????
         # return res_data
+
+        # calculate_effect_size()
+        # interpret_test()
 
 
     elif isinstance(expr, Mean):
