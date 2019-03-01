@@ -11,9 +11,10 @@ class Tests(Flag):
     PEARSON_CORRELATION = auto()
     SPEARMAN_CORRELATION = auto()
     PAIRED_SAMPLES_TTEST = auto()
+    WILCOXON_SIGN_RANK_TEST = auto()
 
     PARAMETRIC = STUDENTST | PAIRED_SAMPLES_TTEST | PEARSON_CORRELATION
-    NONPARAMETRIC = CHISQUARE | UTEST | SPEARMAN_CORRELATION
+    NONPARAMETRIC = CHISQUARE | UTEST | SPEARMAN_CORRELATION | WILCOXON_SIGN_RANK_TEST
 
 
 class Assumptions(Flag):
@@ -21,6 +22,7 @@ class Assumptions(Flag):
     INDEPENDENT_OBSERVATIONS = auto()
     NORMALLY_DISTRIBUTED_VARIABLES = auto()
     NORMALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES = auto()
+    SYMMETRICALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES = auto()
     SIMILAR_VARIANCES = auto()
     LARGE_SAMPLE_SIZE = auto()
     VALUES_ARE_FREQUENCIES = auto()
@@ -31,7 +33,8 @@ class Assumptions(Flag):
     BIVARIATE_NORMAL_VARIABLES = auto()
     RELATED_SAMPLES = auto()
     MONOTONIC_RELATIONSHIP = auto()
-    INTERVAL_RATIO_OR_ORDINAL = auto()
+    ALL_VARIABLES_CONTINUOUS_OR_ORDINAL = auto()
+    DEPENDENT_VARIABLE_CONTINUOUS_OR_ORDINAL = auto()
 
 
 def assumptions_for_test(test: Tests) -> Assumptions:
@@ -67,7 +70,11 @@ def assumptions_for_test(test: Tests) -> Assumptions:
 
     elif test & Tests.SPEARMAN_CORRELATION:
         assumptions |= Assumptions.MONOTONIC_RELATIONSHIP \
-                        | Assumptions.INTERVAL_RATIO_OR_ORDINAL
+                        | Assumptions.ALL_VARIABLES_CONTINUOUS_OR_ORDINAL
+
+    elif test & Tests.WILCOXON_SIGN_RANK_TEST:
+        assumptions |= Assumptions.DEPENDENT_VARIABLE_CONTINUOUS_OR_ORDINAL \
+                        | Assumptions.SYMMETRICALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES
 
     else:
         assert 0, 'Test %s not supported.' % test
@@ -144,6 +151,10 @@ class BivariateTestInformation:
         return self.dependent_variable is not None and self.dependent_variable.is_continuous
 
     @property
+    def dependent_variable_is_ordinal(self):
+        return self.dependent_variable is not None and self.dependent_variable.is_ordinal
+
+    @property
     def independent_variable_is_continuous(self):
         return self.independent_variable is not None and self.independent_variable.is_continuous
 
@@ -183,6 +194,7 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
     pearson_correlation = Bool('pearson_correlation')
     paired_t = Bool('paired_t')
     spearman_correlation = Bool('spearman_correlation')
+    wilcoxon_sign_rank = Bool('wilcoxon_sign_rank')
 
     max_sat = Optimize()
     max_sat.add(students_t == And(bool_val(test_information.all_variables_have_independent_observations),
@@ -212,12 +224,20 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
 
     max_sat.add(spearman_correlation == And(bool_val(test_information.all_variables_are_continuous_or_ordinal)))
 
+    # Not sure how to test that the difference between related groups is symmetrical in shape, so for
+    # now leave that as an assumption.
+    max_sat.add(wilcoxon_sign_rank == And(bool_val(test_information.dependent_variable_is_continuous
+                                                   or test_information.dependent_variable_is_ordinal),
+                                          bool_val(test_information.independent_variable_is_categorical),
+                                          bool_val(test_information.observations_are_paired)))
+
     max_sat.add_soft(students_t)
     max_sat.add_soft(chi_square)
     max_sat.add_soft(u_test)
     max_sat.add_soft(pearson_correlation)
     max_sat.add_soft(paired_t)
     max_sat.add_soft(spearman_correlation)
+    max_sat.add_soft(wilcoxon_sign_rank)
 
     tests_and_assumptions = {}
     if max_sat.check() == sat:
@@ -234,6 +254,8 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
             tests_and_assumptions[Tests.PAIRED_SAMPLES_TTEST] = assumptions_for_test(Tests.PAIRED_SAMPLES_TTEST)
         if model[spearman_correlation]:
             tests_and_assumptions[Tests.SPEARMAN_CORRELATION] = assumptions_for_test(Tests.SPEARMAN_CORRELATION)
+        if model[wilcoxon_sign_rank]:
+            tests_and_assumptions[Tests.WILCOXON_SIGN_RANK_TEST] = assumptions_for_test(Tests.WILCOXON_SIGN_RANK_TEST)
 
     return tests_and_assumptions
 
@@ -246,20 +268,20 @@ dependent_variable2 = VariableInformation(has_independent_samples=True, is_norma
 independent_variable = VariableInformation(has_independent_samples=True, is_categorical=True,
                                            number_of_categories=2, is_independent_variable=True)
 
-ttest_information = BivariateTestInformation(variables=[dependent_variable1, dependent_variable2, independent_variable],
-                                             similar_variances=True)
+# ttest_information = BivariateTestInformation(variables=[dependent_variable1, dependent_variable2, independent_variable],
+#                                              similar_variances=True)
 
 categorical_variable1 = VariableInformation(has_independent_samples=True, is_normal=False,
                                             is_categorical=True, sample_size=35, number_of_categories=2)
 categorical_variable2 = VariableInformation(has_independent_samples=True, is_normal=False, is_categorical=True,
                                             sample_size=30, number_of_categories=5)
 
-categorical_test_information = BivariateTestInformation(variables=[categorical_variable1, categorical_variable2])
+# categorical_test_information = BivariateTestInformation(variables=[categorical_variable1, categorical_variable2])
 
 print("Tests for normal samples:")
-for test, assumptions in find_applicable_bivariate_tests(ttest_information).items():
-    print("%s: %s" % (test, assumptions))
+# for test, assumptions in find_applicable_bivariate_tests(ttest_information).items():
+#     print("%s: %s" % (test, assumptions))
 
 print("\nTests for categorical samples:")
-for test, assumptions in find_applicable_bivariate_tests(categorical_test_information).items():
-    print("%s: %s" % (test, assumptions))
+# for test, assumptions in find_applicable_bivariate_tests(categorical_test_information).items():
+#     print("%s: %s" % (test, assumptions))
