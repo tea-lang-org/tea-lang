@@ -212,7 +212,9 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
     max_sat.add(u_test == And(bool_val(test_information.all_variables_have_independent_observations),
                               bool_val(test_information.samples_have_similar_variances),
                               bool_val(not test_information.observations_are_paired),
-                              bool_val(test_information.all_variables_are_continuous)))
+                              bool_val(test_information.independent_variable_is_categorical),
+                              bool_val(test_information.dependent_variable_is_continuous
+                                       or test_information.dependent_variable_is_ordinal)))
 
     max_sat.add(pearson_correlation == And(bool_val(test_information.all_variables_have_independent_observations),
                                            bool_val(test_information.all_variables_are_continuous),
