@@ -9,10 +9,11 @@ class Tests(Flag):
     CHISQUARE = auto()
     UTEST = auto()
     PEARSON_CORRELATION = auto()
+    SPEARMAN_CORRELATION = auto()
     PAIRED_SAMPLES_TTEST = auto()
 
-    PARAMETRIC = STUDENTST | PAIRED_SAMPLES_TTEST
-    NONPARAMETRIC = CHISQUARE | UTEST
+    PARAMETRIC = STUDENTST | PAIRED_SAMPLES_TTEST | PEARSON_CORRELATION
+    NONPARAMETRIC = CHISQUARE | UTEST | SPEARMAN_CORRELATION
 
 
 class Assumptions(Flag):
@@ -29,6 +30,8 @@ class Assumptions(Flag):
     LINEAR_RELATIONSHIP = auto()
     BIVARIATE_NORMAL_VARIABLES = auto()
     RELATED_SAMPLES = auto()
+    MONOTONIC_RELATIONSHIP = auto()
+    INTERVAL_RATIO_OR_ORDINAL = auto()
 
 
 def assumptions_for_test(test: Tests) -> Assumptions:
@@ -62,6 +65,10 @@ def assumptions_for_test(test: Tests) -> Assumptions:
                        | Assumptions.NORMALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES \
                        | Assumptions.NO_OUTLIERS_IN_DIFFERENCE_BETWEEN_VARIABLES
 
+    elif test & Tests.SPEARMAN_CORRELATION:
+        assumptions |= Assumptions.MONOTONIC_RELATIONSHIP \
+                        | Assumptions.INTERVAL_RATIO_OR_ORDINAL
+
     else:
         assert 0, 'Test %s not supported.' % test
 
@@ -73,13 +80,14 @@ class VariableInformation:
 
     def __init__(self, has_independent_samples, sample_size=-1, is_normal=None, is_independent_variable=False,
                  is_dependent_variable=False, variance=-1, is_continuous=False, is_categorical=False,
-                 number_of_categories=-1):
+                 number_of_categories=-1, is_ordinal=False):
         self.has_independent_samples = has_independent_samples
         self.is_continuous = is_continuous
         self.is_categorical = is_categorical
         self.sample_size = sample_size
         self.is_independent_variable = is_independent_variable  # Assumes only independent or dependent variables.
         self.is_dependent_variable = is_dependent_variable
+        self.is_ordinal = is_ordinal
 
         if is_continuous:
             assert variance > 0, "Variance must be positive for a continuous variable."
@@ -94,13 +102,11 @@ class VariableInformation:
 
 class BivariateTestInformation:
     """Class for keeping track of information between variables for a bivariate test."""
-    independent_variable: VariableInformation
-    dependent_variables: List[VariableInformation]
 
     def __init__(self, variables: List[VariableInformation], is_bivariate_normal: bool = False,
                  difference_between_paired_values_is_normal: bool = False, similar_variances: bool = False,
-                 paired_observations: bool = False):
-        # assert len(variables) == 2, "Only bivariate tests are supported."
+                 observations_are_paired: bool = False):
+        assert len(variables) == 2, "Only bivariate tests are supported."
 
         self.variables = variables
         independent_variables = [variable for variable in variables if variable.is_independent_variable]
@@ -108,12 +114,15 @@ class BivariateTestInformation:
             "Only one independent variable expected instead of %d" % len(independent_variables)
         self.independent_variable = independent_variables[0] if len(independent_variables) else None
 
-        self.dependent_variables = [variable for variable in variables if variable.is_dependent_variable]
+        dependent_variables = [variable for variable in variables if variable.is_dependent_variable]
+        assert len(dependent_variables) <= 1, \
+            "Only one dependent variable expected instead of %d" % len(dependent_variables)
+        self.dependent_variable = dependent_variables[0] if len(dependent_variables) else None
 
         self.is_bivariate_normal = is_bivariate_normal
         self.difference_between_paired_values_is_normal = difference_between_paired_values_is_normal
         self.samples_have_similar_variances = similar_variances
-        self.paired_observations = paired_observations
+        self.observations_are_paired = observations_are_paired
 
     @staticmethod
     def all_elements_satisfy_property(elements, check_property):
@@ -121,9 +130,6 @@ class BivariateTestInformation:
 
     def all_variables_satisfy_property(self, check_property):
         return self.all_elements_satisfy_property(self.variables, check_property)
-
-    def all_dependent_variables_satisfy_property(self, check_property):
-        return self.all_elements_satisfy_property(self.dependent_variables, check_property)
 
     @property
     def all_variables_have_independent_observations(self):
@@ -134,16 +140,24 @@ class BivariateTestInformation:
         return self.all_variables_satisfy_property(lambda var: var.is_continuous)
 
     @property
-    def all_dependent_variables_are_continuous(self):
-        return self.all_dependent_variables_satisfy_property(lambda var: var.is_continuous)
+    def dependent_variable_is_continuous(self):
+        return self.dependent_variable is not None and self.dependent_variable.is_continuous
+
+    @property
+    def independent_variable_is_continuous(self):
+        return self.independent_variable is not None and self.independent_variable.is_continuous
 
     @property
     def all_variables_are_categorical(self):
         return self.all_variables_satisfy_property(lambda var: var.is_categorical)
 
     @property
-    def all_dependent_variables_are_normal(self):
-        return self.all_dependent_variables_satisfy_property(lambda var: var.is_normal)
+    def independent_variable_is_categorical(self):
+        return self.independent_variable is not None and self.independent_variable.is_categorical
+
+    @property
+    def all_variables_are_continuous_or_ordinal(self):
+        return self.all_elements_satisfy_property(lambda var: var.is_continuous or var.is_ordinal)
 
     @property
     def all_variables_have_enough_samples(self):
@@ -153,6 +167,10 @@ class BivariateTestInformation:
     def all_variables_have_enough_categories(self):
         return self.all_variables_are_categorical and \
                self.all_variables_satisfy_property(lambda var: var.number_of_categories >= 2)
+
+    @property
+    def independent_variable_has_enough_categories(self):
+        return self.independent_variable_is_categorical and self.independent_variable.number_of_categories >= 2
 
 
 def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
@@ -164,18 +182,14 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
     u_test = Bool('u_test')
     pearson_correlation = Bool('pearson_correlation')
     paired_t = Bool('paired_t')
-
-    independent_variable_exists = test_information.independent_variable is not None
+    spearman_correlation = Bool('spearman_correlation')
 
     max_sat = Optimize()
     max_sat.add(students_t == And(bool_val(test_information.all_variables_have_independent_observations),
-                                  bool_val(len(test_information.dependent_variables) == 2),
-                                  bool_val(test_information.all_dependent_variables_are_normal),
-                                  bool_val(independent_variable_exists and
-                                           test_information.independent_variable.is_categorical),
-                                  bool_val(independent_variable_exists and
-                                           test_information.independent_variable.number_of_categories == 2),
-                                  bool_val(test_information.all_dependent_variables_are_continuous),
+                                  bool_val(test_information.independent_variable_is_categorical),
+                                  bool_val(test_information.independent_variable_has_enough_categories),
+                                  bool_val(not test_information.observations_are_paired),
+                                  bool_val(test_information.dependent_variable_is_continuous),
                                   bool_val(test_information.samples_have_similar_variances)))
 
     max_sat.add(chi_square == And(bool_val(test_information.all_variables_have_independent_observations),
@@ -184,20 +198,26 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
                                   bool_val(test_information.all_variables_have_enough_categories)))
 
     max_sat.add(u_test == And(bool_val(test_information.all_variables_have_independent_observations),
-                              bool_val(test_information.samples_have_similar_variances)))
+                              bool_val(test_information.samples_have_similar_variances),
+                              bool_val(not test_information.observations_are_paired),
+                              bool_val(test_information.all_variables_are_continuous)))
 
     max_sat.add(pearson_correlation == And(bool_val(test_information.all_variables_have_independent_observations),
                                            bool_val(test_information.all_variables_are_continuous),
                                            bool_val(test_information.is_bivariate_normal)))
 
     max_sat.add(paired_t == And(bool_val(test_information.all_variables_are_continuous),
+                                bool_val(test_information.observations_are_paired),
                                 bool_val(test_information.difference_between_paired_values_is_normal)))
+
+    max_sat.add(spearman_correlation == And(bool_val(test_information.all_variables_are_continuous_or_ordinal)))
 
     max_sat.add_soft(students_t)
     max_sat.add_soft(chi_square)
     max_sat.add_soft(u_test)
     max_sat.add_soft(pearson_correlation)
     max_sat.add_soft(paired_t)
+    max_sat.add_soft(spearman_correlation)
 
     tests_and_assumptions = {}
     if max_sat.check() == sat:
@@ -212,6 +232,8 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
             tests_and_assumptions[Tests.PEARSON_CORRELATION] = assumptions_for_test(Tests.PEARSON_CORRELATION)
         if model[paired_t]:
             tests_and_assumptions[Tests.PAIRED_SAMPLES_TTEST] = assumptions_for_test(Tests.PAIRED_SAMPLES_TTEST)
+        if model[spearman_correlation]:
+            tests_and_assumptions[Tests.SPEARMAN_CORRELATION] = assumptions_for_test(Tests.SPEARMAN_CORRELATION)
 
     return tests_and_assumptions
 
