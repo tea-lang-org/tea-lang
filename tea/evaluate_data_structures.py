@@ -34,6 +34,10 @@ class VarData(Value):
     def is_categorical(self): 
         global data_type
         return self.metadata[data_type] is DataType.NOMINAL or self.metadata[data_type] is DataType.ORDINAL
+
+    def is_ordinal(self):
+        global data_type
+        return self.metadata[data_type] is DataType.ORDINAL
     
     def get_sample_size(self): 
         return self.properties[sample_size]

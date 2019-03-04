@@ -2,8 +2,8 @@ from enum import Flag, auto
 from typing import List
 from z3 import *
 
-from .evaluate_data_structures import CombinedData, VarData
-from .evaluate_helper_methods import iv_identifier, dv_identifier
+from tea.evaluate_data_structures import CombinedData, VarData
+from tea.evaluate_helper_methods import iv_identifier, dv_identifier
 
 
 class Tests(Flag):
@@ -236,13 +236,18 @@ def dependent_variable_is_continuous(data: CombinedData) -> bool:
     return dependent_variable and dependent_variable.is_continuous()
 
 
+def dependent_variable_is_ordinal(data: CombinedData) -> bool:
+    dependent_variable = get_dependent_variable(data)
+    return dependent_variable and dependent_variable.is_ordinal()
+
+
 def find_applicable_bivariate_tests(data: CombinedData):
     def bool_val(cond):
         return BoolVal(True) if cond else BoolVal(False)
 
     students_t = Bool('students_t')
+    u_test = Bool('u_test')
     # chi_square = Bool('chi_square')
-    # u_test = Bool('u_test')
     # pearson_correlation = Bool('pearson_correlation')
     # paired_t = Bool('paired_t')
     # spearman_correlation = Bool('spearman_correlation')
@@ -256,17 +261,17 @@ def find_applicable_bivariate_tests(data: CombinedData):
                                   bool_val(dependent_variable_is_continuous(data)),
                                   bool_val(data.has_equal_variance())))
 
+    max_sat.add(u_test == And(bool_val(data.has_equal_variance()),
+                              bool_val(not data.has_paired_observations()),
+                              bool_val(independent_variable_is_categorical(data)),
+                              bool_val(dependent_variable_is_continuous(data)
+                                       or dependent_variable_is_ordinal(data))))
+
     # max_sat.add(chi_square == And(bool_val(test_information.all_variables_have_independent_observations),
     #                               bool_val(test_information.all_variables_are_categorical),
     #                               bool_val(test_information.all_variables_have_enough_samples),
     #                               bool_val(test_information.all_variables_have_enough_categories)))
     #
-    # max_sat.add(u_test == And(bool_val(test_information.all_variables_have_independent_observations),
-    #                           bool_val(test_information.samples_have_similar_variances),
-    #                           bool_val(not test_information.observations_are_paired),
-    #                           bool_val(test_information.independent_variable_is_categorical),
-    #                           bool_val(test_information.dependent_variable_is_continuous
-    #                                    or test_information.dependent_variable_is_ordinal)))
     #
     # max_sat.add(pearson_correlation == And(bool_val(test_information.all_variables_have_independent_observations),
     #                                        bool_val(test_information.all_variables_are_continuous),
@@ -289,8 +294,8 @@ def find_applicable_bivariate_tests(data: CombinedData):
     #                                  bool_val(test_information.dependent_variable_has_num_categories(2))))
 
     max_sat.add_soft(students_t)
+    max_sat.add_soft(u_test)
     # max_sat.add_soft(chi_square)
-    # max_sat.add_soft(u_test)
     # max_sat.add_soft(pearson_correlation)
     # max_sat.add_soft(paired_t)
     # max_sat.add_soft(spearman_correlation)
