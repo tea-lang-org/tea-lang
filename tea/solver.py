@@ -12,6 +12,7 @@ class Tests(Flag):
     SPEARMAN_CORRELATION = auto()
     PAIRED_SAMPLES_TTEST = auto()
     WILCOXON_SIGN_RANK_TEST = auto()
+    BINOMIAL_TEST = auto()
 
     PARAMETRIC = STUDENTST | PAIRED_SAMPLES_TTEST | PEARSON_CORRELATION
     NONPARAMETRIC = CHISQUARE | UTEST | SPEARMAN_CORRELATION | WILCOXON_SIGN_RANK_TEST
@@ -75,6 +76,9 @@ def assumptions_for_test(test: Tests) -> Assumptions:
     elif test & Tests.WILCOXON_SIGN_RANK_TEST:
         assumptions |= Assumptions.DEPENDENT_VARIABLE_CONTINUOUS_OR_ORDINAL \
                         | Assumptions.SYMMETRICALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES
+
+    elif test & Tests.BINOMIAL_TEST:
+        assumptions |= Assumptions.INDEPENDENT_OBSERVATIONS
 
     else:
         assert 0, 'Test %s not supported.' % test
@@ -155,6 +159,10 @@ class BivariateTestInformation:
         return self.dependent_variable is not None and self.dependent_variable.is_ordinal
 
     @property
+    def dependent_variable_is_categorical(self):
+        return self.dependent_variable is not None and self.dependent_variable.is_categorical
+
+    @property
     def independent_variable_is_continuous(self):
         return self.independent_variable is not None and self.independent_variable.is_continuous
 
@@ -179,6 +187,10 @@ class BivariateTestInformation:
         return self.all_variables_are_categorical and \
                self.all_variables_satisfy_property(lambda var: var.number_of_categories >= 2)
 
+    def dependent_variable_has_num_categories(self, num_categories):
+        return self.dependent_variable_is_categorical and \
+                self.dependent_variable.number_of_categories == num_categories
+
     @property
     def independent_variable_has_enough_categories(self):
         return self.independent_variable_is_categorical and self.independent_variable.number_of_categories >= 2
@@ -195,6 +207,7 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
     paired_t = Bool('paired_t')
     spearman_correlation = Bool('spearman_correlation')
     wilcoxon_sign_rank = Bool('wilcoxon_sign_rank')
+    binomial_test = Bool('binomial_test')
 
     max_sat = Optimize()
     max_sat.add(students_t == And(bool_val(test_information.all_variables_have_independent_observations),
@@ -233,6 +246,9 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
                                           bool_val(test_information.independent_variable_is_categorical),
                                           bool_val(test_information.observations_are_paired)))
 
+    max_sat.add(binomial_test == And(bool_val(test_information.dependent_variable_is_categorical),
+                                     bool_val(test_information.dependent_variable_has_num_categories(2))))
+
     max_sat.add_soft(students_t)
     max_sat.add_soft(chi_square)
     max_sat.add_soft(u_test)
@@ -240,6 +256,7 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
     max_sat.add_soft(paired_t)
     max_sat.add_soft(spearman_correlation)
     max_sat.add_soft(wilcoxon_sign_rank)
+    max_sat.add_soft(binomial_test)
 
     tests_and_assumptions = {}
     if max_sat.check() == sat:
@@ -258,6 +275,8 @@ def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
             tests_and_assumptions[Tests.SPEARMAN_CORRELATION] = assumptions_for_test(Tests.SPEARMAN_CORRELATION)
         if model[wilcoxon_sign_rank]:
             tests_and_assumptions[Tests.WILCOXON_SIGN_RANK_TEST] = assumptions_for_test(Tests.WILCOXON_SIGN_RANK_TEST)
+        if model[binomial_test]:
+            tests_and_assumptions[Tests.BINOMIAL_TEST] == assumptions_for_test(Tests.BINOMIAL_TEST)
 
     return tests_and_assumptions
 
