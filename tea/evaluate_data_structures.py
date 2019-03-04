@@ -54,6 +54,9 @@ class CombinedData(Value): # TODO probably want to rename this
     def has_equal_variance(self): 
         global variance
         return self.properties[variance][1] < self.alpha
+
+    def has_paired_observations(self):
+        assert False, "Implement this property to convey information about whether observations are paired."
     
     # @return list of VarData instances that are in this object's vars that have the @param role
     def get_vars(self, role: str): 

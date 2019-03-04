@@ -2,6 +2,9 @@ from enum import Flag, auto
 from typing import List
 from z3 import *
 
+from .evaluate_data_structures import CombinedData, VarData
+from .evaluate_helper_methods import iv_identifier, dv_identifier
+
 
 class Tests(Flag):
     NONE = 0
@@ -195,8 +198,129 @@ class BivariateTestInformation:
     def independent_variable_has_enough_categories(self):
         return self.independent_variable_is_categorical and self.independent_variable.number_of_categories >= 2
 
+def get_independent_variable(data: CombinedData) -> VarData:
+    independent_variables = data.get_vars(iv_identifier)
+    assert len(independent_variables) <= 1, \
+        "Only one independent variable expected instead of %d" % len(independent_variables)
+    return independent_variables[0] if len(independent_variables) else None
 
-def find_applicable_bivariate_tests(test_information: BivariateTestInformation):
+def get_dependent_variable(data: CombinedData) -> VarData:
+    dependent_variables = data.get_vars(dv_identifier)
+    assert len(dependent_variables) <= 1, \
+        "Only one dependent variable expected instead of %d" % len(dependent_variables)
+    return dependent_variables[0] if len(dependent_variables) else None
+
+
+def independent_variable_is_categorical(data: CombinedData) -> bool:
+    independent_variable = get_independent_variable(data)
+    return independent_variable and independent_variable.is_categorical()
+
+
+def independent_variable_is_continuous(data: CombinedData) -> bool:
+    independent_variable = get_independent_variable(data)
+    return independent_variable and independent_variable.is_continuous()
+
+
+def independent_variable_has_enough_categories(data: CombinedData, num_categories=2) -> bool:
+    return independent_variable_is_categorical(data) and \
+        get_independent_variable(data).get_number_categories() >= num_categories
+
+
+def dependent_variable_is_categorical(data: CombinedData) -> bool:
+    dependent_variable = get_dependent_variable(data)
+    return dependent_variable and dependent_variable.is_categorical()
+
+
+def dependent_variable_is_continuous(data: CombinedData) -> bool:
+    dependent_variable = get_dependent_variable(data)
+    return dependent_variable and dependent_variable.is_continuous()
+
+
+def find_applicable_bivariate_tests(data: CombinedData):
+    def bool_val(cond):
+        return BoolVal(True) if cond else BoolVal(False)
+
+    students_t = Bool('students_t')
+    # chi_square = Bool('chi_square')
+    # u_test = Bool('u_test')
+    # pearson_correlation = Bool('pearson_correlation')
+    # paired_t = Bool('paired_t')
+    # spearman_correlation = Bool('spearman_correlation')
+    # wilcoxon_sign_rank = Bool('wilcoxon_sign_rank')
+    # binomial_test = Bool('binomial_test')
+
+    max_sat = Optimize()
+    max_sat.add(students_t == And(bool_val(independent_variable_is_categorical(data)),
+                                  bool_val(independent_variable_has_enough_categories(data, num_categories=2)),
+                                  bool_val(not data.has_paired_observations()),
+                                  bool_val(dependent_variable_is_continuous(data)),
+                                  bool_val(data.has_equal_variance())))
+
+    # max_sat.add(chi_square == And(bool_val(test_information.all_variables_have_independent_observations),
+    #                               bool_val(test_information.all_variables_are_categorical),
+    #                               bool_val(test_information.all_variables_have_enough_samples),
+    #                               bool_val(test_information.all_variables_have_enough_categories)))
+    #
+    # max_sat.add(u_test == And(bool_val(test_information.all_variables_have_independent_observations),
+    #                           bool_val(test_information.samples_have_similar_variances),
+    #                           bool_val(not test_information.observations_are_paired),
+    #                           bool_val(test_information.independent_variable_is_categorical),
+    #                           bool_val(test_information.dependent_variable_is_continuous
+    #                                    or test_information.dependent_variable_is_ordinal)))
+    #
+    # max_sat.add(pearson_correlation == And(bool_val(test_information.all_variables_have_independent_observations),
+    #                                        bool_val(test_information.all_variables_are_continuous),
+    #                                        bool_val(test_information.is_bivariate_normal)))
+    #
+    # max_sat.add(paired_t == And(bool_val(test_information.all_variables_are_continuous),
+    #                             bool_val(test_information.observations_are_paired),
+    #                             bool_val(test_information.difference_between_paired_values_is_normal)))
+    #
+    # max_sat.add(spearman_correlation == And(bool_val(test_information.all_variables_are_continuous_or_ordinal)))
+    #
+    # # Not sure how to test that the difference between related groups is symmetrical in shape, so for
+    # # now leave that as an assumption.
+    # max_sat.add(wilcoxon_sign_rank == And(bool_val(test_information.dependent_variable_is_continuous
+    #                                                or test_information.dependent_variable_is_ordinal),
+    #                                       bool_val(test_information.independent_variable_is_categorical),
+    #                                       bool_val(test_information.observations_are_paired)))
+    #
+    # max_sat.add(binomial_test == And(bool_val(test_information.dependent_variable_is_categorical),
+    #                                  bool_val(test_information.dependent_variable_has_num_categories(2))))
+
+    max_sat.add_soft(students_t)
+    # max_sat.add_soft(chi_square)
+    # max_sat.add_soft(u_test)
+    # max_sat.add_soft(pearson_correlation)
+    # max_sat.add_soft(paired_t)
+    # max_sat.add_soft(spearman_correlation)
+    # max_sat.add_soft(wilcoxon_sign_rank)
+    # max_sat.add_soft(binomial_test)
+
+    tests_and_assumptions = {}
+    if max_sat.check() == sat:
+        model = max_sat.model()
+        if model[students_t]:
+            tests_and_assumptions[Tests.STUDENTST] = assumptions_for_test(Tests.STUDENTST)
+        if model[chi_square]:
+            tests_and_assumptions[Tests.CHISQUARE] = assumptions_for_test(Tests.CHISQUARE)
+        if model[u_test]:
+            tests_and_assumptions[Tests.UTEST] = assumptions_for_test(Tests.UTEST)
+        if model[pearson_correlation]:
+            tests_and_assumptions[Tests.PEARSON_CORRELATION] = assumptions_for_test(Tests.PEARSON_CORRELATION)
+        if model[paired_t]:
+            tests_and_assumptions[Tests.PAIRED_SAMPLES_TTEST] = assumptions_for_test(Tests.PAIRED_SAMPLES_TTEST)
+        if model[spearman_correlation]:
+            tests_and_assumptions[Tests.SPEARMAN_CORRELATION] = assumptions_for_test(Tests.SPEARMAN_CORRELATION)
+        if model[wilcoxon_sign_rank]:
+            tests_and_assumptions[Tests.WILCOXON_SIGN_RANK_TEST] = assumptions_for_test(Tests.WILCOXON_SIGN_RANK_TEST)
+        if model[binomial_test]:
+            tests_and_assumptions[Tests.BINOMIAL_TEST] == assumptions_for_test(Tests.BINOMIAL_TEST)
+
+    return tests_and_assumptions
+
+
+def find_applicable_bivariate_tests_with_temp_data_structure(test_information: BivariateTestInformation):
     def bool_val(cond):
         return BoolVal(True) if cond else BoolVal(False)
 
