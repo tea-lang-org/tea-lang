@@ -285,9 +285,7 @@ def compute_variance(data):
 
 def compute_eq_variance(groups_data):
     # compute variance for each group
-    keys = list(groups_data.keys())
-    
-    import pdb; pdb.set_trace()
+    # keys = list(groups_data.keys())
     levene_test = stats.levene(groups_data[keys[0]], groups_data[keys[1]])
     return (levene_test[0], levene_test[1])
 
