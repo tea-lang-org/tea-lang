@@ -233,6 +233,11 @@ def dependent_variable_is_categorical(data: CombinedData) -> bool:
     return dependent_variable and dependent_variable.is_categorical()
 
 
+def dependent_variable_has_number_of_categories(data: CombinedData, num_categories=2) -> bool:
+    return dependent_variable_is_categorical(data) and \
+        get_dependent_variable(data).get_number_categories() == num_categories
+
+
 def dependent_variable_is_continuous(data: CombinedData) -> bool:
     dependent_variable = get_dependent_variable(data)
     return dependent_variable and dependent_variable.is_continuous()
@@ -279,7 +284,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
     paired_t = Bool('paired_t')
     spearman_correlation = Bool('spearman_correlation')
     wilcoxon_sign_rank = Bool('wilcoxon_sign_rank')
-    # binomial_test = Bool('binomial_test')
+    binomial_test = Bool('binomial_test')
 
     max_sat = Optimize()
     max_sat.add(students_t == And(bool_val(independent_variable_is_categorical(data)),
@@ -317,8 +322,8 @@ def find_applicable_bivariate_tests(data: CombinedData):
                                           bool_val(independent_variable_has_number_of_categories(data, 2)),
                                           bool_val(data.has_paired_observations())))
 
-    # max_sat.add(binomial_test == And(bool_val(test_information.dependent_variable_is_categorical),
-    #                                  bool_val(test_information.dependent_variable_has_num_categories(2))))
+    max_sat.add(binomial_test == And(bool_val(dependent_variable_is_categorical(data)),
+                                     bool_val(dependent_variable_has_number_of_categories(data, 2))))
 
     max_sat.add_soft(students_t)
     max_sat.add_soft(u_test)
@@ -327,7 +332,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
     max_sat.add_soft(paired_t)
     max_sat.add_soft(spearman_correlation)
     max_sat.add_soft(wilcoxon_sign_rank)
-    # max_sat.add_soft(binomial_test)
+    max_sat.add_soft(binomial_test)
 
     tests_and_assumptions = {}
     if max_sat.check() == sat:
