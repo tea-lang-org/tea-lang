@@ -116,7 +116,6 @@ def compute_data_properties(dataset, vars_data: list):
 # Add equal variance property to @param combined_data
 def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: str): 
     vars = combined_data.vars
-    num_vars = len(vars)
     xs = None
     ys = None
     cat_xs = []
@@ -124,12 +123,13 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
     grouped_data = []
 
     if study_type == experiment_identifier: 
-        xs = combined_data.get_vars(iv_identifier)
-        ys = combined_data.get_vars(dv_identifier) if combined_data.get_vars(dv_identifier) else combined_data.get_vars(null_identifier)
+        # Just need one variable to be Catogrical and another to be Continuous (regardless of role) -- both could be variable_identifier types
+        xs = combined_data.get_vars(iv_identifier) 
+        ys = combined_data.get_vars(dv_identifier) 
         
     else: # study_type == observational_identifier
         xs = combined_data.get_vars(contributor_identifier)
-        ys = combined_data.get_vars(outcome_identifier) if combined_data.get_vars(outcome_identifier) else combined_data.get_vars(null_identifier)
+        ys = combined_data.get_vars(outcome_identifier)
     
     for x in xs: 
         if x.is_categorical(): 
@@ -146,13 +146,14 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
                 for c in cat: 
                     data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
                     grouped_data.append(data)
-
                 if isinstance(combined_data, BivariateData):
                     combined_data.properties[eq_variance] = compute_eq_variance(grouped_data)
                 elif isinstance(combined_data, MultivariateData):
                     combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
                     raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
+
+    combined_data.properties[eq_variance] = None
     
 
 # Compute properties that are between/among VarData objects
@@ -161,6 +162,7 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
     combined = copy.deepcopy(combined_data)
 
     add_eq_variance_property(dataset, combined, study_type)
+    
     import pdb; pdb.set_trace()
 
     
@@ -169,7 +171,7 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
     
     # combined has a categorical iv --> then select data for each group from dataset 
     # -- dv/other variable can be continuous (maybe not nominal)
-    # change levene test implementation to allow for more than 2 groups
+    #  
     # calculate leven test and assign to eq_variance
 
 
@@ -281,11 +283,14 @@ def compute_variance(data):
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
 
 def compute_eq_variance(groups_data):
-    # compute variance for each group
-    keys = list(groups_data.keys())
+    import argparse
+    parser = argparse.ArgumentParser()
     
+    for i,data in enumerate(groups_data):
+        parser.add_argument("-sample"+str(i+1), data)
+    args = parser.parse_args()
     import pdb; pdb.set_trace()
-    levene_test = stats.levene(groups_data[keys[0]], groups_data[keys[1]])
+    levene_test = stats.levene(args)
     return (levene_test[0], levene_test[1])
 
 def is_normal(comp_data: CombinedData, alpha, data=None):
