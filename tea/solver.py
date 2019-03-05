@@ -270,7 +270,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
     # pearson_correlation = Bool('pearson_correlation')
     paired_t = Bool('paired_t')
     # spearman_correlation = Bool('spearman_correlation')
-    # wilcoxon_sign_rank = Bool('wilcoxon_sign_rank')
+    wilcoxon_sign_rank = Bool('wilcoxon_sign_rank')
     # binomial_test = Bool('binomial_test')
 
     max_sat = Optimize()
@@ -303,13 +303,14 @@ def find_applicable_bivariate_tests(data: CombinedData):
 
     # max_sat.add(spearman_correlation == And(bool_val(test_information.all_variables_are_continuous_or_ordinal)))
     #
-    # # Not sure how to test that the difference between related groups is symmetrical in shape, so for
-    # # now leave that as an assumption.
-    # max_sat.add(wilcoxon_sign_rank == And(bool_val(test_information.dependent_variable_is_continuous
-    #                                                or test_information.dependent_variable_is_ordinal),
-    #                                       bool_val(test_information.independent_variable_is_categorical),
-    #                                       bool_val(test_information.observations_are_paired)))
-    #
+    # Not sure how to test that the difference between related groups is symmetrical in shape, so for
+    # now leave that as an assumption.
+    max_sat.add(wilcoxon_sign_rank == And(bool_val(dependent_variable_is_continuous(data)
+                                                   or dependent_variable_is_ordinal(data)),
+                                          bool_val(independent_variable_is_categorical(data)),
+                                          bool_val(independent_variable_has_number_of_categories(data, 2)),
+                                          bool_val(data.has_paired_observations())))
+
     # max_sat.add(binomial_test == And(bool_val(test_information.dependent_variable_is_categorical),
     #                                  bool_val(test_information.dependent_variable_has_num_categories(2))))
 
@@ -319,7 +320,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
     # max_sat.add_soft(pearson_correlation)
     max_sat.add_soft(paired_t)
     # max_sat.add_soft(spearman_correlation)
-    # max_sat.add_soft(wilcoxon_sign_rank)
+    max_sat.add_soft(wilcoxon_sign_rank)
     # max_sat.add_soft(binomial_test)
 
     tests_and_assumptions = {}
