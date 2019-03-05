@@ -275,7 +275,6 @@ def predict(vars: list, predictions: list=None):
     # Validate well-formedness of predictions
     if predictions: 
         # Check that each prediction is well-formed
-        import pdb; pdb.set_trace()
         for p in predictions: 
             assert (isinstance(p, str))
             # Does the prediction pertain to categorical data?
@@ -310,9 +309,6 @@ def relate(vars: list, prediction: str=None) :
 
 # def compare(iv: Variable, dv: Variable, prediction: str=None, when: str=None) :
 def compare(vars: list, prediction: list=None, when: str=None) :
-    
-    # vars = [(var_1, 'variable'), (var_2, 'variable')]
-    import pdb; pdb.set_trace()
     return Relate(vars, predict(vars, prediction))
     
     # if (isinstance(iv, Variable)):

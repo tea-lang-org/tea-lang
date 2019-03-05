@@ -122,7 +122,6 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
     cont_ys = []
     grouped_data = []
 
-    import pdb; pdb.set_trace()
     if study_type == experiment_identifier: 
         # Just need one variable to be Catogrical and another to be Continuous (regardless of role) -- both could be variable_identifier types
         xs = combined_data.get_vars(iv_identifier) 
@@ -284,9 +283,14 @@ def compute_variance(data):
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
 
 def compute_eq_variance(groups_data):
-    # compute variance for each group
-    # keys = list(groups_data.keys())
-    levene_test = stats.levene(groups_data[keys[0]], groups_data[keys[1]])
+    import argparse
+    parser = argparse.ArgumentParser()
+    
+    for i,data in enumerate(groups_data):
+        parser.add_argument("-sample"+str(i+1), data)
+    args = parser.parse_args()
+    import pdb; pdb.set_trace()
+    levene_test = stats.levene(args)
     return (levene_test[0], levene_test[1])
 
 def is_normal(comp_data: CombinedData, alpha, data=None):
