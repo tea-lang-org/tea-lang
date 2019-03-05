@@ -198,11 +198,13 @@ class BivariateTestInformation:
     def independent_variable_has_enough_categories(self):
         return self.independent_variable_is_categorical and self.independent_variable.number_of_categories >= 2
 
+
 def get_independent_variable(data: CombinedData) -> VarData:
     independent_variables = data.get_vars(iv_identifier)
     assert len(independent_variables) <= 1, \
         "Only one independent variable expected instead of %d" % len(independent_variables)
     return independent_variables[0] if len(independent_variables) else None
+
 
 def get_dependent_variable(data: CombinedData) -> VarData:
     dependent_variables = data.get_vars(dv_identifier)
@@ -241,13 +243,30 @@ def dependent_variable_is_ordinal(data: CombinedData) -> bool:
     return dependent_variable and dependent_variable.is_ordinal()
 
 
+def all_elements_satisfy_property(elements, check_property):
+    return not next((element for element in elements if not check_property(element)), None)
+
+
+def all_variables_are_categorical(data: CombinedData) -> bool:
+    return all_elements_satisfy_property(data.vars, lambda var: var.is_categorical)
+
+
+def all_variables_have_enough_categories(data: CombinedData, num_categories=2) -> bool:
+    return all_variables_are_categorical(data) and \
+           all_elements_satisfy_property(data.vars, lambda var: var.get_number_categories() >= num_categories)
+
+
+def all_variables_have_enough_samples(data: CombinedData, num_samples=30) -> bool:
+    return all_elements_satisfy_property(data.vars, lambda var: var.get_sample_size() >= num_samples)
+
+
 def find_applicable_bivariate_tests(data: CombinedData):
     def bool_val(cond):
         return BoolVal(True) if cond else BoolVal(False)
 
     students_t = Bool('students_t')
     u_test = Bool('u_test')
-    # chi_square = Bool('chi_square')
+    chi_square = Bool('chi_square')
     # pearson_correlation = Bool('pearson_correlation')
     # paired_t = Bool('paired_t')
     # spearman_correlation = Bool('spearman_correlation')
@@ -267,12 +286,11 @@ def find_applicable_bivariate_tests(data: CombinedData):
                               bool_val(dependent_variable_is_continuous(data)
                                        or dependent_variable_is_ordinal(data))))
 
-    # max_sat.add(chi_square == And(bool_val(test_information.all_variables_have_independent_observations),
-    #                               bool_val(test_information.all_variables_are_categorical),
-    #                               bool_val(test_information.all_variables_have_enough_samples),
-    #                               bool_val(test_information.all_variables_have_enough_categories)))
-    #
-    #
+    max_sat.add(chi_square == And(bool_val(all_variables_are_categorical(data)),
+                                  bool_val(all_variables_have_enough_samples(data)),
+                                  bool_val(all_variables_have_enough_categories(data))))
+
+
     # max_sat.add(pearson_correlation == And(bool_val(test_information.all_variables_have_independent_observations),
     #                                        bool_val(test_information.all_variables_are_continuous),
     #                                        bool_val(test_information.is_bivariate_normal)))
@@ -295,7 +313,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
 
     max_sat.add_soft(students_t)
     max_sat.add_soft(u_test)
-    # max_sat.add_soft(chi_square)
+    max_sat.add_soft(chi_square)
     # max_sat.add_soft(pearson_correlation)
     # max_sat.add_soft(paired_t)
     # max_sat.add_soft(spearman_correlation)
