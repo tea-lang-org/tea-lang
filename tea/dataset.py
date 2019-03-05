@@ -3,9 +3,16 @@ from .ast import Variable, DataType
 import attr
 import pandas as pd
 import os
+import csv
 from typing import Dict
+from pathlib import Path
+from urllib.parse import urlparse
+import requests
 
 BASE_PATH = os.getcwd()
+
+def _dir_exists(path):
+    return os.path.isdir(path) and os.path.exists(path)
 
 @attr.s(hash=True)
 class Dataset(object): 
@@ -15,6 +22,42 @@ class Dataset(object):
     row_pids = attr.ib(init=False) # list of unique participant ids
     data = attr.ib(init=False) # pandas DataFrame
     
+    @staticmethod
+    def load(path, name):
+        home = Path.home()
+        tea_path = home / '.tea'
+        if not _dir_exists(tea_path):
+            os.mkdir(tea_path)
+        data_path = tea_path / 'data'
+        if not _dir_exists(data_path):
+            os.mkdir(data_path)
+        
+        url = urlparse(path)
+        csv_name = name if '.csv' in name else str(name + '.csv')
+        csv_path = data_path / csv_name
+
+        # URL
+        if url.scheme != '':
+            data = requests.get(path)
+
+            with open(csv_path, 'w') as f:
+                writer = csv.writer(f)
+                reader = csv.reader(data.text.splitlines())
+
+                for row in reader:
+                    writer.writerow(row)
+                # import pdb; pdb.set_trace()
+        else: 
+            with open(path, 'r') as readfile: 
+                import pdb; pdb.set_trace()
+                reader = csv.reader(readfile)
+                with open(csv_path, 'w') as writefile:
+                    writer = csv.writer(writefile)
+
+                    for row in reader:
+                        writer.writerow(row)
+
+        
 
     def __attrs_post_init__(self): 
         if self.dfile: 

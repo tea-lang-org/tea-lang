@@ -61,6 +61,9 @@ def iscategorical(var: Variable):
 def load_data(source_name: str, vars: list, pid: str):
     return Dataset(source_name, vars, pid)
 
+def load_data_from_url(url: str, name: str):
+    return Dataset.load(url, name)
+
 def select(var: Variable, op: str, other: Literal): 
     if (op == '=='):
         return var.subset_equals(other)

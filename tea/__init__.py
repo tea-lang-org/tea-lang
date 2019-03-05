@@ -2,7 +2,7 @@ from . import ast
 from . import build
 from . import evaluate
 
-from .build import (load_data, const,
+from .build import (load_data, load_data_from_url, const,
                     ordinal, isordinal,
                     nominal, isnominal,
                     ratio, isratio,
