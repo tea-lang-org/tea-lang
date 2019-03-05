@@ -61,6 +61,9 @@ class Variable(Node):
     def from_spec(cls, name: str, dtype: DataType, cat: list=None, drange: list=None, rhs: Node=None, lhs: Node=None):
         return cls(name, dtype, cat, drange, rhs, lhs)
     
+    def category_exists(self, category: str):
+        return self.categories and category in self.categories
+    
     def subset_equals(self, other: Node):
         return Equal(self, other)
     

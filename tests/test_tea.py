@@ -1,4 +1,5 @@
 from tea import (   load_data,
+                    load_data_from_url,
                     const,
                     ordinal, isordinal, 
                     nominal, isnominal,
@@ -225,24 +226,39 @@ variables = [condition, accuracy, age]
 file_path = './datasets/bivariate_mini.csv'
 experimental_design = {
                         'study type': 'experiment',
-                        'participant id': 'participant_id',
+                        'participant id': 'participant_id', # or 'key'
                         'independent variables': 'condition',
                         'dependent variables': 'accuracy',
                         'between subjects': 'condition',
                         # 'alpha': 1
                     }
+
+assumptions = {
+    'normally distributed': ['accuracy', 'age']
+}
+
+dataset = 'file.csv'
+
+# Something like this below??
+# compare(dataset, experimental_design, assumptions, condition, accuracy, 'microtask > macrotask')
+## Need some user interface that is more declarative....
+## For example, user interface should call load_data in the function
+url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/mtcars.csv'
+url_mini = '/Users/emjun/Git/tea-lang/datasets/mini_test.csv'
+ds = load_data_from_url(url_mini, 'mini_test')
+import pdb; pdb.set_trace()
 ds = load_data(file_path, variables, 'participant_id')
 
 # Bivariate test, between subjects
 # X: Numeric (ratio) | Y: Numeric (ratio)
 def test_compare_bivariate_between_cat_num():
-    stat = compare(condition, accuracy, 'microtask > macrotask') # if we want to select only a couple conditions, we can do that too     
+    stat = compare([condition, accuracy], ['condition:microtask > macrotask']) # if we want to select only a couple conditions, we can do that too     
     res = evaluate(ds, stat, experimental_design)
 
     # assert (res.test_results[1] < .05) # need to write better tests 
 
 def test_compare_bivariate_between_num_num(): 
-    stat = compare(age, accuracy) # if we want to select only a couple conditions, we can do that too
+    stat = compare([age, accuracy]) # if we want to select only a couple conditions, we can do that too
     res = evaluate(ds, stat, experimental_design)
 
 # def test_compare_bivariate_within_cat_num(): 
