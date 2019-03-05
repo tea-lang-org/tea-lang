@@ -337,6 +337,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         study_type = determine_study_type(vars, design)
 
         vars = assign_roles(vars, study_type, design)
+        import pdb; pdb.set_trace()
         vars = compute_data_properties(dataset, vars) # compute individual level properties
         
         # We have a Bivariate Test
@@ -346,7 +347,7 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             combined_data = MultivariateData(vars)
         
-
+        import pdb; pdb.set_trace()
         combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
         # data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
 
@@ -369,4 +370,5 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
         # bs.bootstrap(var.dataframe, stat_func=
         # bs_stats.mean)
+
         raise Exception('Not implemented Mean')
