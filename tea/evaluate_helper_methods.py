@@ -16,7 +16,7 @@ import bootstrapped as bs
 
 study_type_identifier = 'study type'
 experiment_identifier = 'experiment'
-observational_identifier = 'observational'
+observational_identifier = 'observational study'
 iv_identifier = 'independent variables'
 dv_identifier = 'dependent variables'
 null_identifier = 'variables'

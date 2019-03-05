@@ -49,13 +49,14 @@ class Dataset(object):
                 # import pdb; pdb.set_trace()
         else: 
             with open(path, 'r') as readfile: 
-                import pdb; pdb.set_trace()
                 reader = csv.reader(readfile)
                 with open(csv_path, 'w') as writefile:
                     writer = csv.writer(writefile)
 
                     for row in reader:
                         writer.writerow(row)
+
+        return csv_path
 
         
 
