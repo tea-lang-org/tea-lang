@@ -64,25 +64,23 @@ class Dataset(object):
         if self.dfile: 
             self.data = pd.read_csv(self.dfile)
 
-        # Reindex DataFrame indices to be pids
-        self.data.set_index(self.pid_col_name, inplace=True)
-
-    @classmethod
-    def from_arr_numeric(cls, y: list, x: list):
-
-        data = {'X': x, 'Y': y}
-        df = pd.DataFrame.from_dict(data)
-
-        x_var = Variable('X', dtype=DataType.INTERVAL, categories=None, drange=None)
-        y_var = Variable('Y', dtype=DataType.INTERVAL, categories=None, drange=None)
-
-        return cls(dfile='', variables=[x_var,y_var], data=df)
+        if self.pid_col_name:
+            # Reindex DataFrame indices to be pids
+            self.data.set_index(self.pid_col_name, inplace=True)
+        # else: 
+            # Treat each row as a unique observation
 
     
     def __getitem__(self, var_name: str):
         for v in self.variables: # checks that the Variable is known to the Dataset object
             if v.name == var_name: 
                 return self.data[var_name] # returns the data, not the variable object
+
+    # Returns variable object -- may want to altogether replace the __getitem__
+    def get_variable(self, var_name: str): 
+        for v in self.variables: 
+            if v.name == var_name: 
+                return v
 
     def get_variable_data(self, var_name: str):
         for v in self.variables: 

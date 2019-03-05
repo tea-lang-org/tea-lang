@@ -328,7 +328,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         vars = []
 
         for v in expr.vars: 
-            eval_v = evaluate(dataset, v, design)         
+            eval_v = evaluate(dataset, v, design)    
+            # import pdb; pdb.set_trace()     
             assert isinstance(eval_v, VarData)
 
             vars.append(eval_v)
