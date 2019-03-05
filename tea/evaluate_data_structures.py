@@ -10,6 +10,8 @@ from types import SimpleNamespace # allows for dot notation access for dictionar
 data_type = 'dtype'
 distribution = 'distribution'
 variance = 'variance'
+sample_size = 'sample size'
+num_categories = 'number of categories'
 
 class Value(object):
     pass
@@ -18,7 +20,7 @@ class Value(object):
 class VarData(Value):
     # dataframe: Any
     metadata = attr.ib()
-    properties = attr.ib(default=None)
+    properties = attr.ib(default=dict())
     role = attr.ib(default=None)
 
     def is_normal(self, alpha):
@@ -32,23 +34,53 @@ class VarData(Value):
     def is_categorical(self): 
         global data_type
         return self.metadata[data_type] is DataType.NOMINAL or self.metadata[data_type] is DataType.ORDINAL
+
+    def is_ordinal(self):
+        global data_type
+        return self.metadata[data_type] is DataType.ORDINAL
     
     def get_sample_size(self): 
-        return len()
+        return self.properties[sample_size]
+    
+    def get_number_categories(self): 
+        if num_categories in self.properties: 
+            return self.properties[num_categories]
 
 
-@attr.s(init=True, auto_attribs=True)
+@attr.s(init=True)
 class CombinedData(Value): # TODO probably want to rename this
-    # dataframes: dict # or SimpleNamespace? maybe just a list???
-    vars: list # list of VarData objects 
+    vars = attr.ib(default=[]) # list of VarData objects 
     # set of characteristics about the groups that are used to determine statistical test
-    properties: SimpleNamespace
-    alpha: attr.ib(default=0.05)
+    properties = attr.ib(default=dict())
+    alpha = attr.ib(type=float, default=0.05)
 
     # TODO add functions that return bools about the properties
     def has_equal_variance(self): 
         global variance
         return self.properties[variance][1] < self.alpha
+
+    def has_paired_observations(self):
+        assert False, "Implement this property to convey information about whether observations are paired."
+
+    def difference_between_paired_value_is_normal(self):
+        assert self.has_paired_observations(), "This method only makes sense when observations are paired."
+        assert False, "Implement this property to convey information about whether difference" \
+                      "between paired values is normally distributed."
+
+    def variables_are_bivariate_normal(self):
+        assert len(vars) == 2, "Bivariate normality only makes sense when there are two variables."
+        assert False, "Implement this property to convey information about whether two variables are bivariate normal."\
+                      "Checking for this is difficult, however" \
+                      "(https://stats.idre.ucla.edu/sas/library/sas-librarymultivariate-regression-in-sas/)."
+    
+    # @return list of VarData instances that are in this object's vars that have the @param role
+    def get_vars(self, role: str): 
+        role_vars = []
+        for v in self.vars:
+            if v.role == role: 
+                role_vars.append(v) 
+        
+        return role_vars
 
 @attr.s(init=True, auto_attribs=True)
 class BivariateData(CombinedData):
