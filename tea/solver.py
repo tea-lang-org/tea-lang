@@ -142,15 +142,19 @@ def all_elements_satisfy_property(elements, check_property):
 
 
 def all_variables_are_categorical(data: CombinedData) -> bool:
-    return all_elements_satisfy_property(data.vars, lambda var: var.is_categorical)
+    return all_elements_satisfy_property(data.vars, lambda var: var.is_categorical())
 
 
 def all_variables_are_continuous(data: CombinedData) -> bool:
-    return all_elements_satisfy_property(data.vars, lambda var: var.is_continuous)
+    return all_elements_satisfy_property(data.vars, lambda var: var.is_continuous())
+
+
+def all_variables_are_normal(data: CombinedData) -> bool:
+    return all_elements_satisfy_property(data.vars, lambda var: var.is_normal(0.05))
 
 
 def all_variables_are_continuous_or_oridinal(data: CombinedData) -> bool:
-    return all_elements_satisfy_property(data.vars, lambda var: var.is_continuous or var.is_ordinal)
+    return all_elements_satisfy_property(data.vars, lambda var: var.is_continuous() or var.is_ordinal())
 
 
 def all_variables_have_enough_categories(data: CombinedData, num_categories=2) -> bool:
@@ -192,8 +196,8 @@ def find_applicable_bivariate_tests(data: CombinedData):
                                   bool_val(all_variables_have_enough_samples(data)),
                                   bool_val(all_variables_have_enough_categories(data))))
 
-    max_sat.add(pearson_correlation == And(bool_val(bool_val(all_variables_are_continuous(data)),
-                                           bool_val(data.variables_are_bivariate_normal()))))
+    max_sat.add(pearson_correlation == And(bool_val(all_variables_are_continuous(data)),
+                                           bool_val(all_variables_are_normal(data))))
 
     max_sat.add(paired_t == And(bool_val(independent_variable_is_categorical(data)),
                                 bool_val(independent_variable_has_number_of_categories(data, 2)),

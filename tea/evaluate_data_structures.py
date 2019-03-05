@@ -66,12 +66,6 @@ class CombinedData(Value): # TODO probably want to rename this
         assert self.has_paired_observations(), "This method only makes sense when observations are paired."
         assert False, "Implement this property to convey information about whether difference" \
                       "between paired values is normally distributed."
-
-    def variables_are_bivariate_normal(self):
-        assert len(vars) == 2, "Bivariate normality only makes sense when there are two variables."
-        assert False, "Implement this property to convey information about whether two variables are bivariate normal."\
-                      "Checking for this is difficult, however" \
-                      "(https://stats.idre.ucla.edu/sas/library/sas-librarymultivariate-regression-in-sas/)."
     
     # @return list of VarData instances that are in this object's vars that have the @param role
     def get_vars(self, role: str): 
