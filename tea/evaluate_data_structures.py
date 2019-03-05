@@ -61,6 +61,10 @@ class CombinedData(Value): # TODO probably want to rename this
 
     def has_paired_observations(self):
         assert False, "Implement this property to convey information about whether observations are paired."
+
+    def difference_between_paired_value_is_normal(self):
+        assert False, "Implement this property to convey information about whether difference" \
+                      "between paired values is normally distributed."
     
     # @return list of VarData instances that are in this object's vars that have the @param role
     def get_vars(self, role: str): 

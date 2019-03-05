@@ -223,9 +223,9 @@ def independent_variable_is_continuous(data: CombinedData) -> bool:
     return independent_variable and independent_variable.is_continuous()
 
 
-def independent_variable_has_enough_categories(data: CombinedData, num_categories=2) -> bool:
+def independent_variable_has_number_of_categories(data: CombinedData, num_categories=2) -> bool:
     return independent_variable_is_categorical(data) and \
-        get_independent_variable(data).get_number_categories() >= num_categories
+        get_independent_variable(data).get_number_categories() == num_categories
 
 
 def dependent_variable_is_categorical(data: CombinedData) -> bool:
@@ -268,14 +268,14 @@ def find_applicable_bivariate_tests(data: CombinedData):
     u_test = Bool('u_test')
     chi_square = Bool('chi_square')
     # pearson_correlation = Bool('pearson_correlation')
-    # paired_t = Bool('paired_t')
+    paired_t = Bool('paired_t')
     # spearman_correlation = Bool('spearman_correlation')
     # wilcoxon_sign_rank = Bool('wilcoxon_sign_rank')
     # binomial_test = Bool('binomial_test')
 
     max_sat = Optimize()
     max_sat.add(students_t == And(bool_val(independent_variable_is_categorical(data)),
-                                  bool_val(independent_variable_has_enough_categories(data, num_categories=2)),
+                                  bool_val(independent_variable_has_number_of_categories(data, num_categories=2)),
                                   bool_val(not data.has_paired_observations()),
                                   bool_val(dependent_variable_is_continuous(data)),
                                   bool_val(data.has_equal_variance())))
@@ -295,10 +295,12 @@ def find_applicable_bivariate_tests(data: CombinedData):
     #                                        bool_val(test_information.all_variables_are_continuous),
     #                                        bool_val(test_information.is_bivariate_normal)))
     #
-    # max_sat.add(paired_t == And(bool_val(test_information.all_variables_are_continuous),
-    #                             bool_val(test_information.observations_are_paired),
-    #                             bool_val(test_information.difference_between_paired_values_is_normal)))
-    #
+    max_sat.add(paired_t == And(bool_val(independent_variable_is_categorical(data)),
+                                bool_val(independent_variable_has_number_of_categories(data, 2)),
+                                bool_val(dependent_variable_is_continuous(data)),
+                                bool_val(data.has_paired_observations()),
+                                bool_val(data.difference_between_paired_value_is_normal())))
+
     # max_sat.add(spearman_correlation == And(bool_val(test_information.all_variables_are_continuous_or_ordinal)))
     #
     # # Not sure how to test that the difference between related groups is symmetrical in shape, so for
@@ -315,7 +317,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
     max_sat.add_soft(u_test)
     max_sat.add_soft(chi_square)
     # max_sat.add_soft(pearson_correlation)
-    # max_sat.add_soft(paired_t)
+    max_sat.add_soft(paired_t)
     # max_sat.add_soft(spearman_correlation)
     # max_sat.add_soft(wilcoxon_sign_rank)
     # max_sat.add_soft(binomial_test)
