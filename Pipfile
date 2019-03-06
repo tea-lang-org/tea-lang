@@ -14,7 +14,6 @@ bootstrapped = "*"
 pipfile = "*"
 pytest = "*"
 requests = "*"
-csv = "*"
 
 [requires]
 python_version = "3.7"

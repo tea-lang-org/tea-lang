@@ -40,6 +40,12 @@ var_name = 'name'
 var_dtype = 'data type'
 var_categories = 'categories'
 var_drange = 'range'
+
+# Assumptions
+# Stats properties
+alpha_keywords = ['Type I (False Positive) Error Rate', 'alpha']
+alpha = 0.05
+
 # @sets global dataset_path and dataaset_obj (of type Dataset)
 def data(file): 
     global dataset_path, dataset_obj
@@ -73,7 +79,7 @@ def define_variables(vars: Dict[str, str]):
 
 
 def define_study_design(design: Dict[str, str]): 
-    global study_design, dataset_id, uid
+    global study_design, dataset_id, uid, alpha
 
     study_design = design
 
@@ -81,7 +87,15 @@ def define_study_design(design: Dict[str, str]):
     
 
 def assume(assumptions: Dict[str, str]): 
-    pass
+    global alpha, alpha_keywords
+
+    if alpha_keywords[0] in assumptions:
+        if alpha_keywords[1] in assumptions:
+            assert (float(assumptions[alpha_keywords[0]]) == float(assumptions[alpha_keywords[1]]))
+    
+    for keyword in alpha_keywords:
+        if keyword in assumptions:
+            alpha = float(assumptions[keyword])
 
 def hypothesize(vars: list, prediction: str=None): 
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id

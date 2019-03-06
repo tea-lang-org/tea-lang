@@ -148,7 +148,6 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
                     grouped_data.append(data)
                 if isinstance(combined_data, BivariateData):
                     eq_var = compute_eq_variance(grouped_data)
-                    import pdb; pdb.set_trace()
                     combined_data.properties[eq_variance] = eq_var
                 elif isinstance(combined_data, MultivariateData):
                     combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
@@ -163,30 +162,7 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
     assert (study_type == experiment_identifier or study_type == observational_identifier)
     combined = copy.deepcopy(combined_data)
 
-    import pdb; pdb.set_trace()
     add_eq_variance_property(dataset, combined, study_type)
-    
-    import pdb; pdb.set_trace()
-
-    
-
-            
-    
-    # combined has a categorical iv --> then select data for each group from dataset 
-    # -- dv/other variable can be continuous (maybe not nominal)
-    #  
-    # calculate leven test and assign to eq_variance
-
-
-    # cacluclate distribvution here (differnt from indivdiual variable distribution info)
-    ## TODO: Does it make sense to calculate equal variance when this is not the case???
-
-    # for v in vars: 
-        # import pdb; pdb.set_trace()
-        
-        # combined.properties[eq_variance] = compute_eq_variance(dataset.select())
-
-
 
     return combined
 
@@ -227,9 +203,7 @@ def compute_data_properties_og(dataset, vars: list, predictions: list=None, desi
                         where += (" == \'" + g + "\'")
                         data[g] = dataset.select(dv.metadata['var_name'], [where])
 
-                elif (is_numeric(iv.metadata['dtype'])):
-                    import pdb; pdb.set_trace()
-                    
+                elif (is_numeric(iv.metadata['dtype'])):                    
                     # Get data from dataset
                     data[iv.metadata['var_name']] = dataset.select(iv.metadata['var_name']) # add where clause as second parameter to dataset.select ??
                     data[dv.metadata['var_name']] = dataset.select(dv.metadata['var_name'])
@@ -245,7 +219,6 @@ def compute_data_properties_og(dataset, vars: list, predictions: list=None, desi
                 # distribution
                 props[distribution] = compute_distribution(dataset.select(dv.metadata['var_name']))
                 # variance
-                import pdb; pdb.set_trace()
                 props[variance] = compute_variance(data)
             elif (is_nominal(dv.metadata['dtype'])):
                 raise NotImplementedError

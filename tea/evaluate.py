@@ -337,7 +337,6 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         study_type = determine_study_type(vars, design)
 
         vars = assign_roles(vars, study_type, design)
-        import pdb; pdb.set_trace()
         vars = compute_data_properties(dataset, vars) # compute individual level properties
         
         # We have a Bivariate Test
@@ -348,11 +347,6 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
             combined_data = MultivariateData(vars)
         
         combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
-        # data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
-
-
-        # data_props has the data that is needed (already filtered and ready) for analyses
-        
 
         
         # TODO execute_test needs to be able to handle list of CombinedData 

@@ -34,11 +34,9 @@ def test_indep_t_test():
                             'study type': 'observational study',
                             'contributor variables': 'So',
                             'outcome variables': 'Prob',
-                            # 'alpha': 1
                         }
-
     assumptions = {
-        # no assumptions
+        'Type I (False Positive) Error Rate': 0.05
     }
 
     tea.data(uscrime_data_path)
