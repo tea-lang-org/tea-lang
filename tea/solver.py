@@ -150,16 +150,16 @@ def all_variables_are_continuous(data: CombinedData) -> bool:
 
 
 def all_variables_are_normal(data: CombinedData) -> bool:
-    return all_elements_satisfy_property(data.vars, lambda var: var.is_normal(0.05))
+    return all_elements_satisfy_property(data.vars, lambda var: var.is_continuous() and var.is_normal(0.05))
 
 
-def all_variables_are_continuous_or_oridinal(data: CombinedData) -> bool:
+def all_variables_are_continuous_or_ordinal(data: CombinedData) -> bool:
     return all_elements_satisfy_property(data.vars, lambda var: var.is_continuous() or var.is_ordinal())
 
 
-def all_variables_have_enough_categories(data: CombinedData, num_categories=2) -> bool:
+def all_variables_have_enough_categories(data: CombinedData, number_of_categories=2) -> bool:
     return all_variables_are_categorical(data) and \
-           all_elements_satisfy_property(data.vars, lambda var: var.get_number_categories() >= num_categories)
+           all_elements_satisfy_property(data.vars, lambda var: var.get_number_categories() >= number_of_categories)
 
 
 def all_variables_have_enough_samples(data: CombinedData, num_samples=30) -> bool:
@@ -205,7 +205,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
                                 bool_val(data.has_paired_observations()),
                                 bool_val(data.difference_between_paired_value_is_normal())))
 
-    max_sat.add(spearman_correlation == And(bool_val(all_variables_are_continuous_or_oridinal(data))))
+    max_sat.add(spearman_correlation == And(bool_val(all_variables_are_continuous_or_ordinal(data))))
 
     # Not sure how to test that the difference between related groups is symmetrical in shape, so for
     # now leave that as an assumption.
