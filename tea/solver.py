@@ -137,6 +137,11 @@ def dependent_variable_is_ordinal(data: CombinedData) -> bool:
     return dependent_variable and dependent_variable.is_ordinal()
 
 
+def dependent_variable_is_normal(data: CombinedData) -> bool:
+    dependent_variable = get_dependent_variable(data)
+    return dependent_variable and dependent_variable.is_continuous() and dependent_variable.is_normal(0.05)
+
+
 def all_elements_satisfy_property(elements, check_property):
     return not next((element for element in elements if not check_property(element)), None)
 
@@ -166,6 +171,11 @@ def all_variables_have_enough_samples(data: CombinedData, num_samples=30) -> boo
     return all_elements_satisfy_property(data.vars, lambda var: var.get_sample_size() >= num_samples)
 
 
+def all_variables_have_same_number_of_samples(data: CombinedData) -> bool:
+    number_of_samples = data.vars[0].get_sample_size()
+    return all_elements_satisfy_property(data.vars, lambda var: var.get_sample_size() == number_of_samples)
+
+
 def find_applicable_bivariate_tests(data: CombinedData):
     def bool_val(cond):
         return BoolVal(True) if cond else BoolVal(False)
@@ -184,6 +194,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
                                   bool_val(independent_variable_has_number_of_categories(data, num_categories=2)),
                                   bool_val(not data.has_paired_observations()),
                                   bool_val(dependent_variable_is_continuous(data)),
+                                  bool_val(dependent_variable_is_normal(data)),
                                   bool_val(data.has_equal_variance())))
 
     max_sat.add(u_test == And(bool_val(data.has_equal_variance()),
@@ -197,7 +208,8 @@ def find_applicable_bivariate_tests(data: CombinedData):
                                   bool_val(all_variables_have_enough_categories(data))))
 
     max_sat.add(pearson_correlation == And(bool_val(all_variables_are_continuous(data)),
-                                           bool_val(all_variables_are_normal(data))))
+                                           bool_val(all_variables_are_normal(data)),
+                                           bool_val(all_variables_have_same_number_of_samples(data))))
 
     max_sat.add(paired_t == And(bool_val(independent_variable_is_categorical(data)),
                                 bool_val(independent_variable_has_number_of_categories(data, 2)),
@@ -205,7 +217,8 @@ def find_applicable_bivariate_tests(data: CombinedData):
                                 bool_val(data.has_paired_observations()),
                                 bool_val(data.difference_between_paired_value_is_normal())))
 
-    max_sat.add(spearman_correlation == And(bool_val(all_variables_are_continuous_or_ordinal(data))))
+    max_sat.add(spearman_correlation == And(bool_val(all_variables_are_continuous_or_ordinal(data)),
+                                            bool_val(all_variables_have_same_number_of_samples(data))))
 
     # Not sure how to test that the difference between related groups is symmetrical in shape, so for
     # now leave that as an assumption.

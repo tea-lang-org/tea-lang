@@ -60,10 +60,11 @@ class CombinedData(Value): # TODO probably want to rename this
         return self.properties[variance][1] < self.alpha
 
     def has_paired_observations(self):
-        assert False, "Implement this property to convey information about whether observations are paired."
+        return False
 
     def difference_between_paired_value_is_normal(self):
-        assert self.has_paired_observations(), "This method only makes sense when observations are paired."
+        if not self.has_paired_observations():
+            return False
         assert False, "Implement this property to convey information about whether difference" \
                       "between paired values is normally distributed."
     
