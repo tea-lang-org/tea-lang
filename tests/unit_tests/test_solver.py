@@ -9,7 +9,7 @@ from tea.ast import DataType
 
 # Set up.
 normal_continuous_properties = {
-    distribution: 0.96,
+    distribution: [1.0, 0.06],
     variance: 0.05,
     sample_size: 35,
 }
