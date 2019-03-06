@@ -1,5 +1,5 @@
 from enum import Flag, auto
-from z3 import *
+from z3-solver import *
 
 from tea.evaluate_data_structures import CombinedData, VarData
 from tea.evaluate_helper_methods import iv_identifier, dv_identifier

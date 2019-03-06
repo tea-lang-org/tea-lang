@@ -2,6 +2,7 @@ from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, BivariateData, MultivariateData, ResData # runtime data structures
 from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
+from .solver import find_applicable_bivariate_tests
 
 import attr
 from typing import Any
@@ -334,19 +335,29 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
             vars.append(eval_v)
 
+        # What kind of study are we analyzing?
         study_type = determine_study_type(vars, design)
 
+        # Assign roles to variables we are analyzing
         vars = assign_roles(vars, study_type, design)
-        vars = compute_data_properties(dataset, vars) # compute individual level properties
+
+        # Compute individual variable properties
+        vars = compute_data_properties(dataset, vars) 
         
-        # We have a Bivariate Test
         combined_data = None
+        # Do we have a Bivariate analysis?
         if len(vars) == 2: 
             combined_data = BivariateData(vars) 
-        else: 
+        else: # Do we have a Multivariate analysis?
             combined_data = MultivariateData(vars)
         
+        # Compute between variable level properties
         combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
+
+        # Find test
+        # Offload to solver
+        tests = find_applicable_bivariate_tests(combined_data)
+
 
         
         # TODO execute_test needs to be able to handle list of CombinedData 
