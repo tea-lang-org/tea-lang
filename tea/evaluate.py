@@ -347,13 +347,14 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         else: 
             combined_data = MultivariateData(vars)
         
-        import pdb; pdb.set_trace()
         combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
         # data_props = compute_data_properties(dataset, vars, expr.predictions, design) 
 
 
         # data_props has the data that is needed (already filtered and ready) for analyses
-        import pdb; pdb.set_trace()
+        
+
+        
         # TODO execute_test needs to be able to handle list of CombinedData 
         # TODO split into find and execute test
         # res_data = execute_test(dataset, data_props, iv, dv, expr.predictions, design) # design contains info about between/within subjects AND Power parameters (alpha, effect size, sample size - which can be calculated)

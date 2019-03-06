@@ -147,13 +147,15 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
                     data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
                     grouped_data.append(data)
                 if isinstance(combined_data, BivariateData):
-                    combined_data.properties[eq_variance] = compute_eq_variance(grouped_data)
+                    eq_var = compute_eq_variance(grouped_data)
+                    import pdb; pdb.set_trace()
+                    combined_data.properties[eq_variance] = eq_var
                 elif isinstance(combined_data, MultivariateData):
                     combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
                     raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
-
-    combined_data.properties[eq_variance] = None
+    else: 
+        combined_data.properties[eq_variance] = None
     
 
 # Compute properties that are between/among VarData objects
@@ -161,6 +163,7 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
     assert (study_type == experiment_identifier or study_type == observational_identifier)
     combined = copy.deepcopy(combined_data)
 
+    import pdb; pdb.set_trace()
     add_eq_variance_property(dataset, combined, study_type)
     
     import pdb; pdb.set_trace()
@@ -283,14 +286,7 @@ def compute_variance(data):
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
 
 def compute_eq_variance(groups_data):
-    import argparse
-    parser = argparse.ArgumentParser()
-    
-    for i,data in enumerate(groups_data):
-        parser.add_argument("-sample"+str(i+1), data)
-    args = parser.parse_args()
-    import pdb; pdb.set_trace()
-    levene_test = stats.levene(args)
+    levene_test = stats.levene(*groups_data)
     return (levene_test[0], levene_test[1])
 
 def is_normal(comp_data: CombinedData, alpha, data=None):
