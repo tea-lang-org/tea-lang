@@ -108,6 +108,9 @@ def compute_data_properties(dataset, vars_data: list):
             v.properties[variance] = compute_variance(dataset.select(v.metadata[name]))
         elif v.is_categorical(): 
             v.properties[num_categories] = len(v.metadata[categories])
+
+            # For each group (where DV is continuous) is the data normal?
+
         else: 
             raise ValueError (f"Not supported data type: {v.metadata[data_type]}")
 
@@ -163,6 +166,8 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
     combined = copy.deepcopy(combined_data)
 
     add_eq_variance_property(dataset, combined, study_type)
+
+    # Add is_normal for every category? in dictionary
 
     return combined
 
