@@ -73,6 +73,8 @@ def test_dep_t_test():
     tea.assume(assumptions)
     tea.hypothesize(['U1', 'U2'])
 
+# Wilcoxon rank sum test AKA Mann Whitney U
+# def 
 
 
 
