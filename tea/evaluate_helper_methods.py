@@ -101,8 +101,9 @@ def assign_roles(vars_data: list, study_type: str, design: Dict[str, str]):
 def compute_data_properties(dataset, vars_data: list):
     vars = copy.deepcopy(vars_data)
 
-    for v in vars_data:
+    for v in vars:
         v.properties[sample_size] = len(dataset.select(v.metadata[name]))
+        import pdb; pdb.set_trace()
         if v.is_continuous(): 
             v.properties[distribution] = compute_distribution(dataset.select(v.metadata[name]))
             v.properties[variance] = compute_variance(dataset.select(v.metadata[name]))

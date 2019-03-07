@@ -54,6 +54,7 @@ class VarData(Value):
         return self.metadata[data_type] is DataType.ORDINAL
     
     def get_sample_size(self): 
+        import pdb; pdb.set_trace()
         return self.properties[sample_size]
     
     def get_number_categories(self): 
