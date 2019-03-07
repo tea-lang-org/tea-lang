@@ -41,6 +41,7 @@ def test_indep_t_test():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
     tea.hypothesize(['So', 'Prob'])
+    
     # Can always redefine experimental design 
     # tea.define_study_design(experimental_design)
 
