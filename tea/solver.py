@@ -1,3 +1,4 @@
+from .global_vals import *
 from enum import Flag, auto
 from z3 import BoolVal, Bool, Optimize, And, sat
 from tea.evaluate_data_structures import CombinedData, VarData
@@ -87,14 +88,24 @@ def assumptions_for_test(test: Tests) -> Assumptions:
 
 
 def get_independent_variable(data: CombinedData) -> VarData:
-    independent_variables = data.get_vars(iv_identifier)
-    assert len(independent_variables) <= 1, \
-        "Only one independent variable expected instead of %d" % len(independent_variables)
-    return independent_variables[0] if len(independent_variables) else None
-
+    # independent_variables = data.get_vars(iv_identifier)
+    # if not independent_variables: 
+    #     independent_variables  = data.get_vars(contributor_identifier)
+    # import pdb; pdb.set_trace()
+    independent_variables = data.has_explanatory_variable()
+    import pdb; pdb.set_trace()
+    if independent_variables:
+        assert len(independent_variables) <= 1, \
+            "Only one independent variable expected instead of %d" % len(independent_variables)
+        return independent_variables[0] if len(independent_variables) else None
+    
+    return None
 
 def get_dependent_variable(data: CombinedData) -> VarData:
     dependent_variables = data.get_vars(dv_identifier)
+    if not dependent_variables: 
+        dependent_variables  = data.get_vars(outcome_identifier)
+
     assert len(dependent_variables) <= 1, \
         "Only one dependent variable expected instead of %d" % len(dependent_variables)
     return dependent_variables[0] if len(dependent_variables) else None
@@ -175,6 +186,7 @@ def all_variables_have_same_number_of_samples(data: CombinedData) -> bool:
 
 
 def find_applicable_bivariate_tests(data: CombinedData):
+
     def bool_val(cond):
         return BoolVal(True) if cond else BoolVal(False)
 
@@ -188,7 +200,10 @@ def find_applicable_bivariate_tests(data: CombinedData):
     binomial_test = Bool('binomial_test')
 
     max_sat = Optimize()
-    max_sat.add(students_t == And(bool_val(independent_variable_is_categorical(data)),
+    import pdb; pdb.set_trace()
+    max_sat.add(students_t == And(
+                                  bool_val(data.has_explanatory_variable()),
+                                  bool_val(independent_variable_is_categorical(data)),
                                   bool_val(independent_variable_has_number_of_categories(data, num_categories=2)),
                                   bool_val(not data.has_paired_observations()),
                                   bool_val(dependent_variable_is_continuous(data)),
