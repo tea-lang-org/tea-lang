@@ -61,11 +61,12 @@ class CombinedData(Value): # TODO probably want to rename this
     properties = attr.ib(default=dict())
     alpha = attr.ib(type=float, default=0.05)
 
+    # Null Hypothesis: Groups come from populations with equal variance
     def has_equal_variance(self): 
         global eq_variance, alpha
         
         if self.properties[eq_variance]: 
-            return self.properties[eq_variance][1] < self.alpha
+            return self.properties[eq_variance][1] >= self.alpha  # Cannot reject null hypothesis of equal variances
         else: 
             return False
 
