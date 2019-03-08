@@ -292,7 +292,6 @@ def predict(vars: list, predictions: list=None):
     
             # Prediction pertains to neither categorical nor numerical data                 
             else: 
-                import pdb; pdb.set_trace()
                 raise ValueError(f"Prediction is malformed: {p}")
             
             formulated_predictions.append(pred)

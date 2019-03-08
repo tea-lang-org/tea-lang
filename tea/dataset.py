@@ -46,7 +46,6 @@ class Dataset(object):
 
                 for row in reader:
                     writer.writerow(row)
-                # import pdb; pdb.set_trace()
         else: 
             with open(path, 'r') as readfile: 
                 reader = csv.reader(readfile)
