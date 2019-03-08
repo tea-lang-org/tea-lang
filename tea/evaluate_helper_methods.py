@@ -184,81 +184,10 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
 
     # Independent vs. Paired?
     add_paired_property(dataset, combined, study_type, design) # check sample sizes are identical
-    import pdb; pdb.set_trace()
 
     # Add is_normal for every category? in dictionary
 
     return combined
-
-# @param vars is a list of VarData containing VarData objects of the variables we are interested in relating/analyzing
-def compute_data_properties_og(dataset, vars: list, predictions: list=None, design: Dict[str, str]=None):
-    global experiment_identifier, observational_identifier
-
-    # Is this an experiment?
-    if (design and (study_type_identifier in design.keys()) and (experiment_identifier == design[study_type_identifier])):
-
-        ivs = [v for v in vars if v.metadata['var_name'] in design[iv_identifier]]
-        dvs = [v for v in vars if v.metadata['var_name'] in design[dv_identifier]]
-        covariates = [v for v in vars if v not in ivs and v not in dvs]
-        
-        if (len(covariates) > 0):
-            # TODO Ask the user if they really want to do this analysis?
-            pass
-        
-        ## WHAT IF WANT TO COMPARE COVARIATES?, COVARIATE + IV, COVARIATE + DV, DV + DV, IV + IV, etc???
-
-        
-        comp_data = []
-        for dv in dvs: 
-            data = dict() # Store data for which we want to compute properties
-            for iv in ivs: 
-                if (is_nominal(iv.metadata['dtype']) or is_ordinal(iv.metadata['dtype'])):
-                    # list of groups that we are interested in
-                    groups = []
-                    for p in predictions:
-                        assert(p.lhs and p.rhs) # assert that each prediction has a lhs and rhs
-                        groups.append(p.lhs.value)
-                        groups.append(p.rhs.value)
-                    
-                    #Let's get data for those groups
-                    for g in groups: 
-                        assert(not iv.metadata['query'] and not dv.metadata['query'])
-                        where = iv.metadata['var_name']
-                        where += (" == \'" + g + "\'")
-                        data[g] = dataset.select(dv.metadata['var_name'], [where])
-
-                elif (is_numeric(iv.metadata['dtype'])):                    
-                    # Get data from dataset
-                    data[iv.metadata['var_name']] = dataset.select(iv.metadata['var_name']) # add where clause as second parameter to dataset.select ??
-                    data[dv.metadata['var_name']] = dataset.select(dv.metadata['var_name'])
-                else: 
-                    raise ValueError(f"Invalid variable type for IV: {iv.metadata['dtype']}")
-
-            # Calculate various stats/preconditional properties for the data we are interested in
-            # for d in data: ....
-            props = dict()
-            # For debugging: Could change dist values here
-
-            if (is_numeric(dv.metadata['dtype'])):
-                # distribution
-                props[distribution] = compute_distribution(dataset.select(dv.metadata['var_name']))
-                # variance
-                props[variance] = compute_variance(data)
-            elif (is_nominal(dv.metadata['dtype'])):
-                raise NotImplementedError
-            elif (is_ordinal(dv.metadata['dtype'])):
-                raise NotImplementedError
-                # could do something with the values (the numeric value of the ordinal keys)
-            else:
-                raise ValueError(f"Invalid dependent variable variable type: {dv.metadata['dtype']}")
-
-            # return CombinedData that has this data and other metadata
-            comp_data.append(CombinedData(dataframes=data, properties=props))
-    # We are looking at an observational study
-    else:
-        raise NotImplementedError
-
-    return comp_data
 
 # Check normality of data
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html

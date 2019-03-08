@@ -358,7 +358,6 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
         # Find test
         # Offload to solver
-        import pdb; pdb.set_trace()
         tests = find_applicable_bivariate_tests(combined_data)
 
         # TODO: Implement
