@@ -41,6 +41,7 @@ def test_indep_t_test():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
     tea.hypothesize(['So', 'Prob'])
+
     # Can always redefine experimental design 
     # tea.define_study_design(experimental_design)
 
@@ -56,11 +57,19 @@ def test_dep_t_test():
             'name' : 'Prob',
             'data type' : 'ratio',
             'range' : [0,1]
+        },
+        {
+            'name' : 'U1',
+            'data type' : 'ratio'
+        },
+        {
+            'name': 'U2',
+            'data type' : 'ratio'
         }
     ]
     experimental_design = {
                             'study type': 'observational study',
-                            'contributor variables': 'So',
+                            'contributor variables': ['So', 'U1', 'U2'],
                             'outcome variables': 'Prob',
                         }
     assumptions = {
@@ -72,6 +81,9 @@ def test_dep_t_test():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
     tea.hypothesize(['U1', 'U2'])
+
+    # Test sample size
+    # Test values of tests
 
 # Wilcoxon rank sum test AKA Mann Whitney U
 # def 

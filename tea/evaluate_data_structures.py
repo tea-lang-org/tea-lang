@@ -1,5 +1,5 @@
 # Runtime data structures used by interpreter
-
+from .global_vals import *
 from .ast import *
 
 import attr
@@ -54,7 +54,6 @@ class VarData(Value):
         return self.metadata[data_type] is DataType.ORDINAL
     
     def get_sample_size(self): 
-        import pdb; pdb.set_trace()
         return self.properties[sample_size]
     
     def get_number_categories(self): 
@@ -70,12 +69,17 @@ class CombinedData(Value): # TODO probably want to rename this
     alpha = attr.ib(type=float, default=0.05)
 
     def has_equal_variance(self): 
-        global eq_variance
-        import pdb; pdb.set_trace()
-        return self.properties[eq_variance][1] < self.alpha
+        global eq_variance, alpha
+        
+        if self.properties[eq_variance]: 
+            return self.properties[eq_variance][1] < self.alpha
+        else: 
+            return False
 
     def has_paired_observations(self):
-        return False
+        global paired 
+
+        return self.properties[paired]
 
     def difference_between_paired_value_is_normal(self):
         if not self.has_paired_observations():

@@ -1,3 +1,4 @@
+from .global_vals import *
 from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
@@ -14,26 +15,6 @@ import statsmodels.formula.api as smf
 import pandas as pd
 import bootstrapped as bs
 
-study_type_identifier = 'study type'
-experiment_identifier = 'experiment'
-observational_identifier = 'observational study'
-iv_identifier = 'independent variables'
-dv_identifier = 'dependent variables'
-null_identifier = 'variables'
-outcome_identifier = 'outcome variables'
-contributor_identifier = 'contributor variables'
-#quasi_experiment = 'quasi_experiment'
-
-name = 'var_name'
-data_type = 'dtype'
-categories = 'categories'
-
-# GLOBAL Property names
-distribution = 'distribution'
-variance = 'variance'
-sample_size = 'sample size'
-num_categories = 'number of categories'
-eq_variance = 'equal variance'
 
 def determine_study_type(vars_data: list, design: Dict[str, str]):
     if design: 
@@ -103,7 +84,6 @@ def compute_data_properties(dataset, vars_data: list):
 
     for v in vars:
         v.properties[sample_size] = len(dataset.select(v.metadata[name]))
-        import pdb; pdb.set_trace()
         if v.is_continuous(): 
             v.properties[distribution] = compute_distribution(dataset.select(v.metadata[name]))
             v.properties[variance] = compute_variance(dataset.select(v.metadata[name]))
@@ -117,9 +97,12 @@ def compute_data_properties(dataset, vars_data: list):
 
     return vars
 
+# Returns True if X variable is categorical and Y varible is continuous
+# def categorical_x_continuous(combined_data: CombinedData, study_type: str): 
+
+
 # Add equal variance property to @param combined_data
 def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: str): 
-    vars = combined_data.vars
     xs = None
     ys = None
     cat_xs = []
@@ -151,22 +134,57 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
                     data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
                     grouped_data.append(data)
                 if isinstance(combined_data, BivariateData):
+                    # Equal variance
                     eq_var = compute_eq_variance(grouped_data)
                     combined_data.properties[eq_variance] = eq_var
                 elif isinstance(combined_data, MultivariateData):
                     combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
                     raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
-    else: 
+    else:
+        
         combined_data.properties[eq_variance] = None
+
+# Independent vs. Paired?
+def add_paired_property(dataset, combined_data: CombinedData, study_type: str, design: Dict[str, str]=None): # check same sizes are identical
+    global paired
     
+    x = None
+    y = None
+    combined_data.properties[paired] = False
+    if isinstance(combined_data, BivariateData): 
+        if study_type == experiment_identifier: 
+            # Just need one variable to be Categorical and another to be Continuous (regardless of role) 
+            x = combined_data.get_vars(iv_identifier) 
+            y = combined_data.get_vars(dv_identifier) 
+            
+        else: # study_type == observational_identifier
+            x = combined_data.get_vars(contributor_identifier)
+            y = combined_data.get_vars(outcome_identifier)
+        
+        # if not x: 
+        #     raise ValueError(f"Variable {x} has not been assigned a role in the experimental design.")
+        # assert (len(x) == len(y) == 1)
+        if x and y:
+            assert (len(x) == len(y) == 1)
+            x = x[0]
+            y = y[0]
+
+            if x.is_categorical() and y.is_continuous(): 
+                if within_subj in design and design[within_subj] == x.metadata[name]:
+                    combined_data.properties[paired] = True
 
 # Compute properties that are between/among VarData objects
 def compute_combined_data_properties(dataset, combined_data: CombinedData, study_type: str, design: Dict[str, str]=None):
     assert (study_type == experiment_identifier or study_type == observational_identifier)
     combined = copy.deepcopy(combined_data)
 
+    # Equal variance?
     add_eq_variance_property(dataset, combined, study_type)
+
+    # Independent vs. Paired?
+    add_paired_property(dataset, combined, study_type, design) # check sample sizes are identical
+    import pdb; pdb.set_trace()
 
     # Add is_normal for every category? in dictionary
 

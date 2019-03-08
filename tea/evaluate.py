@@ -1,6 +1,6 @@
 from .ast import *
 from .dataset import Dataset
-from .evaluate_data_structures import VarData, BivariateData, MultivariateData, ResData # runtime data structures
+from .evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
 from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
 from .solver import find_applicable_bivariate_tests
 
@@ -21,8 +21,8 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
         # then use query to get raw data later....(for user, not interpreter?)
         metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
-        if expr.name == 'strategy':
-            import pdb; pdb.set_trace()
+        # if expr.name == 'strategy':
+        #     import pdb; pdb.set_trace()
         metadata['var_name'] = expr.name
         metadata['query'] = ''
         return VarData(metadata)
@@ -330,7 +330,9 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
         for v in expr.vars: 
             eval_v = evaluate(dataset, v, design)    
-            # import pdb; pdb.set_trace()     
+            
+            if not eval_v: 
+                raise ValueError("The variables you are referencing are not defined as variables in your list of variables.")
             assert isinstance(eval_v, VarData)
 
             vars.append(eval_v)
@@ -356,10 +358,15 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
         # Find test
         # Offload to solver
+        import pdb; pdb.set_trace()
         tests = find_applicable_bivariate_tests(combined_data)
 
         # TODO: Implement
-        output = translate_solver_data(tests)
+        # output = translate_solver_data(tests)
+
+        # return output #??
+
+        import pdb; pdb.set_trace()
 
 
     elif isinstance(expr, Mean):
