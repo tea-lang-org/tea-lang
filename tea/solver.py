@@ -1,10 +1,7 @@
 from enum import Flag, auto
 from z3 import BoolVal, Bool, Optimize, And, sat
 from tea.evaluate_data_structures import CombinedData, VarData
-
-# TODO: Consider moving these variables to a constants file to avoid a circular dependency between solver and helper_methods.
-iv_identifier = 'independent variables'
-dv_identifier = 'dependent variables'
+from tea.global_vals import *
 
 class Tests(Flag):
     NONE = 0

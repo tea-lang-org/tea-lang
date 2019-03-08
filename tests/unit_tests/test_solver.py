@@ -4,9 +4,9 @@ from tea.solver import get_independent_variable, get_dependent_variable, indepen
     all_variables_have_enough_categories, all_variables_have_enough_samples, all_variables_are_continuous_or_ordinal,\
     all_variables_are_normal, dependent_variable_is_normal, find_applicable_bivariate_tests, Tests, Assumptions, \
     all_variables_have_same_number_of_samples
-from tea.evaluate_helper_methods import distribution, variance, sample_size, num_categories, data_type, iv_identifier, dv_identifier, null_identifier
 from tea.evaluate_data_structures import CombinedData, VarData
 from tea.ast import DataType
+from tea.global_vals import *
 
 # Set up.
 normal_continuous_properties = {
