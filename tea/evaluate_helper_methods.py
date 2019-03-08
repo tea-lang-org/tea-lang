@@ -1,9 +1,10 @@
 from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
+from .solver import Assumptions
 
 import attr
-from typing import Any
+from typing import Any, Dict, List
 from types import SimpleNamespace # allows for dot notation access for dictionaries
 import copy
 
@@ -474,3 +475,74 @@ def execute_test(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: Va
 def bootstrap():
     print('Do something with incoming data')
 
+
+def explanatory_strings_for_assumptions(assumptions: Assumptions) -> List[str]:
+    explanation = []
+    if assumptions & Assumptions.INDEPENDENT_OBSERVATIONS:
+        explanation.append("Assumes independent observations.")
+        assumptions &= ~Assumptions.INDEPENDENT_OBSERVATIONS
+
+    if assumptions & Assumptions.NORMALLY_DISTRIBUTED_VARIABLES:
+        explanation.append("Assumes samples are normally distributed.")
+        assumptions &= ~Assumptions.NORMALLY_DISTRIBUTED_VARIABLES
+
+    if assumptions & Assumptions.NORMALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES:
+        explanation.append("Assumes difference between paired values is normally distributed.")
+        assumptions &= ~Assumptions.NORMALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES
+
+    if assumptions & Assumptions.SYMMETRICALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES:
+        explanation.append("Assumes difference between paired values is symmetrically distributed.")
+        assumptions &= ~Assumptions.SYMMETRICALLY_DISTRIBUTED_DIFFERENCE_BETWEEN_VARIABLES
+
+    if assumptions & Assumptions.SIMILAR_VARIANCES:
+        explanation.append("Assumes samples have similar variances.")
+        assumptions &= ~Assumptions.SIMILAR_VARIANCES
+
+    if assumptions & Assumptions.LARGE_SAMPLE_SIZE:
+        explanation.append("Assumes a large enough sample size.")
+        assumptions &= ~Assumptions.LARGE_SAMPLE_SIZE
+
+    if assumptions & Assumptions.VALUES_ARE_FREQUENCIES:
+        explanation.append("Assumes values are frequencies (and not, e.g., percentages).")
+        assumptions &= ~Assumptions.VALUES_ARE_FREQUENCIES
+
+    if assumptions & Assumptions.PAIRED_OBSERVATIONS:
+        explanation.append("Assumes observations are paired (e.g. within subjects).")
+        assumptions &= ~Assumptions.PAIRED_OBSERVATIONS
+
+    if assumptions & Assumptions.NO_OUTLIERS:
+        explanation.append("Assumes there are no outliers in the data.")
+        assumptions &= ~Assumptions.NO_OUTLIERS
+
+    if assumptions & Assumptions.NO_OUTLIERS_IN_DIFFERENCE_BETWEEN_VARIABLES:
+        explanation.append("Assumes there are no outliers in the difference between paired values.")
+        assumptions &= ~Assumptions.NO_OUTLIERS_IN_DIFFERENCE_BETWEEN_VARIABLES
+
+    if assumptions & Assumptions.LINEAR_RELATIONSHIP:
+        explanation.append("Assumes there is a linear relationship between the variables.")
+        assumptions &= ~Assumptions.LINEAR_RELATIONSHIP
+
+    if assumptions & Assumptions.BIVARIATE_NORMAL_VARIABLES:
+        explanation.append("Assumes the two variables have a bivariate normal distribution.")
+        assumptions &= ~Assumptions.BIVARIATE_NORMAL_VARIABLES
+
+    if assumptions & Assumptions.RELATED_SAMPLES:
+        explanation.append("Assumes the samples come from related sources (e.g. within subjects).")
+        assumptions &= ~Assumptions.RELATED_SAMPLES
+
+    if assumptions & Assumptions.MONOTONIC_RELATIONSHIP:
+        explanation.append("Assumes there is a monotonic relationship between the variables.")
+        assumptions &= ~Assumptions.MONOTONIC_RELATIONSHIP
+
+    if assumptions & Assumptions.ALL_VARIABLES_CONTINUOUS_OR_ORDINAL:
+        explanation.append("Assumes all variables are continuous or ordinal.")
+        assumptions &= ~Assumptions.ALL_VARIABLES_CONTINUOUS_OR_ORDINAL
+
+    if assumptions & Assumptions.DEPENDENT_VARIABLE_CONTINUOUS_OR_ORDINAL:
+        explanation.append("Assumes the dependent variable is continuous or ordinal.")
+        assumptions &= ~Assumptions.DEPENDENT_VARIABLE_CONTINUOUS_OR_ORDINAL
+
+    assert assumptions == Assumptions.NONE, \
+        "Not all assumptions have a corresponding explanatory string: %s" % assumptions
+
+    return explanation
