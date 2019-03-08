@@ -16,12 +16,13 @@ contributor_identifier = 'contributor variables'
 #quasi_experiment = 'quasi_experiment'
 
 # For statistical properties of data
-distribution = 'distribution'
+distribution = 'normal distribution'
 variance = 'variance'
 sample_size = 'sample size'
 num_categories = 'number of categories'
 eq_variance = 'equal variance'
 paired = 'paired'
+cat_distribution = 'category distributions'
 
 # For non-statistical meta-properties of data
 name = 'var_name'

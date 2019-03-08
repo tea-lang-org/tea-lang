@@ -75,8 +75,6 @@ def assign_roles(vars_data: list, study_type: str, design: Dict[str, str]):
     
     return vars
 
-# BOOTSTRAPPING!! 
-
 # Helper methods for Interpreter (in evaluate.py)
 # Compute properties about the VarData objects in @param vars using data in @param dataset
 def compute_data_properties(dataset, vars_data: list):
@@ -96,10 +94,6 @@ def compute_data_properties(dataset, vars_data: list):
             raise ValueError (f"Not supported data type: {v.metadata[data_type]}")
 
     return vars
-
-# Returns True if X variable is categorical and Y varible is continuous
-# def categorical_x_continuous(combined_data: CombinedData, study_type: str): 
-
 
 # Add equal variance property to @param combined_data
 def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: str): 
@@ -126,6 +120,8 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
         if y.is_continuous(): 
             cont_ys.append(y)
     
+    combined_data.properties[eq_variance] = None
+
     if cat_xs and cont_ys: 
         for y in ys:
             for x in xs: 
@@ -141,9 +137,6 @@ def add_eq_variance_property(dataset, combined_data: CombinedData, study_type: s
                     combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
                     raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
-    else:
-        
-        combined_data.properties[eq_variance] = None
 
 # Independent vs. Paired?
 def add_paired_property(dataset, combined_data: CombinedData, study_type: str, design: Dict[str, str]=None): # check same sizes are identical
@@ -162,9 +155,6 @@ def add_paired_property(dataset, combined_data: CombinedData, study_type: str, d
             x = combined_data.get_vars(contributor_identifier)
             y = combined_data.get_vars(outcome_identifier)
         
-        # if not x: 
-        #     raise ValueError(f"Variable {x} has not been assigned a role in the experimental design.")
-        # assert (len(x) == len(y) == 1)
         if x and y:
             assert (len(x) == len(y) == 1)
             x = x[0]
@@ -173,6 +163,46 @@ def add_paired_property(dataset, combined_data: CombinedData, study_type: str, d
             if x.is_categorical() and y.is_continuous(): 
                 if within_subj in design and design[within_subj] == x.metadata[name]:
                     combined_data.properties[paired] = True
+
+def add_categories_normal(dataset, combined_data: CombinedData, study_type: str, design: Dict[str, str]=None): 
+    global cat_distribution
+
+    xs = None
+    ys = None
+    cat_xs = []
+    cont_ys = []
+    grouped_data = dict()
+
+    if study_type == experiment_identifier: 
+        # Just need one variable to be Catogrical and another to be Continuous (regardless of role) -- both could be variable_identifier types
+        xs = combined_data.get_vars(iv_identifier) 
+        ys = combined_data.get_vars(dv_identifier) 
+        
+    else: # study_type == observational_identifier
+        xs = combined_data.get_vars(contributor_identifier)
+        ys = combined_data.get_vars(outcome_identifier)
+    
+    for x in xs: 
+        if x.is_categorical(): 
+            cat_xs.append(x)
+    
+    for y in ys: 
+        if y.is_continuous(): 
+            cont_ys.append(y)
+
+    combined_data.properties[cat_distribution] = None
+
+    if cat_xs and cont_ys: 
+        for y in ys:
+            for x in xs: 
+                cat = [k for k,v in x.metadata[categories].items()]
+                for c in cat: 
+                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                    grouped_data_name =  str(x.metadata[name] + ':' + c)
+                    grouped_data[grouped_data_name] = compute_distribution(data)
+                combined_data.properties[cat_distribution] = dict()
+                combined_data.properties[cat_distribution][y.metadata[name] + '::' + x.metadata[name]] = grouped_data
+                import pdb; pdb.set_trace()
 
 # Compute properties that are between/among VarData objects
 def compute_combined_data_properties(dataset, combined_data: CombinedData, study_type: str, design: Dict[str, str]=None):
@@ -186,6 +216,7 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
     add_paired_property(dataset, combined, study_type, design) # check sample sizes are identical
 
     # Add is_normal for every category? in dictionary
+    add_categories_normal(dataset, combined, study_type, design)
 
     return combined
 

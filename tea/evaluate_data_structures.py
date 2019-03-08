@@ -6,14 +6,6 @@ import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
 
-# GLOBAL Property names
-data_type = 'dtype'
-distribution = 'distribution'
-variance = 'variance'
-eq_variance = 'equal variance'
-sample_size = 'sample size'
-num_categories = 'number of categories'
-
 class Value(object):
     pass
 
@@ -39,6 +31,7 @@ class VarData(Value):
 
     def is_normal(self, alpha):
         global distribution
+
         return self.properties[distribution][1] >= alpha
 
     def is_continuous(self): # may want to change this to be is_numeric to be consistent with rest of runtime system?
