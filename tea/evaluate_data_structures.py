@@ -61,6 +61,21 @@ class CombinedData(Value): # TODO probably want to rename this
     properties = attr.ib(default=dict())
     alpha = attr.ib(type=float, default=0.05)
 
+    def has_explanatory_variable(self): 
+        independent_variables = None
+        
+        if self.get_vars(iv_identifier):
+            independent_variables = self.get_vars(iv_identifier)
+        elif self.get_vars(contributor_identifier):
+            independent_variables  = self.get_vars(contributor_identifier)
+        else: 
+            pass
+            
+        return independent_variables
+
+    def has_outcome_variable(self):
+        return True
+
     # Null Hypothesis: Groups come from populations with equal variance
     def has_equal_variance(self): 
         global eq_variance, alpha
