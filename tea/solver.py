@@ -4,6 +4,9 @@ from z3 import BoolVal, Bool, Optimize, And, sat
 from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
 from tea.global_vals import *
 
+Prog -> List[Test] -> Query
+
+
 class Tests(Flag):
     NONE = 0
     STUDENTST = auto()
@@ -230,6 +233,28 @@ def find_applicable_bivariate_tests(data: CombinedData):
 
     max_sat = Optimize()
 
+    # ttests = [.......]
+    # class Test:
+    #     def query(...) -> List[Z3Query]:
+    $ 
+    if cond:
+        append(...)
+    
+    #         pass
+    #         .... 
+    # for t in tests:
+    # t_test_conjuncts = []
+    # ... 
+
+    for ... 
+        if c:
+            t_test_conjuncts.append(...)
+        
+    max_sat.add(student_t == And(*t_test_conjuncts))
+
+    ## True = False && True || False || True
+    ## x = True && False || False || True 
+    ## x = True && y || z || w 
     max_sat.add(students_t == And(
                                 # What is the explanatory (independent) variable?
                                   bool_val(has_number_of_explanatory_variable(data, num_variables=1)),
