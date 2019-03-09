@@ -2,7 +2,7 @@ from .global_vals import *
 from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
-from .solver import Assumptions
+from .solver import Tests, Assumptions
 
 import attr
 from typing import Any, Dict, List
@@ -203,7 +203,6 @@ def add_categories_normal(dataset, combined_data: CombinedData, study_type: str,
                     grouped_data[grouped_data_name] = compute_distribution(data)
                 combined_data.properties[cat_distribution] = dict()
                 combined_data.properties[cat_distribution][y.metadata[name] + '::' + x.metadata[name]] = grouped_data
-                import pdb; pdb.set_trace()
 
 # Compute properties that are between/among VarData objects
 def compute_combined_data_properties(dataset, combined_data: CombinedData, study_type: str, design: Dict[str, str]=None):
@@ -288,20 +287,16 @@ def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedD
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
-def mann_whitney_u(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    assert(len(comp_data.dataframes) == 2)
-    assert(len(predictions) == 1)
+# def utest(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
+def utest(dataset, combined_data: BivariateData):
+    import pdb; pdb.set_trace()
+    assert (len(combined_data.vars) == 2)
 
     data = []
-    for key, val in comp_data.dataframes.items():
-        # Use numbers for categories in ordinal data
-        if (is_ordinal(dv.metadata['dtype'])):
-            numeric = [dv.metadata['categories'][x] for x in val]
-            val = numeric
+    for var in combined_data.vars:
+        var_data = dataset.select(var.metadata[name], where=f"{var.metadata[query]}")
+        data.append(var_data)
 
-        data.append(val)
-
-    # What if we just return a lambda and all the test signatures are the same? That way, easy to swap out with constraint version?
     return stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
@@ -383,44 +378,44 @@ def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: Co
 # TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
 # Based on the properties of data, find the most appropriate test to conduct
 # Return the test but do not execute
-def find_test(dataset: Dataset, comp_data: CombinedData, iv, dv, predictions, design: Dict[str, str], **kwargs):
-    # Two IV groups (only applies to nominal/ordinal IVs)
-    if (len(comp_data.dataframes) == 2):
-        if (is_nominal(iv.metadata['dtype']) and is_independent_samples(iv.metadata['var_name'], design)):
-            if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
-                return lambda : t_test_ind(iv, dv, predictions, comp_data, **kwargs)
-            elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
-                return lambda : mann_whitney_u(iv, dv, predictions, comp_data, **kwargs)
-            elif (is_nominal(dv.metadata['dtype'])):
-                raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
-                return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)
-        elif (is_nominal(iv.metadata['dtype']) and is_dependent_samples(iv.metadata['var_name'], design)):
-            if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
-                return lambda : t_test_paired(iv, dv, predictions, comp_data, **kwargs)
-            elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
-                return lambda : wilcoxon_signed_rank(iv, dv, predictions, comp_data, **kwargs)
-            elif (is_nominal(dv.metadata['dtype'])):
-                raise AssertionError('Not sure if McNemar is the correct test here - what if have more than 2 x 2 table??')
-        elif (is_numeric(iv.metadata['dtype'])): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
-            if (is_numeric(dv.metadata['dtype'])):
-                # Check normal distribution of both variables
-                if (is_normal(comp_data, kwargs['alpha'], comp_data.dataframes[dv.metadata['var_name']])):
-                    # Check homoscedasticity
-                    if (comp_data.properties.var[1] < kwargs['alpha']): 
-                        return lambda : linear_regression(iv, dv, predictions, comp_data, **kwargs)
-                    else:  
-                        return lambda : pearson_corr(iv, dv, predictions, comp_data, **kwargs)
-                else: 
-                    return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
-            elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
-                return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
-            elif (is_nominal(dv.metadata['dtype'])):
-                # TODO depends on the number of outcome categories for nominal variable
-                raise AssertionError ('Not implemnted - simple logistic regression')
-    elif (len(comp_data.dataframes) > 2):
-        raise NotImplementedError
-    else: 
-        raise AssertionError('Trying to compare less than 1 variables....?')
+# def find_test(dataset: Dataset, comp_data: CombinedData, iv, dv, predictions, design: Dict[str, str], **kwargs):
+#     # Two IV groups (only applies to nominal/ordinal IVs)
+#     if (len(comp_data.dataframes) == 2):
+#         if (is_nominal(iv.metadata['dtype']) and is_independent_samples(iv.metadata['var_name'], design)):
+#             if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
+#                 return lambda : t_test_ind(iv, dv, predictions, comp_data, **kwargs)
+#             elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
+#                 return lambda : mann_whitney_u(iv, dv, predictions, comp_data, **kwargs)
+#             elif (is_nominal(dv.metadata['dtype'])):
+#                 raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
+#                 return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)
+#         elif (is_nominal(iv.metadata['dtype']) and is_dependent_samples(iv.metadata['var_name'], design)):
+#             if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
+#                 return lambda : t_test_paired(iv, dv, predictions, comp_data, **kwargs)
+#             elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
+#                 return lambda : wilcoxon_signed_rank(iv, dv, predictions, comp_data, **kwargs)
+#             elif (is_nominal(dv.metadata['dtype'])):
+#                 raise AssertionError('Not sure if McNemar is the correct test here - what if have more than 2 x 2 table??')
+#         elif (is_numeric(iv.metadata['dtype'])): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
+#             if (is_numeric(dv.metadata['dtype'])):
+#                 # Check normal distribution of both variables
+#                 if (is_normal(comp_data, kwargs['alpha'], comp_data.dataframes[dv.metadata['var_name']])):
+#                     # Check homoscedasticity
+#                     if (comp_data.properties.var[1] < kwargs['alpha']): 
+#                         return lambda : linear_regression(iv, dv, predictions, comp_data, **kwargs)
+#                     else:  
+#                         return lambda : pearson_corr(iv, dv, predictions, comp_data, **kwargs)
+#                 else: 
+#                     return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
+#             elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
+#                 return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
+#             elif (is_nominal(dv.metadata['dtype'])):
+#                 # TODO depends on the number of outcome categories for nominal variable
+#                 raise AssertionError ('Not implemnted - simple logistic regression')
+#     elif (len(comp_data.dataframes) > 2):
+#         raise NotImplementedError
+#     else: 
+#         raise AssertionError('Trying to compare less than 1 variables....?')
 
                 
 
@@ -452,6 +447,35 @@ def execute_test(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: Va
 # def bootstrap(data):
 def bootstrap():
     print('Do something with incoming data')
+
+# Returns the function that has the @param name
+def lookup_function(name): 
+    return globals()[name.lower()]
+
+def execute_tests(dataset, combined_data: CombinedData, tests: Dict[Tests, Assumptions]): 
+    results = dict()
+
+    stats_tests = []
+    for test, assumptions in tests.items(): 
+        stats_tests.append(test)
+
+    for t in stats_tests: 
+        # Look up the function call for each test
+        t_info = t.__dict__
+        t_name = t_info['_name_']
+        test_func = lookup_function(t_name)
+        # import pdb; pdb.set_trace()
+
+        # Execute the statistical test
+        stat_result = test_func(dataset, combined_data)
+        # import pdb; pdb.set_trace()
+
+        # Store results
+        results[t] = stat_result
+
+    # Return results
+    return results
+    
 
 
 def explanatory_strings_for_assumptions(assumptions: Assumptions) -> List[str]:

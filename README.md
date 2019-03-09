@@ -12,6 +12,7 @@ From inside your environment, download all dependencies from Pipfile (`pipenv up
 Add Tea to your Python path by creating .env file that has the following one-liner in it: PYTHONPATH=${PYTHONPATH}:${PWD}
 Open up a terminal with a Python interpreter running. Then `import tea` and voila! 
 Have fun :)
+To run test: `pytest tests/integration_tests/test_integration.py`
 
 The main code base is written in Python and lives in the `tea` directory. The `tests` directory is used for developing and debugging and uses datasets in the `datasets` directory. Not all the datasets used in `tests/test_tea.py` are included in the `datasets` repository. 
 

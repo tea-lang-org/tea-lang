@@ -1,7 +1,8 @@
 from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
-from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_test
+from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_tests
+
 from .solver import find_applicable_bivariate_tests
 
 import attr
@@ -358,12 +359,15 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
 
         # Find test
         # Offload to solver
+        # tests has Test -- Assumptions
         tests = find_applicable_bivariate_tests(combined_data)
+        # output has Test -- Results
+        output = execute_tests(dataset, combined_data, tests)
 
-        # TODO: Implement
-        # output = translate_solver_data(tests)
+        # Construct ResultData object?
 
-        # return output #??
+        # return ResultData object
+
 
         import pdb; pdb.set_trace()
 

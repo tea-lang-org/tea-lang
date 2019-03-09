@@ -28,4 +28,5 @@ cat_distribution = 'category distributions'
 name = 'var_name'
 data_type = 'dtype'
 categories = 'categories'
+query = 'query'
 

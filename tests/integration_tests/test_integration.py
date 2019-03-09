@@ -40,7 +40,10 @@ def test_indep_t_test():
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
-    tea.hypothesize(['So', 'Prob'])
+    result = tea.hypothesize(['So', 'Prob'])
+    
+
+    # assert(result )
 
     ## IMPORTANT:
     # The above example from the tutorial does not explicate all the assumptions. 
@@ -92,7 +95,8 @@ def test_dep_t_test():
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
-    tea.hypothesize(['U1', 'U2'], alternative='U1 > 1.2*U2', null='U1 <= 1.2*U2') # true hypothesis, false hypo.
+    tea.hypothesize(['U1', 'U2']) # true hypothesis, false hypo.
+    # tea.hypothesize(['U1', 'U2'], alternative='U1 > 1.2*U2', null='U1 <= 1.2*U2') # true hypothesis, false hypo.
     # output: P(D |H0), what is null hypothesis that we tested
 
     # Test sample size

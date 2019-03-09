@@ -200,7 +200,7 @@ def find_applicable_bivariate_tests(data: CombinedData):
     binomial_test = Bool('binomial_test')
 
     max_sat = Optimize()
-    import pdb; pdb.set_trace()
+    
     max_sat.add(students_t == And(
                                   bool_val(data.has_explanatory_variable()),
                                   bool_val(independent_variable_is_categorical(data)),
