@@ -92,31 +92,27 @@ class CombinedData(Value):
         
         return role_vars
     
-    def get_explanatory_variable(self): 
+    def get_explanatory_variables(self): 
         explanatory_variables = None
         
-        if self.get_vars(iv_identifier):
+        if self.study_type == experiment_identifier:
             explanatory_variables = self.get_vars(iv_identifier)
-        elif self.get_vars(contributor_identifier):
-            explanatory_variables  = self.get_vars(contributor_identifier)
         else: 
-            # Has neither independent variables nor contributor variables
-            assert(not self.get_vars(iv_identifier) and not self.get_vars(contributor_identifier))
-            pass 
+            assert(self.study_type == observational_identifier)
+            explanatory_variables  = self.get_vars(contributor_identifier)
             
         return explanatory_variables
     
-    def get_explained_variable(self): 
-        independent_variables = None
+    def get_explained_variables(self): 
+        explained_variables = None
         
-        if self.get_vars(iv_identifier):
-            independent_variables = self.get_vars(iv_identifier)
-        elif self.get_vars(contributor_identifier):
-            independent_variables  = self.get_vars(contributor_identifier)
+        if self.study_type == experiment_identifier:
+            explained_variables = self.get_vars(dv_identifier)
         else: 
-            pass
+            assert(self.study_type == observational_identifier)
+            explained_variables  = self.get_vars(outcome_identifier)
             
-        return independent_variables
+        return explained_variables
 
 @attr.s(init=True, auto_attribs=True)
 class BivariateData(CombinedData):
