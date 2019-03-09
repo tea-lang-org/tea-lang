@@ -54,27 +54,14 @@ class VarData(Value):
             return self.properties[num_categories]
 
 
+# CombinedData is the runtime data structure used to unify experimental design and variable declarations
 @attr.s(init=True)
-class CombinedData(Value): # TODO probably want to rename this
+class CombinedData(Value):
     vars = attr.ib(default=[]) # list of VarData objects 
+    study_type = attr.ib(default=observational_identifier)
     # set of characteristics about the groups that are used to determine statistical test
     properties = attr.ib(default=dict())
     alpha = attr.ib(type=float, default=0.05)
-
-    def has_explanatory_variable(self): 
-        independent_variables = None
-        
-        if self.get_vars(iv_identifier):
-            independent_variables = self.get_vars(iv_identifier)
-        elif self.get_vars(contributor_identifier):
-            independent_variables  = self.get_vars(contributor_identifier)
-        else: 
-            pass
-            
-        return independent_variables
-
-    def has_outcome_variable(self):
-        return True
 
     # Null Hypothesis: Groups come from populations with equal variance
     def has_equal_variance(self): 
@@ -104,6 +91,32 @@ class CombinedData(Value): # TODO probably want to rename this
                 role_vars.append(v) 
         
         return role_vars
+    
+    def get_explanatory_variable(self): 
+        explanatory_variables = None
+        
+        if self.get_vars(iv_identifier):
+            explanatory_variables = self.get_vars(iv_identifier)
+        elif self.get_vars(contributor_identifier):
+            explanatory_variables  = self.get_vars(contributor_identifier)
+        else: 
+            # Has neither independent variables nor contributor variables
+            assert(not self.get_vars(iv_identifier) and not self.get_vars(contributor_identifier))
+            pass 
+            
+        return explanatory_variables
+    
+    def get_explained_variable(self): 
+        independent_variables = None
+        
+        if self.get_vars(iv_identifier):
+            independent_variables = self.get_vars(iv_identifier)
+        elif self.get_vars(contributor_identifier):
+            independent_variables  = self.get_vars(contributor_identifier)
+        else: 
+            pass
+            
+        return independent_variables
 
 @attr.s(init=True, auto_attribs=True)
 class BivariateData(CombinedData):

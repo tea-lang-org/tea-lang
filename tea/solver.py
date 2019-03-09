@@ -1,7 +1,7 @@
 from .global_vals import *
 from enum import Flag, auto
 from z3 import BoolVal, Bool, Optimize, And, sat
-from tea.evaluate_data_structures import CombinedData, VarData
+from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
 from tea.global_vals import *
 
 class Tests(Flag):
@@ -87,21 +87,29 @@ def assumptions_for_test(test: Tests) -> Assumptions:
     return assumptions
 
 
-def get_independent_variable(data: CombinedData) -> VarData:
+def get_explanatory_variable(data: CombinedData) -> VarData : # or -> Value?
     # independent_variables = data.get_vars(iv_identifier)
     # if not independent_variables: 
     #     independent_variables  = data.get_vars(contributor_identifier)
     # import pdb; pdb.set_trace()
-    independent_variables = data.has_explanatory_variable()
-    import pdb; pdb.set_trace()
-    if independent_variables:
-        assert len(independent_variables) <= 1, \
-            "Only one independent variable expected instead of %d" % len(independent_variables)
-        return independent_variables[0] if len(independent_variables) else None
-    
-    return None
+    if isinstance(data, BivariateData):
+        explanatory_variables = data.has_explanatory_variable()
+        if explanatory_variables:
+            num_vars = len(explanatory_variables)
+            if num_vars < 1:
+                pass
+            elif num_vars == 1: 
+                return explanatory_variables[0]
+            else: 
+                assert(num_vars > 1)
+                return explanatory_variables # Return a list
+    elif isinstance(data, MultivariateData):
+        explanatory_variables = data.has_explanatory_variable()
+    else: 
+        raise ValueError(f"Neither Bivariate nor Multivariate")
+    # return None
 
-def get_dependent_variable(data: CombinedData) -> VarData:
+def get_explained_variable(data: CombinedData) -> VarData:
     dependent_variables = data.get_vars(dv_identifier)
     if not dependent_variables: 
         dependent_variables  = data.get_vars(outcome_identifier)
@@ -111,43 +119,53 @@ def get_dependent_variable(data: CombinedData) -> VarData:
     return dependent_variables[0] if len(dependent_variables) else None
 
 
+def has_number_of_explanatory_variable(data: CombinedData, num_variables: int) -> bool:
+    explanatory_variables = data.has_explanatory_variable()
+
+    return (len(explanatory_variables) == num_variables) if explanatory_variables else False
+
+def has_number_of_explained_variable(data: CombinedData, num_variables: int) -> bool:
+    explained_variables = data.has_explained_variable()
+
+    return (len(explained_variables) == num_variables) if explained_variables else False
+
 def independent_variable_is_categorical(data: CombinedData) -> bool:
-    independent_variable = get_independent_variable(data)
+    independent_variable = get_explanatory_variable(data)
     return independent_variable and independent_variable.is_categorical()
 
 
 def independent_variable_is_continuous(data: CombinedData) -> bool:
-    independent_variable = get_independent_variable(data)
+    independent_variable = get_explanatory_variable(data)
     return independent_variable and independent_variable.is_continuous()
 
 
 def independent_variable_has_number_of_categories(data: CombinedData, num_categories=2) -> bool:
     return independent_variable_is_categorical(data) and \
-        get_independent_variable(data).get_number_categories() == num_categories
+        get_explanatory_variable(data).get_number_categories() == num_categories
 
 
 def dependent_variable_is_categorical(data: CombinedData) -> bool:
-    dependent_variable = get_dependent_variable(data)
+    dependent_variable = get_explained_variable(data)
     return dependent_variable and dependent_variable.is_categorical()
 
 
 def dependent_variable_has_number_of_categories(data: CombinedData, num_categories=2) -> bool:
     return dependent_variable_is_categorical(data) and \
-        get_dependent_variable(data).get_number_categories() == num_categories
+        get_explained_variable(data).get_number_categories() == num_categories
 
 
 def dependent_variable_is_continuous(data: CombinedData) -> bool:
-    dependent_variable = get_dependent_variable(data)
+    dependent_variable = get_explained_variable(data)
     return dependent_variable and dependent_variable.is_continuous()
 
 
 def dependent_variable_is_ordinal(data: CombinedData) -> bool:
-    dependent_variable = get_dependent_variable(data)
+    dependent_variable = get_explained_variable(data)
     return dependent_variable and dependent_variable.is_ordinal()
 
 
 def dependent_variable_is_normal(data: CombinedData) -> bool:
-    dependent_variable = get_dependent_variable(data)
+    dependent_variable = get_explained_variable(data)
     return dependent_variable and dependent_variable.is_continuous() and dependent_variable.is_normal(0.05)
 
 
@@ -200,14 +218,19 @@ def find_applicable_bivariate_tests(data: CombinedData):
     binomial_test = Bool('binomial_test')
 
     max_sat = Optimize()
-    
+
     max_sat.add(students_t == And(
-                                  bool_val(data.has_explanatory_variable()),
-                                  bool_val(independent_variable_is_categorical(data)),
-                                  bool_val(independent_variable_has_number_of_categories(data, num_categories=2)),
+                                # What is the explanatory (independent) variable?
+                                  bool_val(has_number_of_explanatory_variable(data, num_variables=1)),
+                                  bool_val(explanatory_variable_is_categorical(data)),
+                                  bool_val(explanatory_variable_has_number_of_categories(data, num_categories=2)),
+
+                                # What is the explained (dependent) variable
+                                  bool_val(has_number_of_explained_variable(data, num_variables=1)),
+                                  bool_val(explained_variable_is_continuous(data)),
+                                  bool_val(explained_variable_is_normal(data)),
+
                                   bool_val(not data.has_paired_observations()),
-                                  bool_val(dependent_variable_is_continuous(data)),
-                                  bool_val(dependent_variable_is_normal(data)),
                                   bool_val(data.has_equal_variance())))
 
     max_sat.add(u_test == And(bool_val(data.has_equal_variance()),

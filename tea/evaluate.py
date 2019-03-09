@@ -350,9 +350,9 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         combined_data = None
         # Do we have a Bivariate analysis?
         if len(vars) == 2: 
-            combined_data = BivariateData(vars) 
+            combined_data = BivariateData(vars, study_type) 
         else: # Do we have a Multivariate analysis?
-            combined_data = MultivariateData(vars)
+            combined_data = MultivariateData(vars, study_type)
         
         # Compute between variable level properties
         combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
