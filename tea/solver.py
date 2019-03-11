@@ -103,8 +103,11 @@ class StatisticalTest:
     def query(self):
         self._populate_properties()
         # if self.__query__ is None:
-        pvs = [p.__z3__ for p in self._properties]
-        query = z3.And(*(pvs + [self.__z3__]))
+        conj = []
+        for p in self._properties:
+            conj += [p.__z3__, p.__z3__ == p.__var__]
+        conj = conj + [self.__z3__]
+        query = z3.And(*conj)
         return query
         # self.__query__ = query
         # return self.__query__
@@ -166,6 +169,7 @@ class AppliedProperty:
             self._name += tv.name + ":"
             z3_args.append(tv.__z3__)
         self._name = self._name + self.property.name 
+        self.__var__ = z3.Bool(self._name)
         self.__z3__ = prop.__z3__(*z3_args)
         __property_var_map__[self._name] = self
 
@@ -208,7 +212,28 @@ z = StatVar('z')
 w = StatVar('w')
 students_t.apply(z, w)
 
-def which_tests(props: list):
+# Incremental solving or change encoding (from conjunction to DNF/...)
+# If property is a negation of another property, would like to know (e.g., normal and not normal)
+# -- could use function not()
+
+def which_tests(props: list,  design):
+    # Rule out statically
+    # We don't need to pass information about StatisticalTest
+    # properties because if one of the conditions doesn't hold, 
+    # the entire StatisticalTest does not apply regardless of variable-specific properties
+
+    # We first check if the StatisticalTest properties hold
+
+    # If not, discard!
+
+    # If so, build list
+    # Then, generate query from set of Tests that are left. 
+    # Assert the properties are true
+
+    # Incremental nature: Property is true, but what if it wasn't?
+    
+
+
     # query starts as empty
     s = z3.Solver()
     for prop in props:
@@ -264,16 +289,16 @@ def which_props(tests: list):
 
 
 ps = which_props([students_t])
-# ts = 
-# ts = which_tests(one_x_variable(students_t), 
-#                  one_y_variable(students_t), 
-#                  paired(students_t)],
-#                             properties_for_vars={ all_x_variables_categorical : [x],
-#                                   two_x_variable_categories: [x],
-#                                   continuous: [y],
-#                                   normal: [y],
-#                                   eq_variance: [x, y] # Not sure about this emjun
-#                                 })
+
+ts = which_tests(one_x_variable(students_t), 
+                 one_y_variable(students_t), 
+                 paired(students_t)],
+                            properties_for_vars={ all_x_variables_categorical : [x],
+                                  two_x_variable_categories: [x],
+                                  continuous: [y],
+                                  normal: [y],
+                                  eq_variance: [x, y] # Not sure about this emjun
+                                })
 import pdb; pdb.set_trace()
 
 print(ps)
