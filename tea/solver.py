@@ -98,14 +98,18 @@ class StatisticalTest:
         for prop in self.properties_for_vars:
             vs = self.properties_for_vars[prop]
             vs = [self.test_vars[i] for i in vs]
+            import pdb; pdb.set_trace()
             self._properties.append(prop(*vs))
 
-    def query(self):
-        self._populate_properties()
+    def query(self): # May want to change this....
+        self._populate_properties() # Apply to specific instance of variables
         # if self.__query__ is None:
         conj = []
-        for p in self._properties:
-            conj += [p.__z3__, p.__z3__ == p.__var__]
+        for p in self._properties: # combines Test and Var-specific properties
+            # p.__z3__ = uninterpreted function
+            # p.__var__ = instantiated z3 BoolVal
+            # Add the uf, and interpret the uf as always ==ing the instantiated BoolVal
+            conj += [p.__z3__, p.__z3__ == p.__var__]            
         conj = conj + [self.__z3__]
         query = z3.And(*conj)
         return query
@@ -148,9 +152,9 @@ class Property:
         if len(var_names) != self.arity:
             raise Exception(f"{self.name} property has arity {self.arity} " \
                             f"found {len(var_names)} arguments")
-        cached = self.__cache__.get(tuple(var_names))
-        if cached:
-            return cached
+        # cached = self.__cache__.get(tuple(var_names))
+        # if cached:
+        #     return cached
         
         ap = AppliedProperty(self, var_names)
         self.__cache__[tuple(var_names)] = ap
@@ -166,7 +170,8 @@ class AppliedProperty:
         self._name = ""
         z3_args = []
         for tv in test_vars:
-            self._name += tv.name + ":"
+            # self._name += tv.name + ":"
+            self._name + tv.name
             z3_args.append(tv.__z3__)
         self._name = self._name + self.property.name 
         self.__var__ = z3.Bool(self._name)
@@ -198,7 +203,6 @@ two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal v
 
 x = StatVar('x')
 y = StatVar('y')
-
 students_t = StatisticalTest('students_t', [x, y],
                             test_properties=
                                 [one_x_variable, one_y_variable, paired],
@@ -258,13 +262,13 @@ def which_tests(props: list,  design):
         import pdb; pdb.set_trace()
         # PEACH WRITE HERE
 
-### EVERYTHING ABOVE HERE IS GENERIC ###
+
 def which_props(tests: list):
     test_queries = []
     for test in tests:
         test_queries.append(test.__z3__ == z3.BoolVal(True))
         test_queries.append(test.query())
-    query = z3.And(test_queries)
+    query = z3.And(test_queries) # May want to change
     import pdb; pdb.set_trace()
     s = z3.Solver()
     s.add(query)
@@ -282,23 +286,25 @@ def which_props(tests: list):
         props = []
         for decl in model.decls():
             prop = AppliedProperty.get_by_z3_var(decl.name())
+            import pdb; pdb.set_trace()
             if prop and model[decl] == True:
                 props.append(prop)
-            #elif == False
+            else: 
+                import pdb; pdb.set_trace()
         return props
 
 
 ps = which_props([students_t])
 
-ts = which_tests(one_x_variable(students_t), 
-                 one_y_variable(students_t), 
-                 paired(students_t)],
-                            properties_for_vars={ all_x_variables_categorical : [x],
-                                  two_x_variable_categories: [x],
-                                  continuous: [y],
-                                  normal: [y],
-                                  eq_variance: [x, y] # Not sure about this emjun
-                                })
+# ts = which_tests(one_x_variable(students_t), 
+#                  one_y_variable(students_t), 
+#                  paired(students_t)],
+#                             properties_for_vars={ all_x_variables_categorical : [x],
+#                                   two_x_variable_categories: [x],
+#                                   continuous: [y],
+#                                   normal: [y],
+#                                   eq_variance: [x, y] # Not sure about this emjun
+#                                 })
 import pdb; pdb.set_trace()
 
 print(ps)
