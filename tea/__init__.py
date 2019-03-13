@@ -1,4 +1,4 @@
-from .api import (
+from tea.api import (
                     data, 
                     define_variables, 
                     define_study_design, 

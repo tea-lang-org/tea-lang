@@ -4,8 +4,8 @@ import csv
 
 from enum import Enum
 from typing import Dict, Union
-from collections import OrderedDict
-from pandas.api.types import CategoricalDtype
+# from collections import OrderedDict
+# from pandas.api.types import CategoricalDtype
 
 class Node(object): 
     def relate(self, other):

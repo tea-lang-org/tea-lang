@@ -1,6 +1,6 @@
 # Runtime data structures used by interpreter
 from .global_vals import *
-from .ast import *
+from tea.ast import *
 
 import attr
 from typing import Any
