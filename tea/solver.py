@@ -195,10 +195,16 @@ class AppliedProperty:
             z3_args.append(tv.__z3__)
         self._name = self.property.name  # continuous
         # Why is property fn a bool? Does this allow continuous(x) and not continuous(y)?
+        # Answer: I think the undefined function is able to capture all functionality of
+        # deciding the boolean property value for each variable, so the z3.Bool() for the
+        # property name isn't necessary.
         # self.__var__ = z3.Bool(self._name)  # e.g. continuous
         self.__z3__ = prop.__z3__(*z3_args)  # e.g. continuous(x)
 
         # _name needs to be unique to avoid overwriting same property for different variables.
+        # But if it is unique, it makes it more difficult to look up from the z3 model.
+        # Solution: Make the name the same, but have it map to a list of variables that the
+        # property applies to.
         if self._name not in __property_var_map__.keys():
             __property_var_map__[self._name] = []
 
@@ -275,9 +281,10 @@ u_test = StatisticalTest('u_test', [x, y],
                              continuous: [[y]],
                          })
 
-# Output has all_x_cat == False, but should be true because every variable is categorical,
-# and one of them is the explanatory variable.
-# How to specify this? Because now second categorical specification overwrites the first.
+# Specify variable properties as list of lists so that the same property can
+# apply to multiple variables individually. If "categorical" is specified twice,
+# only the second variable is kept because it overwrites the first entry in the
+# dictionary.
 conflicting_test = StatisticalTest('conflict', [x, y],
                                    test_properties=[one_x_variable, one_y_variable],
                                    properties_for_vars={
@@ -290,14 +297,7 @@ w = StatVar('w')
 u_test.apply(z, w)
 conflicting_test.apply(z, w)
 
-
-# variables = [z, w]
 axioms = construct_axioms([z, w])
-
-# It seems like there should be a way to wrap all_variables_categorical() using categorical()
-# so that we can just check continuous(y) and categorical(y).
-# all_variables_categorical(z, w) ==> categorical(z) ^ categorical(w)
-# conflict_clauses = z3.Not(z3.And(continuous(w).__z3__, all_variables_categorical(z, w).__z3__))
 
 # p = StatVar('p')
 # q = StatVar('q')
@@ -359,9 +359,18 @@ def which_props(tests: list):
     test_queries = []
     hard_constraints = []
     for test in tests:
-        # TODO: This isn't meaningful without an iff with related constraints.
+        # The Bool representing whether the test can be run with the given property
+        # values is a hard constraint because we want to satisfy all tests, but may
+        # not be able to.
         hard_constraints.append(test.__z3__)
+
+        # The relationship of the properties of variables required to run a specific
+        # test is an axiom and cannot be violated.
         axioms.append(test.__z3__ == z3.And(*test.query()))
+
+        # test_queries contains the individual property constraints (e.g. continuous(x)).
+        # These will all be soft constraints with low weight because they may need to be
+        # violated.
         test_queries += test.query()
     # query = z3.And(test_queries) # May want to change
     # import pdb; pdb.set_trace()
