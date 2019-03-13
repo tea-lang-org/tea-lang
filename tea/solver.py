@@ -51,7 +51,13 @@ class StatisticalTest:
     name: str
     variables: List[StatVar]
     test_properties: List["Property"]
-    properties_for_vars: Dict["Property", List[int]]
+
+    # properties_for_vars maps from a property to lists of indices
+    # into test_vars that the property applies to. If the property
+    # has arity 1, then it maps to a list of lists of length 1.
+    # Similarly, if the property has arity 2, then it maps to
+    # a list of lists of length 2.
+    properties_for_vars: Dict["Property", List[List[int]]]
 
     # This needs to store number of variables
     # each property needs to be mapped to variable
@@ -76,13 +82,12 @@ class StatisticalTest:
 
         self.test_properties = test_properties
 
-        # TODO: properties_for_vars will have to be able to map a property to multiple sets of vars.
         self.properties_for_vars = {}
         for key in properties_for_vars:
+            # properties_for_vars is a list of lists of variables. Get the indices of the variables
+            # in each list.
             for args in properties_for_vars[key]:
                 indices = [self.test_vars.index(arg) for arg in args]
-                # TODO: How does this work if the property is specified multiple times,
-                # e.g. continuous(x) and continuous(y)
                 if key not in self.properties_for_vars.keys():
                     self.properties_for_vars[key] = []
                 self.properties_for_vars[key].append(indices)
@@ -107,11 +112,11 @@ class StatisticalTest:
             self._properties.append(prop(StatVar(self.name)))
 
         for prop in self.properties_for_vars:
-            list_of_vs = self.properties_for_vars[prop]
-            for vs in list_of_vs:
-                vs = [self.test_vars[i] for i in vs]
+            list_of_variable_indices = self.properties_for_vars[prop]
+            for variable_indices in list_of_variable_indices:
+                variable_indices = [self.test_vars[i] for i in variable_indices]
                 # import pdb; pdb.set_trace()
-                self._properties.append(prop(*vs))
+                self._properties.append(prop(*variable_indices))
 
     def query(self):  # May want to change this....
         self._populate_properties()  # Apply to specific instance of variables
@@ -124,12 +129,6 @@ class StatisticalTest:
             # conj += [p.__z3__, p.__z3__ == p.__var__]
             conj += [p.__z3__]
 
-        # query = {
-        #     'hard_constraints': z3.And(*conj),
-        #     'soft_constraints': self.__z3__
-        # }
-        # conj = conj + [self.__z3__]  # Why is this needed if we assert self.z3==True below?
-        # query = z3.And(*conj)
         return conj
         # self.__query__ = query
         # return self.__query__
@@ -168,7 +167,7 @@ class Property:
 
     def __call__(self, *var_names):
         if len(var_names) != self.arity:
-            raise Exception(f"{self.name} property has arity {self.arity} "\
+            raise Exception(f"{self.name} property has arity {self.arity} " \
                                 f"found {len(var_names)} arguments")
         # cached = self.__cache__.get(tuple(var_names))
         # if cached:
@@ -186,7 +185,7 @@ class AppliedProperty:
         global __property_var_map__
         self.property = prop  # e.g. continuous
         self.test_vars = test_vars  # (StatVar(name='x'),)
-        self._name = ""
+        # self._name = ""
         z3_args = []
         for tv in test_vars:
             # Allows for unique identification of prop -> var, but not looking up from model because that refs prop name
@@ -208,6 +207,7 @@ class AppliedProperty:
         if self._name not in __property_var_map__.keys():
             __property_var_map__[self._name] = []
 
+        # TODO: When does __property_var_map__ need to be cleared?
         __property_var_map__[self._name].append(test_vars)
 
     def __str__(self):
@@ -240,8 +240,8 @@ def construct_axioms(variables):  # List[StatVar]
     _axioms = []
     for var in variables:
         # A variable must be continuous or categorical, but not both.
-        _axioms.append(z3.And(z3.Or(continuous(var).__z3__, categorical(var).__z3__),\
-                             z3.Not(z3.And(continuous(var).__z3__, categorical(var).__z3__))))
+        _axioms.append(z3.And(z3.Or(continuous(var).__z3__, categorical(var).__z3__),
+                              z3.Not(z3.And(continuous(var).__z3__, categorical(var).__z3__))))
 
         # If a variable is an explanatory variable and all explanatory variables are categorical,
         # then the variable must be categorical.
@@ -293,21 +293,11 @@ conflicting_test = StatisticalTest('conflict', [x, y],
 
 z = StatVar('z')
 w = StatVar('w')
-# students_t.apply(z, w)
+students_t.apply(z, w)
 u_test.apply(z, w)
 conflicting_test.apply(z, w)
 
 axioms = construct_axioms([z, w])
-
-# p = StatVar('p')
-# q = StatVar('q')
-# axiom1 = z3.ForAll([p.__z3__], z3.Not(z3.And(continuous(p).__z3__, categorical(p).__z3__)), weight=1000)
-# axiom2 = z3.ForAll([p.__z3__, q.__z3__],\
-#                    z3.Implies(all_variables_categorical(p, q).__z3__,\
-#                               z3.And(categorical(p).__z3__, categorical(q).__z3__)), weight=1000)
-# axioms = [axiom1, axiom2]
-
-# print(axioms)
 
 # Incremental solving or change encoding (from conjunction to DNF/...)
 # If property is a negation of another property, would like to know (e.g., normal and not normal)
@@ -372,12 +362,7 @@ def which_props(tests: list):
         # These will all be soft constraints with low weight because they may need to be
         # violated.
         test_queries += test.query()
-    # query = z3.And(test_queries) # May want to change
-    # import pdb; pdb.set_trace()
-    # s = z3.Solver()
-    # s.set(unsat_core=True)
-    #
-    # s.add(query)
+
     s = z3.Optimize()
 
     # Set weight of tests to large number so they are satisfied over properties.
@@ -386,7 +371,7 @@ def which_props(tests: list):
         print(constraint)
         s.add_soft(constraint, 1000)
 
-    # Test properties can be violated.
+    # Prefer to violate properties by giving them low weight.
     print("\nSoft constraints:")
     for soft_constraint in test_queries:
         print(soft_constraint)
@@ -398,14 +383,9 @@ def which_props(tests: list):
         print(axiom)
         s.add(axiom)
 
-    # s.assert_and_track(conflict_clauses, "conflicts")
-    # for idx, axiom in enumerate(axioms):
-    #     s.assert_and_track(axiom, "a%d"%idx)
     result = s.check()
-    # WARNING: optimization with quantified constraints is not supported
     if result == z3.unsat:
         print("no solution")
-        # print("unsat core: %s" % s.unsat_core())
     elif result == z3.unknown:
         print("failed to solve")
         try:
@@ -413,56 +393,29 @@ def which_props(tests: list):
         except z3.Z3Exception:
             return
     else:
-        # model.evaluate(categorical.__z3__(w.__z3__))
         model = s.model()
-        test_to_properties = {}
-        test_to_broken_properties = {}
+        _tests_and_properties = {}
+        _test_to_broken_properties = {}
         for test in tests:
             test_name = test.name
-            test_to_properties[test_name] = {}
-            test_to_broken_properties[test_name] = []
-            for property in test._properties:
-                print("property: %s" % property)
-                property_identifier = property._name
-                for test_var in property.test_vars:
+            _tests_and_properties[test_name] = {}
+            _test_to_broken_properties[test_name] = []
+
+            # TODO: Unprotect test._properties.
+            for test_property in test._properties:
+                print("property: %s" % test_property)
+                property_identifier = test_property._name
+                for test_var in test_property.test_vars:
                     property_identifier += "_%s" % test_var.name
-                property_result = bool(model.evaluate(property.__z3__))
-                test_to_properties[test_name][property_identifier] = property_result
+                property_result = bool(model.evaluate(test_property.__z3__))
+                _tests_and_properties[test_name][property_identifier] = property_result
                 if not property_result:
-                    test_to_broken_properties[test_name].append(property_identifier)
+                    _test_to_broken_properties[test_name].append(property_identifier)
 
-        return test_to_properties, test_to_broken_properties
-
-        # props = []
-        # for decl in model.decls():
-        #     # TODO: Failed to evaluate anything on z. Only w.
-        #     # maybe because applied property name is same for both vars?
-        #
-        #     # TODO: Need to make sure to only print properties that are specified by the tests.
-        #     associated_variables = AppliedProperty.get_by_z3_var(decl.name())
-        #
-        #     # import pdb; pdb.set_trace()
-        #     if associated_variables:
-        #         deduplicated_variables = set(associated_variables)
-        #         for stat_vars in deduplicated_variables:
-        #             print("\nstat_vars: %s" % stat_vars)
-        #             assert len(stat_vars) == decl.arity(),\
-        #                 "Wrong number of variables apply property to. " \
-        #                 "Expected %d, got %d" % (decl.arity(), len(stat_vars))
-        #
-        #             print("\nEvaluate %s:\n" % decl.name())
-        #             print(model.evaluate(decl(*[svar.__z3__ for svar in stat_vars])))
-        #             print("\n")
-
-            # if prop and model[decl] == True:
-            #     props.append(prop)
-            # else:
-            #     print("else")
-                # import pdb; pdb.set_trace()
-        # return props
+        return _tests_and_properties, _test_to_broken_properties
 
 
-test_to_properties, test_to_broken_properties = which_props([u_test, conflicting_test])
+test_to_properties, test_to_broken_properties = which_props([conflicting_test, students_t])
 
 # ts = which_tests(one_x_variable(students_t), 
 #                  one_y_variable(students_t), 
