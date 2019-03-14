@@ -4,14 +4,9 @@ import attr
 # from enum import Flag, auto
 import z3
 # from z3 import BoolVal, Bool, Optimize, And, sat
-<<<<<<< HEAD
 from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
 from tea.evaluate_data_structures import is_continuous_or_ordinal
 from tea.global_vals import *
-=======
-# from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
-# from tea.global_vals import *
->>>>>>> origin/test-to-property-work
 from typing import Dict, List
 
 # Prog -> List[StatisticalTest] -> Query
@@ -36,7 +31,6 @@ def all_tests():
 # the properties that were applied.
 __property_var_map__ = {}
 
-<<<<<<< HEAD
 # Contains a map from z3 variables representing the props
 # back to the Property objects
 __property_map__ = {}
@@ -63,8 +57,6 @@ def subset_props(scope):
             selected_props.append(p)
 
     return selected_props
-=======
->>>>>>> origin/test-to-property-work
 
 @attr.s(hash=False, cmp=False, auto_attribs=True, init=False)
 class StatVar:
@@ -85,15 +77,12 @@ class StatisticalTest:
     name: str
     variables: List[StatVar]
     test_properties: List["Property"]
-<<<<<<< HEAD
-=======
 
     # properties_for_vars maps from a property to lists of indices
     # into test_vars that the property applies to. If the property
     # has arity 1, then it maps to a list of lists of length 1.
     # Similarly, if the property has arity 2, then it maps to
     # a list of lists of length 2.
->>>>>>> origin/test-to-property-work
     properties_for_vars: Dict["Property", List[List[int]]]
 
     # This needs to store number of variables
@@ -121,22 +110,14 @@ class StatisticalTest:
 
         self.properties_for_vars = {}
         for key in properties_for_vars:
-<<<<<<< HEAD
-=======
             # properties_for_vars is a list of lists of variables. Get the indices of the variables
             # in each list.
->>>>>>> origin/test-to-property-work
             for args in properties_for_vars[key]:
                 indices = [self.test_vars.index(arg) for arg in args]
                 if key not in self.properties_for_vars.keys():
                     self.properties_for_vars[key] = []
-<<<<<<< HEAD
-            self.properties_for_vars[key].append(indices)
-        
-=======
                 self.properties_for_vars[key].append(indices)
 
->>>>>>> origin/test-to-property-work
         # Create variable.
         self.__z3__ = z3.Bool(self.name)
 
@@ -155,15 +136,6 @@ class StatisticalTest:
         for prop in self.test_properties:
             # This is weird, and doesn't really fit into property model
             self._properties.append(prop(StatVar(self.name)))
-<<<<<<< HEAD
-        
-        for prop in self.properties_for_vars:
-            vs = self.properties_for_vars[prop]
-            vs = [self.test_vars[i] for i in vs]
-            # import pdb; pdb.set_trace()
-            self._properties.append(prop(*vs))
-=======
->>>>>>> origin/test-to-property-work
 
         for prop in self.properties_for_vars:
             list_of_variable_indices = self.properties_for_vars[prop]
@@ -232,28 +204,15 @@ class Property:
     def __call__(self, *var_names):
         if len(var_names) != self.arity:
             raise Exception(f"{self.name} property has arity {self.arity} " \
-<<<<<<< HEAD
                             f"found {len(var_names)} arguments")
         cached = self.__cache__.get(tuple(var_names))
         if cached:
             return cached
         
-=======
-                                f"found {len(var_names)} arguments")
-        # cached = self.__cache__.get(tuple(var_names))
-        # if cached:
-        #     return cached
-
->>>>>>> origin/test-to-property-work
         ap = AppliedProperty(self, var_names)
         # self.__cache__[tuple(var_names)] = ap
         return ap
 
-<<<<<<< HEAD
-    # def __not__(self):
-    #     return z3.Not(self.__z3__)
-=======
->>>>>>> origin/test-to-property-work
 
 class AppliedProperty:
     property: Property
@@ -315,7 +274,7 @@ continuous = Property('is_continuous', "Continuous (not categorical) data", 'var
 # We could create a disjunction of continuous \/ ordinal instead
 continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", 'variable')
 normal = Property('is_normal', "Normal distribution", 'variable')
-eq_variance = Property('has_equal_variance', "Equal variance", 'test', 2)
+eq_variance = Property('has_equal_variance', "Equal variance", 'test')
 
 two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 'variable', 2)
 
@@ -352,7 +311,7 @@ def construct_axioms(variables):  # List[StatVar]
         # If a variable is an explanatory variable and all explanatory variables are categorical,
         # then the variable must be categorical.
         # It isn't clear how to reason about whether a variable is an explanatory or explained variable.
-        _axioms.append(z3.Implies(all_x_variables_categorical(var).__z3__, categorical(var).__z3__))
+        # _axioms.append(z3.Implies(all_x_variables_categorical(var).__z3__, categorical(var).__z3__))
 
         # Not sure how to reason about test properties like one_x_variable and one_y_variable.
         # _axioms.append(z3.Not(z3.And(one_x_variable(var).__z3__, one_y_variable(var).__z3__)))
@@ -361,7 +320,7 @@ def construct_axioms(variables):  # List[StatVar]
         _axioms.append(z3.Implies(normal(var).__z3__, z3.Not(categorical(var).__z3__)))
 
         # If a variable has two categories, then it must be categorical.
-        _axioms.append(z3.Implies(two_x_variable_categories(var).__z3__, categorical(var).__z3__))
+        # _axioms.append(z3.Implies(two_x_variable_categories(var).__z3__, categorical(var).__z3__))
 
     return _axioms
 
@@ -433,7 +392,7 @@ z = StatVar('z')
 w = StatVar('w')
 students_t.apply(z, w)
 mannwhitney_u.apply(z, w)
-chi_squre_test.apply(z, w)
+chi_square_test.apply(z, w)
 
 axioms = construct_axioms([z, w])
 
@@ -493,7 +452,7 @@ def which_tests(combined_data:CombinedData):
                     break
             
             if (is_valid_test):
-                import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 valid_tests.append(test)
     
     return valid_tests
@@ -569,7 +528,7 @@ def which_props(tests: list):
         return _tests_and_properties, _test_to_broken_properties
 
 
-test_to_properties, test_to_broken_properties = which_props([conflicting_test, students_t])
+test_to_properties, test_to_broken_properties = which_props([chi_square_test, students_t])
 
 # print(ps)
 print("\nFound properties:")
