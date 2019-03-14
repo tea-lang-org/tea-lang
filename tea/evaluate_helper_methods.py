@@ -455,12 +455,16 @@ def lookup_function(name):
     except:
         raise ValueError(f"Cannot find the test:{name}")
 
-def execute_tests(dataset, combined_data: CombinedData, tests_names): 
+def execute_tests(dataset, combined_data: CombinedData, tests): 
     results = dict()
 
     # stats_tests = []
     # for test, assumptions in tests.items(): 
     #     stats_tests.append(test)
+
+    tests_names = []
+    for test in tests: 
+        tests_names.append(test.name)
     
     for t in tests_names: 
         

@@ -88,8 +88,8 @@ def test_get_props():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
 
-    properties = tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
-    print(properties)
+    tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
+    # print(properties)
     import pdb; pdb.set_trace()
     
 # def test_dep_t_test():

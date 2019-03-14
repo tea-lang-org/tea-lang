@@ -359,6 +359,19 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
 
         # Find test (ask solver)
         tests = which_tests(combined_data)
+        # print(tests)
+        for test in tests:
+            print("\nValid test: %s" % test.name)
+            print("Properties:")
+            properties = test.properties()
+            for prop in properties:
+                # if property.property.scope == "test":
+                #     continue
+                property_identifier = ""
+                for test_var in test.test_vars:
+                    property_identifier += f"variable {test_var.name} "
+                property_identifier += ": %s" % prop.name
+                print(property_identifier)
 
         # Get results from exectuing statistical tests
         results = execute_tests(dataset, combined_data, tests)
