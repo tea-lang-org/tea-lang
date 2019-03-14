@@ -4,16 +4,16 @@ import os
 base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
 uscrime_data_path = None
 
-# def test_load_data():
-#     global base_url, uscrime_data_path
+def test_load_data():
+    global base_url, uscrime_data_path
 
-#     csv_name = 'UScrime.csv'
-#     csv_url = os.path.join(base_url, csv_name)
-    # uscrime_data_path = tea.download_data(csv_url, 'UScrime')
+    csv_name = 'UScrime.csv'
+    csv_url = os.path.join(base_url, csv_name)
+    uscrime_data_path = tea.download_data(csv_url, 'UScrime')
 
 def test_indep_t_test():
     global uscrime_data_path
-    uscrime_data_path = "/Users/emjun/.tea/data/UScrime.csv"
+    # uscrime_data_path = "/Users/emjun/.tea/data/UScrime.csv"
 
     # Declare and annotate the variables of interest
     variables = [
@@ -42,10 +42,9 @@ def test_indep_t_test():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
 
-    result = tea.hypothesize(['So', 'Prob'])
-    
-
-    # assert(result )
+    tea.hypothesize(['So', 'Prob'])
+    # print(result)
+    import pdb; pdb.set_trace()
 
     ## IMPORTANT:
     # The above example from the tutorial does not explicate all the assumptions. 
@@ -62,6 +61,37 @@ def test_indep_t_test():
     # Can always redefine experimental design 
     # tea.define_study_design(experimental_design)
 
+def test_get_props():
+    variables = [
+        {
+            'name' : 'So',
+            'data type' : 'nominal',
+            'categories' : ['0', '1']
+        },
+        {
+            'name' : 'Prob',
+            'data type' : 'ratio',
+            'range' : [0,1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': 'So',
+                            'outcome variables': 'Prob',
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05
+    }
+
+    # tea.data(uscrime_data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    properties = tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
+    print(properties)
+    import pdb; pdb.set_trace()
+    
 # def test_dep_t_test():
 #     global uscrime_data_path
 #     variables = [

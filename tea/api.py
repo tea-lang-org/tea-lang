@@ -15,6 +15,9 @@ from tea.build import (load_data, load_data_from_url, const,
                     # load_data_arrs, hypothesis, experiment_design
                    )
 from tea.evaluate import evaluate
+from tea.evaluate_helper_methods import determine_study_type, assign_roles
+from tea.evaluate_data_structures import BivariateData, MultivariateData
+from .solver import which_props
 from typing import Dict
 from .global_vals import *
 
@@ -38,6 +41,8 @@ var_drange = 'range'
 assumptions = {}
 alpha_keywords = ['Type I (False Positive) Error Rate', 'alpha']
 alpha = 0.05
+
+all_results = {} # Used for multiple comparison correction
 
 ## For testing purposes
 def download_data(url, name): 
@@ -112,7 +117,7 @@ def assume(user_assumptions: Dict[str, str]):
 
 def hypothesize(vars: list, prediction: str=None): 
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
-    global assumptions
+    global assumptions, all_results
 
     assert(dataset_path)
     assert(vars_objs)
@@ -128,6 +133,10 @@ def hypothesize(vars: list, prediction: str=None):
     relationship = relate(v_objs, prediction)
     # Interpret AST node, Returns ResData object (?)
     result = evaluate(dataset_obj, relationship, assumptions, study_design)
+    # all_results[relationship] -- How to check for multiple comparison problem?
+    # import pdb; pdb.set_trace()
+    print(f"\n Results: {result}")
+    return result
 
 
     # Use assumptions and hypotheses for interpretation/reporting back to user
@@ -139,6 +148,29 @@ def hypothesize(vars: list, prediction: str=None):
 
 ## TODO: Add relate and compare methods
 
+# @param vars that user would like to relate
+# @param stats_tests contains all the tests that the user would like
+# @return properties that must be true in order to satisfy
+# as many of the tests as possible
+def divine_properties(vars:list, tests:list):
+    global study_design
 
+    v_objs = []
+    for v in vars: 
+        v_objs.append(get_var_from_list(v, vars_objs)) # may want to use Dataset instance method instead
     
+    relationship = relate(v_objs)
 
+    # What kind of study are we analyzing?
+    study_type = determine_study_type(vars, study_design)
+
+    combined_data = None
+    # Do we have a Bivariate analysis?
+    if len(vars) == 2: 
+        combined_data = BivariateData(vars, study_type, alpha=float(assumptions['alpha'])) 
+    else: # Do we have a Multivariate analysis?
+        combined_data = MultivariateData(vars, study_type, alpha=float(assumptions['alpha']))
+
+    test_to_properties, test_to_broken_properties = which_props(['chi_square_test', 'students_t'])
+
+    return (test_to_properties, test_to_broken_properties)

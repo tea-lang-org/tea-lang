@@ -4,5 +4,6 @@ from tea.api import (
                     define_study_design, 
                     assume,
                     hypothesize,
-                    download_data
+                    download_data,
+                    divine_properties
                 )

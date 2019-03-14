@@ -288,8 +288,8 @@ def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedD
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
 # def utest(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-def utest(dataset, combined_data: BivariateData):
-    import pdb; pdb.set_trace()
+def mannwhitney_u(dataset, combined_data: BivariateData):
+    # import pdb; pdb.set_trace()
     assert (len(combined_data.vars) == 2)
 
     data = []
@@ -450,26 +450,25 @@ def bootstrap():
 
 # Returns the function that has the @param name
 def lookup_function(name): 
-    return globals()[name.lower()]
+    try: 
+        return globals()[name.lower()]
+    except:
+        raise ValueError(f"Cannot find the test:{name}")
 
-def execute_tests(dataset, combined_data: CombinedData, tests): 
-# def execute_tests(dataset, combined_data: CombinedData, tests: Dict[Tests, Assumptions]): 
+def execute_tests(dataset, combined_data: CombinedData, tests_names): 
     results = dict()
 
-    stats_tests = []
-    for test, assumptions in tests.items(): 
-        stats_tests.append(test)
-
-    for t in stats_tests: 
-        # Look up the function call for each test
-        t_info = t.__dict__
-        t_name = t_info['_name_']
-        test_func = lookup_function(t_name)
-        # import pdb; pdb.set_trace()
+    # stats_tests = []
+    # for test, assumptions in tests.items(): 
+    #     stats_tests.append(test)
+    
+    for t in tests_names: 
+        
+        # Get function handler
+        test_func = lookup_function(t)
 
         # Execute the statistical test
         stat_result = test_func(dataset, combined_data)
-        # import pdb; pdb.set_trace()
 
         # Store results
         results[t] = stat_result

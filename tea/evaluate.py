@@ -19,7 +19,7 @@ import pandas as pd
 # TODO: Pass participant_id as part of experimental design, not load_data
 def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: Dict[str, str]=None):
     if isinstance(expr, Variable):
-        dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
+        # dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
         # then use query to get raw data later....(for user, not interpreter?)
         metadata = dataset.get_variable_data(expr.name) # (dtype, categories)
         # if expr.name == 'strategy':
@@ -357,23 +357,18 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         # Compute between variable level properties
         combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
 
-        # Compile CombinedData into solver objects
+        # Find test (ask solver)
         tests = which_tests(combined_data)
 
-
-        # Find test
-        # Offload to solver
-        # tests has Test -- Assumptions
-        # tests = find_applicable_bivariate_tests(combined_data)
-        # output has Test -- Results
-        # output = execute_tests(dataset, combined_data, tests)
+        # Get results from exectuing statistical tests
+        results = execute_tests(dataset, combined_data, tests)
 
         # Construct ResultData object?
+        # For now...
+        # import pdb; pdb.set_trace()
+        return results
 
         # return ResultData object
-
-
-        import pdb; pdb.set_trace()
 
 
     elif isinstance(expr, Mean):

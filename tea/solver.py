@@ -213,6 +213,13 @@ class Property:
         # self.__cache__[tuple(var_names)] = ap
         return ap
 
+    def reset(self):
+        args = []
+        for _ in range(self.arity):
+            args.append(z3.BoolSort())
+        args.append(z3.BoolSort())
+        self.__z3__ = z3.Function(self.name, *args)  # e.g. continuous(x)
+
 
 class AppliedProperty:
     property: Property
@@ -360,24 +367,6 @@ mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
                                 #   eq_variance: [x, y] # Is this an assumption of mann whitney??
                                 })                                
 
-#                              test_properties=
-#                              [one_x_variable, one_y_variable, paired],
-#                              properties_for_vars={all_x_variables_categorical: [[x]],
-#                                                   two_x_variable_categories: [[x]],
-#                                                   continuous: [[y]],
-#                                                   normal: [[y]],
-#                                                   eq_variance: [[x, y]]  # Not sure about this emjun
-#                                                   })
-
-# u_test = StatisticalTest('u_test', [x, y],
-#                          test_properties=
-#                          [one_x_variable, one_y_variable],
-#                          properties_for_vars={
-#                              all_x_variables_categorical: [[x]],
-#                              two_x_variable_categories: [[x]],
-#                              continuous: [[y]],
-#                          })
-
 # Specify variable properties as list of lists so that the same property can
 # apply to multiple variables individually. If "categorical" is specified twice,
 # only the second variable is kept because it overwrites the first entry in the
@@ -401,7 +390,8 @@ axioms = construct_axioms([z, w])
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
 def which_tests(combined_data:CombinedData):
-    valid_tests = []
+    
+    valid_tests_names = []
 
     # Apply all test properties
     for prop in subset_props('test'): 
@@ -417,10 +407,12 @@ def which_tests(combined_data:CombinedData):
             if prop.__z3__ == z3.BoolVal(False): 
                 pass_all_test_props = False
                 break
+            # prop.reset()
 
         # Check variable properties only if all test properties pass
         # If the test properties don't all pass, the test does not apply
         if pass_all_test_props:
+            print(f"\nPassed test-level properties for {test.name}...")
             is_valid_test = True
             # Assume that last variable in test.test_vars is the dependent variable (y)
             combined_data._update_vars() # reorder variables so that y var is at the end
@@ -444,21 +436,34 @@ def which_tests(combined_data:CombinedData):
                         prop_val = getattr(VarData,prop.name)(*var_data)
                     except AttributeError:
                         prop_val = globals()[prop.name](*var_data)
-                    prop.__z3__ = z3.BoolVal(prop_val)
+                        prop.__z3__ = z3.BoolVal(prop_val)
                 
-                if prop.__z3__ == z3.BoolVal(False):
+                if not prop_val:
                     # import pdb; pdb.set_trace()
                     is_valid_test = False
+                    print(f"...but did not have variable property: {prop.name}")
                     break
             
             if (is_valid_test):
-                # import pdb; pdb.set_trace()
-                valid_tests.append(test)
+                print(f"...and all variable properties!")
+                valid_tests_names.append(test.name)
     
-    return valid_tests
+    # Reset all properties
+    for p in all_props():
+        p.reset()
+
+    return valid_tests_names
 
 
-def which_props(tests: list):
+def which_props(tests_names: list):
+    tests = []
+
+    for name in tests_names:
+        for test in all_tests():
+            if test.name == name:
+                test._populate_properties() 
+                tests.append(test)
+
     test_queries = []
     hard_constraints = []
     for test in tests:
@@ -528,12 +533,12 @@ def which_props(tests: list):
         return _tests_and_properties, _test_to_broken_properties
 
 
-test_to_properties, test_to_broken_properties = which_props([chi_square_test, students_t])
+# test_to_properties, test_to_broken_properties = which_props([chi_square_test, students_t])
 
 # print(ps)
-print("\nFound properties:")
-print(test_to_properties)
-print("\nProperties that could not be satisfied:")
-print(test_to_broken_properties)
+# print("\nFound properties:")
+# print(test_to_properties)
+# print("\nProperties that could not be satisfied:")
+# print(test_to_broken_properties)
 # If properties do not hold, need to go back to solver with partially concrete assertions
 # Use user assumptions to drive verification
