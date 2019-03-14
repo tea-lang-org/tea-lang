@@ -89,6 +89,7 @@ def test_get_props():
     tea.assume(assumptions)
 
     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
+    tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'mannwhitney_u'])
     # print(properties)
     import pdb; pdb.set_trace()
     
