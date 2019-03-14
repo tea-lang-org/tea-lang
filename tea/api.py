@@ -172,7 +172,7 @@ def divine_properties(vars:list, tests:list):
         combined_data = MultivariateData(vars, study_type, alpha=float(assumptions['alpha']))
 
     # test_to_properties, test_to_broken_properties = which_props(['mannwhitney_u', 'students_t'])
-    test_to_properties, test_to_broken_properties = which_props(tests)
+    test_to_properties, test_to_broken_properties = which_props(tests, vars)
 
     all_properties_are_satisfied = True
     for val in test_to_broken_properties.values():
@@ -194,15 +194,3 @@ def divine_properties(vars:list, tests:list):
     pp.pprint(test_to_properties)
     print("\nProperties that could not be satisfied:")
     pp.pprint(test_to_broken_properties)
-
-
-    # test_to_properties, test_to_broken_properties = which_props(['mannwhitney_u', 'chi_square_test'])
-    #
-    # # print(ps)
-    # import pprint
-    # print("\nProperties for Mann Whitney u test and the chi square test conflict.")
-    # pp = pprint.PrettyPrinter()
-    # print("\nFound properties:")
-    # pp.pprint(test_to_properties)
-    # print("\nProperties that could not be satisfied:")
-    # pp.pprint(test_to_broken_properties)

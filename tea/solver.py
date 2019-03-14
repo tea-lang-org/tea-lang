@@ -383,14 +383,6 @@ chi_square_test = StatisticalTest('chi_square', [x, y],
                                        categorical: [[x], [y]]
                                    })
 
-z = StatVar('z')
-w = StatVar('w')
-students_t.apply(z, w)
-mannwhitney_u.apply(z, w)
-chi_square_test.apply(z, w)
-
-axioms = construct_axioms([z, w])
-
 # Problem statement: Given a set of properties, tell me which tests are valid to run
 # This is a concrete (rather than symbolic) problem 
 # @param combined_data CombinedData object
@@ -462,12 +454,18 @@ def which_tests(combined_data:CombinedData):
     return valid_tests
 
 
-def which_props(tests_names: list):
-    tests = []
+def which_props(tests_names: list, var_names: List[str]):
+    stat_vars: List[StatVar] = []
+    for var_name in var_names:
+        stat_vars.append(StatVar(var_name))
 
-    for name in tests_names:
+    axioms = construct_axioms(stat_vars)
+
+    tests: List[StatisticalTest] = []
+    for test_name in tests_names:
         for test in all_tests():
-            if test.name == name:
+            if test.name == test_name:
+                test.apply(*stat_vars)
                 test._populate_properties() 
                 tests.append(test)
 
