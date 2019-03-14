@@ -359,6 +359,18 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
 
         # Compile CombinedData into solver objects
         tests = which_tests(combined_data)
+        print(tests)
+        for test in tests:
+            print("\nValid test: %s" % test.name)
+            print("Properties:")
+            for property in test._properties:
+                # if property.property.scope == "test":
+                #     continue
+                property_identifier = ""
+                for test_var in property.test_vars:
+                    property_identifier += f"variable {test_var.name} "
+                property_identifier += ": %s" % property._name
+                print(property_identifier)
 
 
         # Find test

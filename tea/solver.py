@@ -319,6 +319,9 @@ def construct_axioms(variables):  # List[StatVar]
         # If a variable is normal, then it cannot be categorical.
         _axioms.append(z3.Implies(normal(var).__z3__, z3.Not(categorical(var).__z3__)))
 
+        # If a variable is continuous or ordinal, it must be continuous.
+        _axioms.append(z3.Implies(continuous_or_ordinal(var).__z3__, continuous(var).__z3__))
+
         # If a variable has two categories, then it must be categorical.
         # _axioms.append(z3.Implies(two_x_variable_categories(var).__z3__, categorical(var).__z3__))
 
@@ -460,12 +463,12 @@ def which_tests(combined_data:CombinedData):
 
 def which_props(tests: list):
     test_queries = []
-    hard_constraints = []
+    important_soft_constraints = []
     for test in tests:
         # The Bool representing whether the test can be run with the given property
         # values is a hard constraint because we want to satisfy all tests, but may
         # not be able to.
-        hard_constraints.append(test.__z3__)
+        important_soft_constraints.append(test.__z3__)
 
         # The relationship of the properties of variables required to run a specific
         # test is an axiom and cannot be violated.
@@ -479,21 +482,21 @@ def which_props(tests: list):
     s = z3.Optimize()
 
     # Set weight of tests to large number so they are satisfied over properties.
-    print("\nHard constraints:")
-    for constraint in hard_constraints:
-        print(constraint)
+    # print("\nImportant soft constraints:")
+    for constraint in important_soft_constraints:
+        # print(constraint)
         s.add_soft(constraint, 1000)
 
     # Prefer to violate properties by giving them low weight.
-    print("\nSoft constraints:")
+    # print("\nSoft constraints:")
     for soft_constraint in test_queries:
-        print(soft_constraint)
+        # print(soft_constraint)
         s.add_soft(soft_constraint, 1)
 
     # Axioms cannot be violated.
-    print("\nAxioms:")
+    # print("\nHard constraints:")
     for axiom in axioms:
-        print(axiom)
+        # print(axiom)
         s.add(axiom)
 
     result = s.check()
@@ -516,10 +519,10 @@ def which_props(tests: list):
 
             # TODO: Unprotect test._properties.
             for test_property in test._properties:
-                print("property: %s" % test_property)
-                property_identifier = test_property._name
+                property_identifier = ""# test_property._name
                 for test_var in test_property.test_vars:
-                    property_identifier += "_%s" % test_var.name
+                    property_identifier += "variable %s : " % test_var.name
+                property_identifier += test_property._name
                 property_result = bool(model.evaluate(test_property.__z3__))
                 _tests_and_properties[test_name][property_identifier] = property_result
                 if not property_result:
@@ -528,12 +531,27 @@ def which_props(tests: list):
         return _tests_and_properties, _test_to_broken_properties
 
 
-test_to_properties, test_to_broken_properties = which_props([chi_square_test, students_t])
+test_to_properties, test_to_broken_properties = which_props([mannwhitney_u, students_t])
 
 # print(ps)
-print("\nFound properties:")
-print(test_to_properties)
+import pprint
+pp = pprint.PrettyPrinter()
+print("\nProperties for student's t test and Mann Whitney u test are complementary.")
+print("\nProperties:")
+pp.pprint(test_to_properties)
 print("\nProperties that could not be satisfied:")
-print(test_to_broken_properties)
+pp.pprint(test_to_broken_properties)
+
+
+test_to_properties, test_to_broken_properties = which_props([mannwhitney_u, chi_square_test])
+
+# print(ps)
+import pprint
+print("\nProperties for Mann Whitney u test and the chi square test conflict.")
+pp = pprint.PrettyPrinter()
+print("\nFound properties:")
+pp.pprint(test_to_properties)
+print("\nProperties that could not be satisfied:")
+pp.pprint(test_to_broken_properties)
 # If properties do not hold, need to go back to solver with partially concrete assertions
 # Use user assumptions to drive verification
