@@ -1,4 +1,4 @@
-from .ast import Variable, DataType
+from tea.ast import Variable, DataType
 
 import attr
 import pandas as pd

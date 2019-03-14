@@ -1,9 +1,9 @@
 from typing import Dict, Union
 from collections import OrderedDict
-from .ast import (  Variable, DataType, Literal,
+from tea.ast import (  Variable, DataType, Literal,
                     Relate, Relationship
                 )
-from .dataset import Dataset 
+from tea.dataset import Dataset
 
 iv_identifier = 'independent variable'
 dv_identifier = 'dependent variable'

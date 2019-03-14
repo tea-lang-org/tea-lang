@@ -1,9 +1,13 @@
-from .ast import *
-from .dataset import Dataset
-from .evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
-from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_tests
+from tea.ast import *
+from tea.dataset import Dataset
+from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
+from tea.evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_tests
 
+<<<<<<< HEAD
 from .solver import which_tests
+=======
+# from tea.solver import find_applicable_bivariate_tests
+>>>>>>> origin/test-to-property-work
 
 import attr
 from typing import Any

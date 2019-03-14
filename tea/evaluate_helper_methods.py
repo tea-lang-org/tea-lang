@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 from .global_vals import *
 from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
 # from .solver import Tests, Assumptions
+=======
+from tea.global_vals import *
+from tea.ast import *
+from tea.dataset import Dataset
+from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
+from tea.solver import Tests, Assumptions
+>>>>>>> origin/test-to-property-work
 
 import attr
 from typing import Any, Dict, List
