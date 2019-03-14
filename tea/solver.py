@@ -530,6 +530,7 @@ def which_props(tests_names: list):
                 if not property_result:
                     _test_to_broken_properties[test_name].append(property_identifier)
 
+        import pdb; pdb.set_trace()
         return _tests_and_properties, _test_to_broken_properties
 
 
