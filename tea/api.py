@@ -35,6 +35,7 @@ var_drange = 'range'
 
 # Assumptions
 # Stats properties
+assumptions = {}
 alpha_keywords = ['Type I (False Positive) Error Rate', 'alpha']
 alpha = 0.05
 
@@ -94,19 +95,24 @@ def define_study_design(design: Dict[str, str]):
     dataset_id = design[uid] if uid in design else None
     
 
-def assume(assumptions: Dict[str, str]): 
+def assume(user_assumptions: Dict[str, str]): 
     global alpha, alpha_keywords
+    global assumptions
 
-    if alpha_keywords[0] in assumptions:
-        if alpha_keywords[1] in assumptions:
-            assert (float(assumptions[alpha_keywords[0]]) == float(assumptions[alpha_keywords[1]]))
+    if alpha_keywords[0] in user_assumptions:
+        if alpha_keywords[1] in user_assumptions:
+            assert (float(user_assumptions[alpha_keywords[0]]) == float(user_assumptions[alpha_keywords[1]]))
     
     for keyword in alpha_keywords:
-        if keyword in assumptions:
-            alpha = float(assumptions[keyword])
+        if keyword in user_assumptions:
+            alpha = float(user_assumptions[keyword])
+
+    assumptions = user_assumptions
+    assumptions[alpha_keywords[1]] = alpha
 
 def hypothesize(vars: list, prediction: str=None): 
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
+    global assumptions
 
     assert(dataset_path)
     assert(vars_objs)
@@ -121,7 +127,7 @@ def hypothesize(vars: list, prediction: str=None):
     # Create and get back handle to AST node
     relationship = relate(v_objs, prediction)
     # Interpret AST node, Returns ResData object (?)
-    result = evaluate(dataset_obj, relationship, study_design)
+    result = evaluate(dataset_obj, relationship, assumptions, study_design)
 
 
     # Use assumptions and hypotheses for interpretation/reporting back to user

@@ -2,7 +2,7 @@ from .global_vals import *
 from .ast import *
 from .dataset import Dataset
 from .evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
-from .solver import Tests, Assumptions
+# from .solver import Tests, Assumptions
 
 import attr
 from typing import Any, Dict, List
@@ -452,7 +452,8 @@ def bootstrap():
 def lookup_function(name): 
     return globals()[name.lower()]
 
-def execute_tests(dataset, combined_data: CombinedData, tests: Dict[Tests, Assumptions]): 
+def execute_tests(dataset, combined_data: CombinedData, tests): 
+# def execute_tests(dataset, combined_data: CombinedData, tests: Dict[Tests, Assumptions]): 
     results = dict()
 
     stats_tests = []
@@ -477,7 +478,7 @@ def execute_tests(dataset, combined_data: CombinedData, tests: Dict[Tests, Assum
     return results
     
 
-
+"""
 def explanatory_strings_for_assumptions(assumptions: Assumptions) -> List[str]:
     explanation = []
     if assumptions & Assumptions.INDEPENDENT_OBSERVATIONS:
@@ -548,3 +549,4 @@ def explanatory_strings_for_assumptions(assumptions: Assumptions) -> List[str]:
         "Not all assumptions have a corresponding explanatory string: %s" % assumptions
 
     return explanation
+"""

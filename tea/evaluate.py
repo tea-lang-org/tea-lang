@@ -3,7 +3,7 @@ from .dataset import Dataset
 from .evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
 from .evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_tests
 
-from .solver import find_applicable_bivariate_tests
+from .solver import which_tests
 
 import attr
 from typing import Any
@@ -17,7 +17,7 @@ import pandas as pd
 # import bootstrapped as bs
 
 # TODO: Pass participant_id as part of experimental design, not load_data
-def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
+def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: Dict[str, str]=None):
     if isinstance(expr, Variable):
         dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
         # then use query to get raw data later....(for user, not interpreter?)
@@ -350,19 +350,23 @@ def evaluate(dataset: Dataset, expr: Node, design: Dict[str, str]=None):
         combined_data = None
         # Do we have a Bivariate analysis?
         if len(vars) == 2: 
-            combined_data = BivariateData(vars, study_type) 
+            combined_data = BivariateData(vars, study_type, alpha=float(assumptions['alpha'])) 
         else: # Do we have a Multivariate analysis?
-            combined_data = MultivariateData(vars, study_type)
+            combined_data = MultivariateData(vars, study_type, alpha=float(assumptions['alpha']))
         
         # Compute between variable level properties
         combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
 
+        # Compile CombinedData into solver objects
+        tests = which_tests(combined_data)
+        
+
         # Find test
         # Offload to solver
         # tests has Test -- Assumptions
-        tests = find_applicable_bivariate_tests(combined_data)
+        # tests = find_applicable_bivariate_tests(combined_data)
         # output has Test -- Results
-        output = execute_tests(dataset, combined_data, tests)
+        # output = execute_tests(dataset, combined_data, tests)
 
         # Construct ResultData object?
 

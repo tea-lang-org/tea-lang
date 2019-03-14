@@ -29,7 +29,7 @@ class VarData(Value):
     properties = attr.ib(default=dict())
     role = attr.ib(default=None)
 
-    def is_normal(self, alpha):
+    def is_normal(self, alpha=0.05):
         global distribution
 
         return self.properties[distribution][1] >= alpha
@@ -45,6 +45,24 @@ class VarData(Value):
     def is_ordinal(self):
         global data_type
         return self.metadata[data_type] is DataType.ORDINAL
+
+    def has_two_categories(self): 
+        if (self.is_categorical()): 
+            return len(self.metadata[categories].keys()) == 2
+        return False
+
+    # def has_all_x_categorical(self): 
+    #     xs = self.get_explanatory_variables()
+
+    #     for x in xs: 
+    #         if x.metadata[data_type] is DataType.INTERVAL:
+    #             return False
+    #         elif x.metadata[data_type] is DataType.RATIO: 
+    #             return False
+    #         else: 
+    #             pass
+        
+    #     return True
     
     def get_sample_size(self): 
         return self.properties[sample_size]
@@ -60,8 +78,12 @@ class CombinedData(Value):
     vars = attr.ib(default=[]) # list of VarData objects 
     study_type = attr.ib(default=observational_identifier)
     # set of characteristics about the groups that are used to determine statistical test
-    properties = attr.ib(default=dict())
     alpha = attr.ib(type=float, default=0.05)
+    properties = attr.ib(default=dict())
+    
+
+    def _update_vars(self):
+        self.vars = self.get_explanatory_variables() + self.get_explained_variables()
 
     # Null Hypothesis: Groups come from populations with equal variance
     def has_equal_variance(self): 
@@ -77,13 +99,19 @@ class CombinedData(Value):
 
         return self.properties[paired]
 
+    def has_independent_observations(self):
+        global paired
+        
+        return not self.properties[paired]
+
     def difference_between_paired_value_is_normal(self):
         if not self.has_paired_observations():
             return False
         assert False, "Implement this property to convey information about whether difference" \
                       "between paired values is normally distributed."
     
-    # @return list of VarData instances that are in this object's vars that have the @param role
+    # @return list of VarData instances that are in this object's 
+    # vars that have the @param role
     def get_vars(self, role: str): 
         role_vars = []
         for v in self.vars:
@@ -91,7 +119,7 @@ class CombinedData(Value):
                 role_vars.append(v) 
         
         return role_vars
-    
+
     def get_explanatory_variables(self): 
         explanatory_variables = None
         
@@ -113,6 +141,24 @@ class CombinedData(Value):
             explained_variables  = self.get_vars(outcome_identifier)
             
         return explained_variables
+
+    def has_one_x(self): 
+        xs = self.get_explanatory_variables()
+
+        return len(xs) == 1
+    
+    def has_one_y(self): 
+        ys = self.get_explained_variables()
+
+        return len(ys) == 1
+     
+    def has_equal_variance(self): 
+        global eq_variance
+
+        assert(eq_variance in self.properties)
+        
+        return self.properties[eq_variance]
+
 
 @attr.s(init=True, auto_attribs=True)
 class BivariateData(CombinedData):
@@ -138,3 +184,6 @@ class ResData(Value):
         reason = f"\nBecause of these properties of the data: {self.properties}"
 
         return summary + test + reason
+
+def is_continuous_or_ordinal(var: VarData): 
+    return var.is_continuous() or var.is_ordinal()
