@@ -43,7 +43,7 @@ def test_indep_t_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['So', 'Prob'])
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
 def test_get_props():
     variables = [
@@ -73,7 +73,7 @@ def test_get_props():
 
     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'mannwhitney_u'])
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     
 
 
