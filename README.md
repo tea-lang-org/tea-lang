@@ -15,7 +15,7 @@ Have fun :)
 To run test: `pytest tests/integration_tests/test_integration.py`
 
 The main code base is written in Python and lives in the `tea` directory. The `tests` directory is used for developing and debugging and uses datasets in the `datasets` directory. Not all the datasets used in `tests/test_tea.py` are included in the `datasets` repository. 
-
+`tea/solver.py` contains the constraint solving module for both tests -> properties and properties -> tests.
 `tea/ast.py` implements Tea's Abstract Syntax Tree (AST). 
 `tea/build.py` builds up Tea's AST for programs.
 `tea/dataset.py` contains a runtime data structure that represents and contains the data the user provides. 
