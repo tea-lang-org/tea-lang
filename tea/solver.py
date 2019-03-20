@@ -359,7 +359,7 @@ welchs_t = StatisticalTest('welchs_t', [x, y],
                                   categorical : [[x]],
                                   two_categories: [[x]],
                                   continuous: [[y]],
-                                  normal: [[y]],
+                                  groups_normal: [[y]], # TODO: Check that each group is normally distributed
                                 })
 
 mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
