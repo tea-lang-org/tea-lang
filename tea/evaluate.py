@@ -365,12 +365,14 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             print("Properties:")
             properties = test.properties()
             for prop in properties:
-                # if property.property.scope == "test":
-                #     continue
                 property_identifier = ""
-                for test_var in test.test_vars:
-                    property_identifier += f"variable {test_var.name} "
-                property_identifier += ": %s" % prop.name
+                if prop.scope == "test":
+                    property_identifier = test.name + ": " + prop.name
+                else:
+                    for var_indices in test.properties_for_vars[prop]:
+                        for var_index in var_indices:
+                            property_identifier += f"variable {test.test_vars[var_index].name} "
+                        property_identifier += ": %s" % prop.name
                 print(property_identifier)
 
         # Get results from exectuing statistical tests
