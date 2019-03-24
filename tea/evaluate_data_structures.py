@@ -30,7 +30,7 @@ class VarData(Value):
     role = attr.ib(default=None)
 
     def is_normal(self, alpha=0.05):
-        global distribution
+        global normal_distribution
 
         return self.properties[distribution][1] >= alpha
 

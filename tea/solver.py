@@ -1,7 +1,4 @@
 import attr
-# import z3
-# from .global_vals import *
-# from enum import Flag, auto
 import z3
 # from z3 import BoolVal, Bool, Optimize, And, sat
 from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
@@ -88,13 +85,6 @@ class StatisticalTest:
     # This needs to store number of variables
     # each property needs to be mapped to variable
     # 
-    # effectives 
-    # 
-    # Test("foo", 
-    #   test_vars=[v1, v2], 
-    #   test_props=[p5],
-    #   properties_for_vars={ p1: v1, p2: v2, p3: v3 }])
-    # 
     def __init__(self, name, test_vars, test_properties=None, properties_for_vars=None):
         global __test_map__, __ALL_TESTS__
         self.name = name
@@ -135,7 +125,12 @@ class StatisticalTest:
         self._properties = []
         for prop in self.test_properties:
             # This is weird, and doesn't really fit into property model
-            self._properties.append(prop(StatVar(self.name)))
+            # Alternative: Assign test-level properties to all the variables rather than
+            # the test name
+            # self._properties.append(prop(StatVar(self.name)))
+            variables = [v for v in self.test_vars]
+            # import pdb; pdb.set_trace()
+            self._properties.append(prop(*variables))
 
         for prop in self.properties_for_vars:
             list_of_variable_indices = self.properties_for_vars[prop]
@@ -171,7 +166,7 @@ class StatisticalTest:
         global __test_map__
         return __test_map__.get(var)
 
-
+@attr.s(hash=False, init=False, repr=False, str=False)
 class Property:
     name: str
     description: str
@@ -216,6 +211,11 @@ class Property:
         # self.__cache__[tuple(var_names)] = ap
         return ap
 
+    # Only used when the property must be changed depending on input data
+    def _update(self, arity):
+        self.arity = arity
+        self.reset()
+
     def reset(self):
         args = []
         for _ in range(self.arity):
@@ -223,7 +223,7 @@ class Property:
         args.append(z3.BoolSort())
         self.__z3__ = z3.Function(self.name, *args)  # e.g. continuous(x)
 
-
+@attr.s(hash=False, init=False, repr=False, str=False)
 class AppliedProperty:
     property: Property
 
@@ -269,11 +269,14 @@ class AppliedProperty:
 
 
 # Test properties
+# Arity is hard coded to 10 right now. Need to make more extensible.
 one_x_variable = Property('has_one_x', "Exactly one explanatory variable", 'test')
 one_y_variable = Property('has_one_y', "Exactly one explained variable", 'test')
-paired = Property('has_paired_observations', "Paired observations", 'test')
-independent = Property('has_independent_observations', "Independent (not paired) observations", 'test')
-# not_paired = Property('not_paired', "Paired observations", 'test')
+paired_obs = Property('has_paired_observations', "Paired observations", 'test')
+independent_obs = Property('has_independent_observations', "Independent (not paired) observations", 'test')
+# not_paired = Property('not_paired', "Paired observations", 'test') 
+
+test_props = [one_x_variable, one_y_variable, paired_obs, independent_obs]
 
 # Variable properties
 categorical = Property('is_categorical', "Variable is categorical", 'variable')
@@ -284,7 +287,8 @@ continuous = Property('is_continuous', "Continuous (not categorical) data", 'var
 # We could create a disjunction of continuous \/ ordinal instead
 continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", 'variable')
 normal = Property('is_normal', "Normal distribution", 'variable')
-eq_variance = Property('has_equal_variance', "Equal variance", 'test')
+eq_variance = Property('has_equal_variance', "Equal variance", 'variable', 2)
+
 
 two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 'variable', 2)
 
@@ -343,24 +347,25 @@ y = StatVar('y')
 
 students_t = StatisticalTest('students_t', [x, y],
                             test_properties=
-                                [one_x_variable, one_y_variable, independent, eq_variance],
+                                [one_x_variable, one_y_variable, independent_obs],
                             properties_for_vars={
                                   categorical : [[x]],
                                   two_categories: [[x]],
                                   continuous: [[y]],
                                   normal: [[y]],
-                                #   eq_variance: [x, y] # Not sure about this
+                                  eq_variance: [[x, y]] # Not sure about this
                                 })
 
 welchs_t = StatisticalTest('welchs_t', [x, y],
                             test_properties=
-                                [one_x_variable, one_y_variable, independent],
+                                [one_x_variable, one_y_variable, independent_obs],
                             properties_for_vars={
                                   categorical : [[x]],
                                   two_categories: [[x]],
                                   continuous: [[y]],
-                                  groups_normal: [[y]], # TODO: Check that each group is normally distributed
+                                #   groups_normal: [[y]], # TODO: Check that each group is normally distributed
                                 })
+"""                           
 
 mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
                             test_properties=
@@ -373,6 +378,7 @@ mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
                                 #   eq_variance: [x, y] # Is this an assumption of mann whitney??
                                 })                                
 
+
 # Specify variable properties as list of lists so that the same property can
 # apply to multiple variables individually. If "categorical" is specified twice,
 # only the second variable is kept because it overwrites the first entry in the
@@ -382,13 +388,201 @@ chi_square_test = StatisticalTest('chi_square', [x, y],
                                    properties_for_vars={
                                        categorical: [[x], [y]]
                                    })
+"""
+
+def pass_all_test_props(test: StatisticalTest):
+    conj = [test_prop.__z3__ for test_prop in test.test_properties]
+
+    return all(pred == True for pred in conj)
+
+
+def has_one_x(combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+
+    return len(xs) == 1
+
+def has_one_y(combined_data: CombinedData): 
+    ys = combined_data.get_explained_variables()
+
+    return len(ys) == 1
+
+def has_independent_observations(combined_data: CombinedData):
+    global paired
+
+    return not combined_data.properties[paired]
+
+def has_paired_observations(combined_data: CombinedData):
+    global paired
+
+    return combined_data.properties[paired]
+
+def has_equal_variance(combined_data: CombinedData):
+    xs = None
+    ys = None
+    cat_xs = []
+    cont_ys = []
+    grouped_data = []
+    
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+
+    for x in xs: 
+        if x.is_categorical(): 
+            cat_xs.append(x)
+    
+    for y in ys: 
+        if y.is_continuous(): 
+            cont_ys.append(y)
+    
+    combined_data.properties[eq_variance] = None
+
+    if cat_xs and cont_ys: 
+        for y in ys:
+            for x in xs: 
+                cat = [k for k,v in x.metadata[categories].items()]
+                for c in cat: 
+                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                    grouped_data.append(data)
+                if isinstance(combined_data, BivariateData):
+                    # Equal variance
+                    eq_var = compute_eq_variance(grouped_data)
+                    combined_data.properties[eq_variance] = eq_var
+                elif isinstance(combined_data, MultivariateData):
+                    combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
+                else: 
+                    raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
+
+
+# Verify the property against data
+# TODO: May not need to be an AppliedProperty instance
+def verify_prop(combined_data: CombinedData, prop, solver):
+    # TODO: Use __property_to_function__ rather than globals
+    import pdb; pdb.set_trace()
+    prop_val = globals()[prop.name](combined_data)
+    
+    # import pdb; pdb.set_trace()
+    prop.__z3__ = z3.BoolVal(prop_val)
+    solver.add(prop == z3.BoolVal(prop_val))
+    # import pdb; pdb.set_trace()
+    # return prop_val
+
+
+# Assumes properties to hold
+def assume_properties(assumptions: Dict[str,str], solver): 
+    global assumptions_to_properties
+
+    # assumed_props = []
+    
+    # Go through all assumptions
+    for a in assumptions: 
+        # Apply corresponding properties to all variables for which the property is assumed
+        for prop in all_props(): 
+            if a in assumptions_to_properties and prop.name == assumptions_to_properties[a]: 
+                for var in assumptions[a]: 
+                    ap = prop(StatVar(var))
+                    solver.add(ap.__z3__ == z3.BoolVal(True))
+                    # ap.__z3__ = z3.BoolVal(True)
+                    # assumed_props.append(ap)
+        
+    # return assumed_props
 
 # Problem statement: Given a set of properties, tell me which tests are valid to run
 # This is a concrete (rather than symbolic) problem 
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
-def which_tests(combined_data:CombinedData):
+def synthesize_tests(assumptions: Dict[str,str], combined_data: CombinedData):
+    global name
+
+    # Reorder variables so that y var is at the end
+    combined_data._update_vars() 
+    # Assume properties are True based on user assumptions
+    s = z3.Solver()
+    assume_properties(assumptions, s)
+    # Update the arity of test-level properties
+    for prop in test_props: 
+        prop._update(len(combined_data.vars))
+
+    # Apply all tests to the variables we are considering now in combined_data
+    # TODO: Need to update the properties so that their z3 variable gets updated, not just Property arity. 
+    # Probably add a function to take care arity and z3??
+    for test in all_tests(): 
+        variables = combined_data.vars
+        stat_vars = []
+        for var in variables: 
+            stat_vars.append(StatVar(var.metadata[name]))
+        
+        test.apply(*stat_vars)
+
+    # Identify the tests that could apply given assumptions
+    # (Reduce search space)
     
+    tests_to_permute = []    
+
+    """
+    for test in all_tests(): 
+        # all_test_props_hold = True
+        # Optimization: Check that the test-level properties hold
+        for test_prop in test.query():
+            # Apply property to test variables
+            # And verify the property holds for the data
+            
+            for k,v in __property_map__.items():
+                import pdb; pdb.set_trace()
+            verify_prop(combined_data, test_prop, s)
+
+        if pass_all_test_props(test):
+            tests_to_permute.append(test)
+        
+    # For tests that could apply, 
+    # synthesize what properties and tests must hold
+    for test in tests_to_permute:
+        test.query()
+        import pdb; pdb.set_trace()
+    """
+    
+    # Add the tests and their properties
+    for test in all_tests():
+        s.add(test.__z3__ == z3.And(*test.query()))
+    
+    # Verify that the properties hold
+    # Add values for properties
+    for test in all_tests(): 
+        s.add(test.__z3__ == z3.BoolVal(True))
+    
+    result = s.check()
+    if result == z3.unsat:
+        print("no solution")
+    elif result == z3.unknown:
+        print("failed to solve")
+        try:
+            print(s.model())
+        except z3.Z3Exception:
+            return
+    else:
+        model = s.model()
+    import pdb; pdb.set_trace()
+
+
+    # for prop in assumed_props:
+    #     import pdb; pdb.set_trace()
+    #     s.add(prop == z3.BoolVal(True))
+    import pdb; pdb.set_trace()
+
+            
+            
+
+        
+        
+    # For all tests where the test-level properties hold, 
+    # check the variable properties
+
+    # Verify (same as above??)
+        
+            
+
+
+
+#### OLDER VERSION BELOW ####
     valid_tests = []
 
     # Apply all test properties
@@ -397,13 +591,14 @@ def which_tests(combined_data:CombinedData):
         prop.__z3__ = z3.BoolVal(prop_val)
 
     for test in all_tests(): 
-        pass_all_test_props = True
+        # pass_all_test_props = True
         # check all test_properties first
-        for prop in test.test_properties: 
+        for prop in test.test_properties:
+            import pdb; pdb.set_trace() 
             # If any test property is False, stop checking
             # the remaining test properties
             if prop.__z3__ == z3.BoolVal(False): 
-                pass_all_test_props = False
+                # pass_all_test_props = False
                 break
             # prop.reset()
 

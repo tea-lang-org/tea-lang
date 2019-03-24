@@ -173,6 +173,7 @@ def divine_properties(vars:list, tests:list):
 
     # test_to_properties, test_to_broken_properties = which_props(['mannwhitney_u', 'students_t'])
     test_to_properties, test_to_broken_properties = which_props(tests, vars)
+    
 
     all_properties_are_satisfied = True
     for val in test_to_broken_properties.values():
@@ -191,6 +192,7 @@ def divine_properties(vars:list, tests:list):
 
     # print("\nProperties for student's t test and Mann Whitney u test are complementary.")
     print("\nProperties:")
+    import pdb; pdb.set_trace()
     pp.pprint(test_to_properties)
     print("\nProperties that could not be satisfied:")
     pp.pprint(test_to_broken_properties)

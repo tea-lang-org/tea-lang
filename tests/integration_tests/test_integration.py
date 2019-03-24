@@ -34,7 +34,8 @@ def test_indep_t_test():
                             'outcome variables': 'Prob',
                         }
     assumptions = {
-        'Type I (False Positive) Error Rate': 0.05
+        'Type I (False Positive) Error Rate': 0.05,
+        'normal distribution': ['So']
     }
 
     tea.data(uscrime_data_path)
@@ -45,34 +46,34 @@ def test_indep_t_test():
     tea.hypothesize(['So', 'Prob'])
     # import pdb; pdb.set_trace()
 
-def test_get_props():
-    variables = [
-        {
-            'name' : 'So',
-            'data type' : 'nominal',
-            'categories' : ['0', '1']
-        },
-        {
-            'name' : 'Prob',
-            'data type' : 'ratio',
-            'range' : [0,1]
-        }
-    ]
-    experimental_design = {
-                            'study type': 'observational study',
-                            'contributor variables': 'So',
-                            'outcome variables': 'Prob',
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05
-    }
+# def test_get_props():
+#     variables = [
+#         {
+#             'name' : 'So',
+#             'data type' : 'nominal',
+#             'categories' : ['0', '1']
+#         },
+#         {
+#             'name' : 'Prob',
+#             'data type' : 'ratio',
+#             'range' : [0,1]
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'observational study',
+#                             'contributor variables': 'So',
+#                             'outcome variables': 'Prob',
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05
+#     }
 
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions)
 
-    tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
-    tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'mannwhitney_u'])
+#     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
+#     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'mannwhitney_u'])
     # import pdb; pdb.set_trace()
     
 

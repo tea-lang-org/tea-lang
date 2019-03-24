@@ -16,7 +16,8 @@ contributor_identifier = 'contributor variables'
 #quasi_experiment = 'quasi_experiment'
 
 # For statistical properties of data
-distribution = 'normal distribution'
+normal_distribution = 'normal distribution'
+log_normal_distribution = 'log normal distribution'
 variance = 'variance'
 sample_size = 'sample size'
 num_categories = 'number of categories'
@@ -29,4 +30,12 @@ name = 'var_name'
 data_type = 'dtype'
 categories = 'categories'
 query = 'query'
+
+# For solver
+# Maps assumption names (from user) to property names
+assumptions_to_properties = {
+    normal_distribution : 'is_normal',
+    log_normal_distribution : 'is_log_normal',
+    eq_variance : 'has_equal_variance'
+}
 

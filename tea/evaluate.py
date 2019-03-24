@@ -1,8 +1,8 @@
 from tea.ast import *
 from tea.dataset import Dataset
 from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
-from tea.evaluate_helper_methods import determine_study_type, assign_roles, compute_data_properties, compute_combined_data_properties, execute_tests
-from .solver import which_tests
+from tea.evaluate_helper_methods import determine_study_type, assign_roles, add_paired_property, compute_data_properties, compute_combined_data_properties, execute_tests
+from .solver import synthesize_tests
 # from tea.solver import find_applicable_bivariate_tests
 
 import attr
@@ -345,7 +345,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         vars = assign_roles(vars, study_type, design)
 
         # Compute individual variable properties
-        vars = compute_data_properties(dataset, vars) 
+        # vars = compute_data_properties(dap1ataset, vars) 
         
         combined_data = None
         # Do we have a Bivariate analysis?
@@ -354,11 +354,18 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         else: # Do we have a Multivariate analysis?
             combined_data = MultivariateData(vars, study_type, alpha=float(assumptions['alpha']))
         
+        # Add paired property
+        add_paired_property(dataset, combined_data, study_type, design) # check sample sizes are identical
         # Compute between variable level properties
-        combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
+        # combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
 
-        # Find test (ask solver)
-        tests = which_tests(combined_data)
+        # CEGIS-style synthesis
+        # Synthesize tests
+        tests = synthesize_tests(assumptions, combined_data)
+        # verify_properties(properties_and_tests)
+        # get_tests
+        # execute_tests
+        # interpret_tests_results
         # print(tests)
         for test in tests:
             print("\nValid test: %s" % test.name)
