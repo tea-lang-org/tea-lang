@@ -1,12 +1,13 @@
 import attr
 import z3
-# from z3 import BoolVal, Bool, Optimize, And, sat
+from tea.dataset import Dataset
 from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
-from tea.evaluate_data_structures import is_continuous_or_ordinal
+from tea.evaluate_helper_methods import get_data, compute_normal_distribution, compute_eq_variance
 from tea.global_vals import *
 from typing import Dict, List
 
 # Prog -> List[StatisticalTest] -> Query
+alpha = 0.01 # Default
 
 # Contains a map from z3 variables representing tests
 # back to the test objects allowing us to map back
@@ -274,50 +275,135 @@ class AppliedProperty:
         return __property_var_map__.get(name)
 
 # Functions to verify properties
-def has_one_x(combined_data: CombinedData): 
+def is_bivariate(dataset: Dataset, combined_data: CombinedData, alpha):
+    return len(combined_data.vars) == 2
+    # could also do...
+    # return isinstance(combined_data, BivariateData)
+
+def is_multivariate(datset: Dataset, combined_data: CombinedData, alpha):
+    return len(combined_data.vars) > 2
+    # could also do...
+    # return isinstance(combined_data, MultivariateData)
+
+def has_one_x(dataset: Dataset, combined_data: CombinedData, alpha): 
     xs = combined_data.get_explanatory_variables()
 
     return len(xs) == 1
 
-def has_one_y(combined_data: CombinedData): 
+def has_one_y(dataset: Dataset, combined_data: CombinedData, alpha): 
     ys = combined_data.get_explained_variables()
 
     return len(ys) == 1
 
-def has_paired_observations(combined_data: CombinedData):
+def has_paired_observations(dataset: Dataset, combined_data: CombinedData, alpha):
     global paired
 
     return combined_data.properties[paired]
 
-def has_independent_observations(combined_data: CombinedData):
+def has_independent_observations(dataset: Dataset, combined_data: CombinedData, alpha):
     global paired
 
     return not combined_data.properties[paired]
 
+def has_equal_variance(dataset: Dataset, combined_data: CombinedData, alpha):
+    xs = None
+    ys = None
+    cat_xs = []
+    cont_ys = []
+    grouped_data = []
+    
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+
+    for x in xs: 
+        if x.is_categorical(): 
+            cat_xs.append(x)
+    
+    for y in ys: 
+        if y.is_continuous(): 
+            cont_ys.append(y)
+    
+    # combined_data.properties[eq_variance] = None
+
+    if cat_xs and cont_ys: 
+        for y in ys:
+            for x in xs: 
+                cat = [k for k,v in x.metadata[categories].items()]
+                for c in cat: 
+                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                    grouped_data.append(data)
+                if isinstance(combined_data, BivariateData):
+                    # Equal variance
+                    eq_var = compute_eq_variance(grouped_data)
+                # elif isinstance(combined_data, MultivariateData):
+                #     combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
+                else: 
+                    raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
+
+    return (eq_var[1] < alpha)
+
+
+def is_categorical_var(dataset, var_data, alpha):
+    assert(len(var_data) == 1)
+    assert(isinstance(var_data[0], VarData))
+
+    return var_data[0].is_categorical()
+
+def has_two_categories(dataset, var_data, alpha): 
+    assert(len(var_data) == 1)
+    assert(isinstance(var_data[0], VarData))
+
+    # First check that the variable is categorical
+    assert(is_categorical_var(dataset, var_data, alpha))
+    return len(var_data[0].metadata[categories].keys()) == 2
+
+def is_continuous_var(dataset, var_data, alpha):
+    assert(len(var_data) == 1)
+    assert(isinstance(var_data[0], VarData))
+
+    return var_data[0].is_continuous()
+
+def is_continuous_or_ordinal_var(dataset, var_data, alpha):
+    assert(len(var_data) == 1)
+    assert(isinstance(var_data[0], VarData))
+
+    return is_continuous_var(dataset, var_data, alpha) or var_data[0].is_ordinal()
+
+def has_normal_distribution(dataset, var_data, alpha):
+    assert(len(var_data) == 1)
+    assert(isinstance(var_data[0], VarData))
+
+    # Must be continuous to be normally distributed
+    assert(is_continuous_var(dataset, var_data, alpha))
+    # Get data from datasest using var_data's query 
+    data = get_data(dataset, var_data[0])
+    norm_test_results = compute_normal_distribution(data)
+
+    return (norm_test_results[1] < alpha)
 
 # Test properties
-# Arity is hard coded to 10 right now. Need to make more extensible.
+bivariate = Property('is_bivariate', "Exactly two variables involved in analysis", 'test', is_bivariate)
 one_x_variable = Property('has_one_x', "Exactly one explanatory variable", 'test', has_one_x)
 one_y_variable = Property('has_one_y', "Exactly one explained variable", 'test', has_one_y)
 paired_obs = Property('has_paired_observations', "Paired observations", 'test', has_paired_observations)
 independent_obs = Property('has_independent_observations', "Independent (not paired) observations", 'test', has_independent_observations)
 # not_paired = Property('not_paired', "Paired observations", 'test') 
 
-test_props = [one_x_variable, one_y_variable, paired_obs, independent_obs]
+test_props = [bivariate, one_x_variable, one_y_variable, paired_obs, independent_obs]
 
 # Variable properties
-categorical = Property('is_categorical', "Variable is categorical", 'variable')
-two_categories = Property('has_two_categories', "Variable has two categories", 'variable')
+categorical = Property('is_categorical', "Variable is categorical", 'variable', is_categorical_var)
+two_categories = Property('has_two_categories', "Variable has two categories", 'variable', has_two_categories)
 # all_x_variables_categorical = Property('has_all_x_categorical', "All explanatory variables are categorical", 'variable')
 # two_x_variable_categories = Property('has_two_categories_x_var', "Exactly two categories in explanatory variable", 'variable')
-continuous = Property('is_continuous', "Continuous (not categorical) data", 'variable')
+continuous = Property('is_continuous', "Continuous (not categorical) data", 'variable', is_continuous_var)
 # We could create a disjunction of continuous \/ ordinal instead
-continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", 'variable')
-normal = Property('is_normal', "Normal distribution", 'variable')
-eq_variance = Property('has_equal_variance', "Equal variance", 'variable', None, arity=2)
+continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", 'variable', is_continuous_or_ordinal_var)
+normal = Property('is_normal', "Normal distribution", 'variable', has_normal_distribution)
+eq_variance = Property('has_equal_variance', "Equal variance", 'variable', has_equal_variance, arity=2)
 
 
-two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 'variable', 2)
+# two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 'variable', 2)
 
 # def has_one_x_variable(combined_data: CombinedData): 
 #     pass
@@ -374,7 +460,7 @@ y = StatVar('y')
 
 students_t = StatisticalTest('students_t', [x, y],
                             test_properties=
-                                [one_x_variable, one_y_variable, independent_obs],
+                                [bivariate, one_x_variable, one_y_variable, independent_obs],
                             properties_for_vars={
                                   categorical : [[x]],
                                   two_categories: [[x]],
@@ -385,7 +471,7 @@ students_t = StatisticalTest('students_t', [x, y],
 
 welchs_t = StatisticalTest('welchs_t', [x, y],
                             test_properties=
-                                [one_x_variable, one_y_variable, independent_obs],
+                                [bivariate, one_x_variable, one_y_variable, independent_obs],
                             properties_for_vars={
                                   categorical : [[x]],
                                   two_categories: [[x]],
@@ -417,79 +503,45 @@ chi_square_test = StatisticalTest('chi_square', [x, y],
                                    })
 """
 
-def pass_all_test_props(test: StatisticalTest):
-    conj = [test_prop.__z3__ for test_prop in test.test_properties]
-
-    return all(pred == True for pred in conj)
-
-def has_equal_variance(combined_data: CombinedData):
-    xs = None
-    ys = None
-    cat_xs = []
-    cont_ys = []
-    grouped_data = []
-    
-    xs = combined_data.get_explanatory_variables()
-    ys = combined_data.get_explained_variables()
-
-    for x in xs: 
-        if x.is_categorical(): 
-            cat_xs.append(x)
-    
-    for y in ys: 
-        if y.is_continuous(): 
-            cont_ys.append(y)
-    
-    combined_data.properties[eq_variance] = None
-
-    if cat_xs and cont_ys: 
-        for y in ys:
-            for x in xs: 
-                cat = [k for k,v in x.metadata[categories].items()]
-                for c in cat: 
-                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-                    grouped_data.append(data)
-                if isinstance(combined_data, BivariateData):
-                    # Equal variance
-                    eq_var = compute_eq_variance(grouped_data)
-                    combined_data.properties[eq_variance] = eq_var
-                elif isinstance(combined_data, MultivariateData):
-                    combined_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
-                else: 
-                    raise ValueError(f"combined_data_data object is neither BivariateData nor MultivariateData: {type(combined_data)}")
-
-
 # Verify the property against data
-# TODO: May not need to be an AppliedProperty instance
-def verify_prop(combined_data: CombinedData, prop):
-    prop_val = __property_to_function__[prop](combined_data)
+def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedProperty):
+    global alpha
+
+    if (len(prop.test_vars) == len(combined_data.vars)):
+        kwargs = {'dataset': dataset, 'combined_data': combined_data, 'alpha': alpha}
+        prop_val = __property_to_function__[prop.__z3__](**kwargs)    
+    else: 
+        assert (len(prop.test_vars) < len(combined_data.vars))
+        var_data = []
+        for test_var in prop.test_vars:
+            for var in combined_data.vars:
+                if var.metadata[name] == test_var.name:
+                    var_data.append(var)
+        kwargs = {'dataset': dataset, 'var_data': var_data, 'alpha': alpha}
+        prop_val = __property_to_function__[prop.__z3__](**kwargs)
     
     return prop_val
 
 # Assumes properties to hold
 def assume_properties(assumptions: Dict[str,str], solver): 
-    global assumptions_to_properties
+    global assumptions_to_properties, alpha
 
-    # assumed_props = []
-    
     # Go through all assumptions
     for a in assumptions: 
+        if a in alpha_keywords:
+            alpha = float(assumptions[a])
         # Apply corresponding properties to all variables for which the property is assumed
         for prop in all_props(): 
             if a in assumptions_to_properties and prop.name == assumptions_to_properties[a]: 
                 for var in assumptions[a]: 
                     ap = prop(StatVar(var))
                     solver.add(ap.__z3__ == z3.BoolVal(True))
-                    # ap.__z3__ = z3.BoolVal(True)
-                    # assumed_props.append(ap)
-        
-    # return assumed_props
 
 # Problem statement: Given a set of properties, tell me which tests are valid to run
 # This is a concrete (rather than symbolic) problem 
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
-def synthesize_tests(assumptions: Dict[str,str], combined_data: CombinedData):
+def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
     global name
 
     # Reorder variables so that y var is at the end
@@ -536,12 +588,12 @@ def synthesize_tests(assumptions: Dict[str,str], combined_data: CombinedData):
                 # Does the test apply?
                 if model.evaluate(test.__z3__):
                     # Verify the properties for that test
-                    for prop in test.query():
+                    for prop in test._properties:
                         # Does this property need to hold for the test to be valid?
                         # If so, verify that the property does hold
-                        if model.evaluate(prop):
-                            val = verify_prop(combined_data, prop)
-                            s.add(prop == z3.BoolVal(val))
+                        if model.evaluate(prop.__z3__):
+                            val = verify_prop(dataset, combined_data, prop)
+                            s.add(prop.__z3__ == z3.BoolVal(val))
                             import pdb; pdb.set_trace()
 
 

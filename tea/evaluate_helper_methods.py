@@ -226,9 +226,8 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
 # and D’Agostino, R. and Pearson, E. S. (1973), “Tests for departure from normality”, Biometrika, 60, 613-622
 # Null hypothesis is that distribution comes from Normal Distribution
 # Rejecting null means that distribution is NOT normal
-def compute_distribution(data):
+def compute_normal_distribution(data):
     norm_test = stats.normaltest(data, axis=0)
-    # could just reutrn norm_test directly???
     return (norm_test[0], norm_test[1])
     # TODO: may want to compute/find the best distribution if not normal
  
@@ -245,6 +244,11 @@ def compute_variance(data):
 def compute_eq_variance(groups_data):
     levene_test = stats.levene(*groups_data)
     return (levene_test[0], levene_test[1])
+
+# Queries dataset using var_data's query
+# @returns data for var_data according to its internally held query
+def get_data(dataset: Dataset, var: VarData):
+    return dataset.select(var.metadata[name], where=f"{var.metadata[query]}")
 
 def is_normal(comp_data: CombinedData, alpha, data=None):
     if (data is not None): # raw data being checked for normality

@@ -33,9 +33,10 @@ query = 'query'
 
 # For solver
 # Maps assumption names (from user) to property names
+alpha_keywords = ['Type I (False Positive) Error Rate', 'alpha']
+
 assumptions_to_properties = {
     normal_distribution : 'is_normal',
     log_normal_distribution : 'is_log_normal',
     eq_variance : 'has_equal_variance'
 }
-

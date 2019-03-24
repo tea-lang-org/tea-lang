@@ -46,10 +46,10 @@ class VarData(Value):
         global data_type
         return self.metadata[data_type] is DataType.ORDINAL
 
-    def has_two_categories(self): 
-        if (self.is_categorical()): 
-            return len(self.metadata[categories].keys()) == 2
-        return False
+    # def has_two_categories(self): 
+    #     if (self.is_categorical()): 
+    #         return len(self.metadata[categories].keys()) == 2
+    #     return False
 
     # def has_all_x_categorical(self): 
     #     xs = self.get_explanatory_variables()
@@ -93,6 +93,14 @@ class CombinedData(Value):
             return self.properties[eq_variance][1] >= self.alpha  # Cannot reject null hypothesis of equal variances
         else: 
             return False
+    
+    # def has_equal_variance(self): 
+    #     global eq_variance
+
+    #     assert(eq_variance in self.properties)
+        
+    #     return self.properties[eq_variance]
+
 
     def has_paired_observations(self):
         global paired 
@@ -152,12 +160,6 @@ class CombinedData(Value):
 
         return len(ys) == 1
      
-    def has_equal_variance(self): 
-        global eq_variance
-
-        assert(eq_variance in self.properties)
-        
-        return self.properties[eq_variance]
 
 
 @attr.s(init=True, auto_attribs=True)

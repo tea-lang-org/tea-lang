@@ -1,7 +1,3 @@
-# from . import ast
-# from . import build
-# from . import evaluate
-
 from tea.build import (load_data, load_data_from_url, const,
                     ordinal, isordinal,
                     nominal, isnominal,
@@ -39,8 +35,7 @@ var_drange = 'range'
 # Assumptions
 # Stats properties
 assumptions = {}
-alpha_keywords = ['Type I (False Positive) Error Rate', 'alpha']
-alpha = 0.05
+alpha = 0.01
 
 all_results = {} # Used for multiple comparison correction
 
