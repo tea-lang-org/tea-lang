@@ -523,6 +523,7 @@ welchs_t = StatisticalTest('welchs_t', [x, y],
                                   categorical : [[x]],
                                   two_categories: [[x]],
                                   continuous: [[y]],
+                                  groups_normal: [[x, y]]
                                 #   groups_normal: [[y]], # TODO: Check that each group is normally distributed
                                 })
 """                           
@@ -633,7 +634,10 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         result = solver.check()
         if result == z3.unsat:
             print("no more solutions")
-            solver.pop()
+            print(solver.num_scopes())
+            solver.pop() 
+            import pdb; pdb.set_trace()
+            # model = solver.model() # may need to do a check before call model
         elif result == z3.unknown:
             print("failed to solve")
             try:
@@ -642,31 +646,37 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                 return
         else:
             model = solver.model()
+            test_invalid = False
             # Does the test apply?
             # Would this ever be false??
-            if model.evaluate(test.__z3__):
+            if model and is_true(model.evaluate(test.__z3__)):
                 # Verify the properties for that test
                 for prop in test._properties:
                     # Does this property need to hold for the test to be valid?
                     # If so, verify that the property does hold
-                    if model.evaluate(prop.__z3__):
+                    if model and is_true(model.evaluate(prop.__z3__)):
                         val = verify_prop(dataset, combined_data, prop)
-                        if not val: # The property does not check
+                        if not val and not test_invalid: # The property does not check
                             solver.pop() # remove the last test
+                            test_invalid = True
+                            model = None
+                            # solver.add(prop.__z3__ == z3.BoolVal(val))
                             # Break to prevent from trying to remove test twice.
                             # If one property is violated, subsequent properties don't need to be checked
-                            break 
+                            # break 
+                        # import pdb; pdb.set_trace()
                         solver.add(prop.__z3__ == z3.BoolVal(val))
-            solver.push()            
+        solver.push()
 
+    import pdb; pdb.set_trace()
     tests_to_conduct = []
     # Could add all the test props first 
     # Then add all the tests 
     for test in all_tests():
         if model and is_true(model.evaluate(test.__z3__)):
             tests_to_conduct.append(test.name)
-        elif not model: # if model does not ex
-            pass  
+        elif not model: # No test applies
+            pass
 
     return tests_to_conduct
 
