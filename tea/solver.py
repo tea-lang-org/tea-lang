@@ -324,8 +324,6 @@ def has_equal_variance(dataset: Dataset, combined_data: CombinedData, alpha):
         if y.is_continuous(): 
             cont_ys.append(y)
     
-    # combined_data.properties[eq_variance] = None
-
     if cat_xs and cont_ys: 
         for y in ys:
             for x in xs: 
@@ -343,6 +341,38 @@ def has_equal_variance(dataset: Dataset, combined_data: CombinedData, alpha):
 
     return (eq_var[1] < alpha)
 
+def has_groups_normal_distribution(dataset, combined_data, alpha):
+    xs = None
+    ys = None
+    cat_xs = []
+    cont_ys = []
+    grouped_data = []
+    
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+
+    for x in xs: 
+        if x.is_categorical(): 
+            cat_xs.append(x)
+    
+    for y in ys: 
+        if y.is_continuous(): 
+            cont_ys.append(y)
+    
+    if cat_xs and cont_ys: 
+        for y in ys:
+            for x in xs: 
+                cat = [k for k,v in x.metadata[categories].items()]
+                for c in cat: 
+                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                    grouped_data.append(data)
+
+                for group in grouped_data:
+                    group_normal_test_results = compute_normal_distribution(group)
+                    if (group_normal_test_results[1] <= alpha):
+                        return False
+
+    return True
 
 def is_categorical_var(dataset, var_data, alpha):
     assert(len(var_data) == 1)
@@ -380,7 +410,7 @@ def has_normal_distribution(dataset, var_data, alpha):
     data = get_data(dataset, var_data[0])
     norm_test_results = compute_normal_distribution(data)
 
-    return (norm_test_results[1] < alpha)
+    return (norm_test_results[1] > alpha)
 
 # Test properties
 bivariate = Property('is_bivariate', "Exactly two variables involved in analysis", 'test', is_bivariate)
@@ -400,6 +430,7 @@ two_categories = Property('has_two_categories', "Variable has two categories", '
 continuous = Property('is_continuous', "Continuous (not categorical) data", 'variable', is_continuous_var)
 # We could create a disjunction of continuous \/ ordinal instead
 continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", 'variable', is_continuous_or_ordinal_var)
+groups_normal = Property('is_groups_normal', "Groups are normally distributed", 'variable', has_groups_normal_distribution, arity=2)
 normal = Property('is_normal', "Normal distribution", 'variable', has_normal_distribution)
 eq_variance = Property('has_equal_variance', "Equal variance", 'variable', has_equal_variance, arity=2)
 
@@ -470,7 +501,7 @@ students_t = StatisticalTest('students_t', [x, y],
                                   categorical : [[x]],
                                   two_categories: [[x]],
                                   continuous: [[y]],
-                                  normal: [[y]], # TODO: This should be about each group
+                                  groups_normal: [[x, y]],
                                   eq_variance: [[x, y]] 
                                 })
 
@@ -481,7 +512,7 @@ paired_students_t = StatisticalTest('paired_students_t', [x, y],
                                   categorical : [[x]],
                                   two_categories: [[x]],
                                   continuous: [[y]],
-                                  normal: [[y]], # TODO: This should be about each group
+                                  groups_normal: [[x, y]],
                                   eq_variance: [[x, y]]
                                 })
 
@@ -622,96 +653,22 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                         val = verify_prop(dataset, combined_data, prop)
                         if not val: # The property does not check
                             solver.pop() # remove the last test
+                            # Break to prevent from trying to remove test twice.
+                            # If one property is violated, subsequent properties don't need to be checked
+                            break 
                         solver.add(prop.__z3__ == z3.BoolVal(val))
             solver.push()            
 
+    tests_to_conduct = []
     # Could add all the test props first 
     # Then add all the tests 
     for test in all_tests():
         if model and is_true(model.evaluate(test.__z3__)):
-            print(test.name)
-            import pdb; pdb.set_trace()
+            tests_to_conduct.append(test.name)
         elif not model: # if model does not ex
-            pass        
-    
-    import pdb; pdb.set_trace()
+            pass  
 
-        
-        
-    # For all tests where the test-level properties hold, 
-    # check the variable properties
-
-    # Verify (same as above??)
-        
-            
-
-
-
-#### OLDER VERSION BELOW ####
-    valid_tests = []
-
-    # Apply all test properties
-    for prop in subset_props('test'): 
-        prop_val = getattr(CombinedData,prop.name)(combined_data)
-        prop.__z3__ = z3.BoolVal(prop_val)
-
-    for test in all_tests(): 
-        # pass_all_test_props = True
-        # check all test_properties first
-        for prop in test.test_properties:
-            # If any test property is False, stop checking
-            # the remaining test properties
-            if prop.__z3__ == z3.BoolVal(False): 
-                # pass_all_test_props = False
-                break
-            # prop.reset()
-
-        # Check variable properties only if all test properties pass
-        # If the test properties don't all pass, the test does not apply
-        if pass_all_test_props:
-            print(f"\nPassed test-level properties for {test.name}...")
-            is_valid_test = True
-            # Assume that last variable in test.test_vars is the dependent variable (y)
-            combined_data._update_vars() # reorder variables so that y var is at the end
-
-            # Compile VarData to StatVar
-            stat_vars = []
-            data_vars = combined_data.vars
-            for var in data_vars:
-                stat_vars.append(StatVar(var.metadata[name]))
-            
-            test.apply(*stat_vars) # Apply test to variables
-
-            var_props = test.properties_for_vars
-            for prop, list_indices in var_props.items():
-                for indices in list_indices:
-                    # check the prop on the variable that corresponds to the index
-                    var_data = []
-                    for i in indices: 
-                        var_data.append(data_vars[i])
-                    try:
-                        prop_val = getattr(VarData,prop.name)(*var_data)
-                    except AttributeError:
-                        prop_val = globals()[prop.name](*var_data)
-                        prop.__z3__ = z3.BoolVal(prop_val)
-                
-                if not prop_val:
-                    # import pdb; pdb.set_trace()
-                    is_valid_test = False
-                    print(f"...but did not have variable property: {prop.name}")
-                    break
-            
-            if (is_valid_test):
-                print(f"...and all variable properties!")
-
-                valid_tests.append(test)
-    
-    # Reset all properties
-    for p in all_props():
-        p.reset()
-
-    return valid_tests
-
+    return tests_to_conduct
 
 def which_props(tests_names: list, var_names: List[str]):
     stat_vars: List[StatVar] = []

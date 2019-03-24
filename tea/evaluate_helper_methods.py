@@ -238,7 +238,7 @@ def compute_variance(data):
 # Levene test to test for equal variances - Leven is more robust to nonnormal data than Bartlett's test
 # Null Hypothesis is that samples have the same variances
 # Rejecting null means that samples have different variances
-# Default/currently using .05 alpha level
+# TODO: ??? Default/currently using .05 alpha level
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
 
 def compute_eq_variance(groups_data):

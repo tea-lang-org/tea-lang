@@ -35,7 +35,7 @@ def test_indep_t_test():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
-        'normal distribution': ['So']
+        # 'normal distribution': ['So']
     }
 
     tea.data(uscrime_data_path)

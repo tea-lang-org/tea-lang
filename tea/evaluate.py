@@ -362,6 +362,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         # CEGIS-style synthesis
         # Synthesize tests
         tests = synthesize_tests(dataset, assumptions, combined_data)
+        import pdb; pdb.set_trace()
         # verify_properties(properties_and_tests)
         # get_tests
         # execute_tests
