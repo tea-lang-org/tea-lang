@@ -143,6 +143,8 @@ class StatisticalTest:
         return self.test_properties + list(self.properties_for_vars)
 
     def query(self):  # May want to change this....
+        global __property_to_function__
+
         self._populate_properties()  # Apply to specific instance of variables
         # if self.__query__ is None:
         conj = []
@@ -152,6 +154,9 @@ class StatisticalTest:
             # Add the uf, and interpret the uf as always ==ing the instantiated BoolVal
             # conj += [p.__z3__, p.__z3__ == p.__var__]
             conj += [p.__z3__]
+
+            # Add property to property to function map
+            __property_to_function__[p.__z3__] = p.property.function
 
         return conj
         # self.__query__ = query
@@ -172,7 +177,7 @@ class Property:
     description: str
     arity: int
 
-    def __init__(self, name, description, scope, arity=1):
+    def __init__(self, name, description, scope, function=None, arity=1):
         global __property_map__, __ALL_PROPERTIES__
 
         self.name = name
@@ -181,6 +186,7 @@ class Property:
             self.scope = scope
         else: 
             raise ValueError(f"Either TEST or VARIABLE is possible, but received {scope}")
+        self.function = function
         self.arity = arity
         args = []
         for _ in range(self.arity):
@@ -267,13 +273,34 @@ class AppliedProperty:
         global __property_var_map__
         return __property_var_map__.get(name)
 
+# Functions to verify properties
+def has_one_x(combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+
+    return len(xs) == 1
+
+def has_one_y(combined_data: CombinedData): 
+    ys = combined_data.get_explained_variables()
+
+    return len(ys) == 1
+
+def has_paired_observations(combined_data: CombinedData):
+    global paired
+
+    return combined_data.properties[paired]
+
+def has_independent_observations(combined_data: CombinedData):
+    global paired
+
+    return not combined_data.properties[paired]
+
 
 # Test properties
 # Arity is hard coded to 10 right now. Need to make more extensible.
-one_x_variable = Property('has_one_x', "Exactly one explanatory variable", 'test')
-one_y_variable = Property('has_one_y', "Exactly one explained variable", 'test')
-paired_obs = Property('has_paired_observations', "Paired observations", 'test')
-independent_obs = Property('has_independent_observations', "Independent (not paired) observations", 'test')
+one_x_variable = Property('has_one_x', "Exactly one explanatory variable", 'test', has_one_x)
+one_y_variable = Property('has_one_y', "Exactly one explained variable", 'test', has_one_y)
+paired_obs = Property('has_paired_observations', "Paired observations", 'test', has_paired_observations)
+independent_obs = Property('has_independent_observations', "Independent (not paired) observations", 'test', has_independent_observations)
 # not_paired = Property('not_paired', "Paired observations", 'test') 
 
 test_props = [one_x_variable, one_y_variable, paired_obs, independent_obs]
@@ -287,7 +314,7 @@ continuous = Property('is_continuous', "Continuous (not categorical) data", 'var
 # We could create a disjunction of continuous \/ ordinal instead
 continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", 'variable')
 normal = Property('is_normal', "Normal distribution", 'variable')
-eq_variance = Property('has_equal_variance', "Equal variance", 'variable', 2)
+eq_variance = Property('has_equal_variance', "Equal variance", 'variable', None, arity=2)
 
 
 two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 'variable', 2)
@@ -395,27 +422,6 @@ def pass_all_test_props(test: StatisticalTest):
 
     return all(pred == True for pred in conj)
 
-
-def has_one_x(combined_data: CombinedData): 
-    xs = combined_data.get_explanatory_variables()
-
-    return len(xs) == 1
-
-def has_one_y(combined_data: CombinedData): 
-    ys = combined_data.get_explained_variables()
-
-    return len(ys) == 1
-
-def has_independent_observations(combined_data: CombinedData):
-    global paired
-
-    return not combined_data.properties[paired]
-
-def has_paired_observations(combined_data: CombinedData):
-    global paired
-
-    return combined_data.properties[paired]
-
 def has_equal_variance(combined_data: CombinedData):
     xs = None
     ys = None
@@ -455,17 +461,10 @@ def has_equal_variance(combined_data: CombinedData):
 
 # Verify the property against data
 # TODO: May not need to be an AppliedProperty instance
-def verify_prop(combined_data: CombinedData, prop, solver):
-    # TODO: Use __property_to_function__ rather than globals
-    import pdb; pdb.set_trace()
-    prop_val = globals()[prop.name](combined_data)
+def verify_prop(combined_data: CombinedData, prop):
+    prop_val = __property_to_function__[prop](combined_data)
     
-    # import pdb; pdb.set_trace()
-    prop.__z3__ = z3.BoolVal(prop_val)
-    solver.add(prop == z3.BoolVal(prop_val))
-    # import pdb; pdb.set_trace()
-    # return prop_val
-
+    return prop_val
 
 # Assumes properties to hold
 def assume_properties(assumptions: Dict[str,str], solver): 
@@ -512,61 +511,45 @@ def synthesize_tests(assumptions: Dict[str,str], combined_data: CombinedData):
             stat_vars.append(StatVar(var.metadata[name]))
         
         test.apply(*stat_vars)
-
-    # Identify the tests that could apply given assumptions
-    # (Reduce search space)
-    
-    tests_to_permute = []    
-
-    """
-    for test in all_tests(): 
-        # all_test_props_hold = True
-        # Optimization: Check that the test-level properties hold
-        for test_prop in test.query():
-            # Apply property to test variables
-            # And verify the property holds for the data
-            
-            for k,v in __property_map__.items():
-                import pdb; pdb.set_trace()
-            verify_prop(combined_data, test_prop, s)
-
-        if pass_all_test_props(test):
-            tests_to_permute.append(test)
-        
-    # For tests that could apply, 
-    # synthesize what properties and tests must hold
-    for test in tests_to_permute:
-        test.query()
-        import pdb; pdb.set_trace()
-    """
     
     # Add the tests and their properties
     for test in all_tests():
         s.add(test.__z3__ == z3.And(*test.query()))
-    
-    # Verify that the properties hold
-    # Add values for properties
-    for test in all_tests(): 
         s.add(test.__z3__ == z3.BoolVal(True))
     
-    result = s.check()
-    if result == z3.unsat:
-        print("no solution")
-    elif result == z3.unknown:
-        print("failed to solve")
-        try:
-            print(s.model())
-        except z3.Z3Exception:
-            return
-    else:
-        model = s.model()
-    import pdb; pdb.set_trace()
+    # TODO: This while loop doesnt seem right....
+    while (s.check() == z3.sat):
+        # Check the model 
+        result = s.check()
+        if result == z3.unsat:
+            print("no solution")
+        elif result == z3.unknown:
+            print("failed to solve")
+            try:
+                print(s.model())
+            except z3.Z3Exception:
+                return
+        else:
+            model = s.model()
+
+            for test in all_tests(): 
+                # Does the test apply?
+                if model.evaluate(test.__z3__):
+                    # Verify the properties for that test
+                    for prop in test.query():
+                        # Does this property need to hold for the test to be valid?
+                        # If so, verify that the property does hold
+                        if model.evaluate(prop):
+                            val = verify_prop(combined_data, prop)
+                            s.add(prop == z3.BoolVal(val))
+                            import pdb; pdb.set_trace()
 
 
-    # for prop in assumed_props:
-    #     import pdb; pdb.set_trace()
-    #     s.add(prop == z3.BoolVal(True))
+
+    # Could add all the test props first 
+    # Then add all the tests 
     import pdb; pdb.set_trace()
+
 
             
             
@@ -594,7 +577,6 @@ def synthesize_tests(assumptions: Dict[str,str], combined_data: CombinedData):
         # pass_all_test_props = True
         # check all test_properties first
         for prop in test.test_properties:
-            import pdb; pdb.set_trace() 
             # If any test property is False, stop checking
             # the remaining test properties
             if prop.__z3__ == z3.BoolVal(False): 
