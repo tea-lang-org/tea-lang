@@ -1,5 +1,6 @@
 import attr
 import z3
+from z3 import is_true 
 from tea.dataset import Dataset
 from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
 from tea.evaluate_helper_methods import get_data, compute_normal_distribution, compute_eq_variance
@@ -427,6 +428,9 @@ eq_variance = Property('has_equal_variance', "Equal variance", 'variable', has_e
 
 # two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 2)
 
+def construct_test_axioms(solver):
+    solver.add(paired_obs.__z3__ != independent_obs.__z3__)
+    
 
 def construct_axioms(variables):  # List[StatVar]
     _axioms = []
@@ -455,6 +459,7 @@ def construct_axioms(variables):  # List[StatVar]
     return _axioms
 
 
+
 x = StatVar('x')
 y = StatVar('y')
 
@@ -465,8 +470,19 @@ students_t = StatisticalTest('students_t', [x, y],
                                   categorical : [[x]],
                                   two_categories: [[x]],
                                   continuous: [[y]],
-                                  normal: [[y]],
-                                  eq_variance: [[x, y]] # Not sure about this
+                                  normal: [[y]], # TODO: This should be about each group
+                                  eq_variance: [[x, y]] 
+                                })
+
+paired_students_t = StatisticalTest('paired_students_t', [x, y],
+                            test_properties=
+                                [bivariate, one_x_variable, one_y_variable, paired_obs],
+                            properties_for_vars={
+                                  categorical : [[x]],
+                                  two_categories: [[x]],
+                                  continuous: [[y]],
+                                  normal: [[y]], # TODO: This should be about each group
+                                  eq_variance: [[x, y]]
                                 })
 
 welchs_t = StatisticalTest('welchs_t', [x, y],
@@ -547,8 +563,9 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     # Reorder variables so that y var is at the end
     combined_data._update_vars() 
     # Assume properties are True based on user assumptions
-    s = z3.Solver()
-    assume_properties(assumptions, s)
+    solver = z3.Solver()
+    # s = Tactic('qflia').solver()
+    assume_properties(assumptions, solver)
     # Update the arity of test-level properties
     for prop in test_props: 
         prop._update(len(combined_data.vars))
@@ -563,48 +580,61 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             stat_vars.append(StatVar(var.metadata[name]))
         
         test.apply(*stat_vars)
-    
+    """
+    # Maybe I don't need axioms because they are implicit in the verification step?
+    import pdb; pdb.set_trace()
+    construct_test_axioms(s)
+    # The axioms need to be for particular instance of property variables (not generic variables)
+    # Maybe we could add the generic and then prop()/call to make applied?? -- need correct z3 refs
+    # What does Maureen do for synthesize_props??
+    import pdb; pdb.set_trace()
+    """
+    solver.push() # Create backtracking point
+    model = None # Store model
+
+    # For each test, add it to the solver as a constraint. 
     # Add the tests and their properties
     for test in all_tests():
-        s.add(test.__z3__ == z3.And(*test.query()))
-        s.add(test.__z3__ == z3.BoolVal(True))
-    
-    # TODO: This while loop doesnt seem right....
-    while (s.check() == z3.sat):
+        solver.add(test.__z3__ == z3.And(*test.query()))
+        solver.add(test.__z3__ == z3.BoolVal(True))
+
         # Check the model 
-        result = s.check()
+        result = solver.check()
         if result == z3.unsat:
-            print("no solution")
+            print("no more solutions")
+            solver.pop()
         elif result == z3.unknown:
             print("failed to solve")
             try:
-                print(s.model())
+                print(solver.model())
             except z3.Z3Exception:
                 return
         else:
-            model = s.model()
-
-            for test in all_tests(): 
-                # Does the test apply?
-                if model.evaluate(test.__z3__):
-                    # Verify the properties for that test
-                    for prop in test._properties:
-                        # Does this property need to hold for the test to be valid?
-                        # If so, verify that the property does hold
-                        if model.evaluate(prop.__z3__):
-                            val = verify_prop(dataset, combined_data, prop)
-                            s.add(prop.__z3__ == z3.BoolVal(val))
-                            import pdb; pdb.set_trace()
-
-
+            model = solver.model()
+            # Does the test apply?
+            # Would this ever be false??
+            if model.evaluate(test.__z3__):
+                # Verify the properties for that test
+                for prop in test._properties:
+                    # Does this property need to hold for the test to be valid?
+                    # If so, verify that the property does hold
+                    if model.evaluate(prop.__z3__):
+                        val = verify_prop(dataset, combined_data, prop)
+                        if not val: # The property does not check
+                            solver.pop() # remove the last test
+                        solver.add(prop.__z3__ == z3.BoolVal(val))
+            solver.push()            
 
     # Could add all the test props first 
     # Then add all the tests 
+    for test in all_tests():
+        if model and is_true(model.evaluate(test.__z3__)):
+            print(test.name)
+            import pdb; pdb.set_trace()
+        elif not model: # if model does not ex
+            pass        
+    
     import pdb; pdb.set_trace()
-
-
-            
-            
 
         
         
