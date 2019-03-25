@@ -410,6 +410,7 @@ def has_normal_distribution(dataset, var_data, alpha):
 
 # Test properties
 bivariate = Property('is_bivariate', "Exactly two variables involved in analysis", is_bivariate)
+multivariate = Property('is_multivariate', "More than two variables involved in analysis", is_multivariate) # May not need this!
 one_x_variable = Property('has_one_x', "Exactly one explanatory variable", has_one_x)
 one_y_variable = Property('has_one_y', "Exactly one explained variable", has_one_y)
 paired_obs = Property('has_paired_observations', "Paired observations", has_paired_observations)
@@ -486,9 +487,95 @@ def construct_axioms(variables):  # List[StatVar]
     return _axioms
 
 
+# Multivariate tests that accept variable 
+
+spearmanr_corr = None
+kendalltau_corr = None
+pointbiserial_corr = None
+
+# The generic StatisticalTests have specific predefined arity.
+# Some multivariate statistical tests, however, have various arities. 
+# Therefore, support the construction of muliple generic StatisticalTests. 
+def construct_mutlivariate_tests(combined_data): 
+    construct_pearson_corr(combined_data)    
+    
+def construct_pearson_corr(combined_data): 
+    global pearson_corr
+
+    num_vars = len(combined_data.vars)
+
+    generic_vars = []
+    for i in range(num_vars): 
+        name = 'x' + str(i)
+        generic_vars.append(StatVar(name))
+    assert(num_vars == len(generic_vars))
+
+    test_props = []
+    if num_vars == 2: 
+        test_props.append(bivariate)
+    else: 
+        test_props.append(multivariate)
+    
+    list_generic_vars = [[v] for v in generic_vars]
+    pearson_corr = StatisticalTest('pearson_corr', generic_vars, 
+                                    test_properties=
+                                    test_props,
+                                    properties_for_vars={
+                                        continuous: list_generic_vars,
+                                        normal: list_generic_vars
+                                    })
+    
+def construct_kendalltau_corr(combined_data): 
+    global kendalltau_corr
+
+    num_vars = len(combined_data.vars)
+
+    generic_vars = []
+    for i in range(num_vars): 
+        name = 'x' + str(i)
+        generic_vars.append(StatVar(name))
+    assert(num_vars == len(generic_vars))
+
+    test_props = []
+    if num_vars == 2: 
+        test_props.append(bivariate)
+    else: 
+        test_props.append(multivariate)
+    
+    list_generic_vars = [[v] for v in generic_vars]
+    kendalltau_corr = StatisticalTest('kendalltau_corr', generic_vars, 
+                                    test_properties=
+                                    test_props,
+                                    properties_for_vars={
+                                        continuous: list_generic_vars,
+                                        normal: list_generic_vars
+                                    })
+
+    # Really naive way: 
+    # Pearson correlation 
+
+    # Tau correlation 
+
+    #....
+
+    # enumerate all tests that have variable arities. 
+    # Pro: Reuse StatVars
+    # Con: Hard to extend??
+    # for test in multivariate_tests: 
+
+    
+
 
 x = StatVar('x')
 y = StatVar('y')
+
+
+# pearson_corr = StatisticalTest('pearson_corr', [x,y],
+#                                 test_properties=
+#                                 [bivariate],
+#                                 properties_for_vars={
+#                                     continuous: [[x], [y]]
+#                                 })
 
 students_t = StatisticalTest('students_t', [x, y],
                             test_properties=
@@ -586,6 +673,7 @@ def assume_properties(assumptions: Dict[str,str], solver):
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
 def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
+    import pdb; pdb.set_trace()
     global name
 
     # Reorder variables so that y var is at the end
