@@ -363,19 +363,33 @@ def pearson_corr(iv: VarData, dv: VarData, predictions: list, comp_data: Combine
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
 # Parameters: a, b (b is optional) | axis (optional) 
-def spearman_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    assert(len(comp_data.dataframes) == 2)
-
+def spearman_corr(dataset: Dataset, combined_data: CombinedData):
+    assert(len(combined_data.vars) == 2)
+    
     data = []
-    for key, val in comp_data.dataframes.items():
-        # Use numbers for categories in ordinal data
-        if (is_ordinal(dv.metadata['dtype'])):
-            numeric = [dv.metadata['categories'][x] for x in val]
-            val = numeric
+    for var in combined_data.vars: 
+        var_data = get_data(dataset, var)
+        data.append(var_data)
 
-        data.append(val)
+    assert(len(data) == 2)
 
     return stats.spearmanr(data[0], data[1])
+
+# https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
+# Parameters: x (array-like) | y (array-like) : Arrays of rankings, of the same shape. If arrays are not 1-D, they will be flattened to 1-D.
+def kendalltau_corr(dataset: Dataset, combined_data: CombinedData): 
+    assert(len(combined_data.vars) == 2)
+    
+    data = []
+    for var in combined_data.vars: 
+        var_data = get_data(dataset, var)
+        data.append(var_data)
+
+    assert(len(data) == 2)
+
+    return stats.kendalltau(data[0], data[1])
+
+
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
@@ -383,52 +397,6 @@ def spearman_corr(iv: VarData, dv: VarData, predictions: list, comp_data: Combin
 def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     import pdb; pdb.set_trace()
     return stats.linregress(iv.dataframe, dv.dataframe)
-    
-
-## NAIVE IMPLEMENTATION RIGHT NOW
-# TODO: depending on ow linear constraing solver is implemented, may want to have two separate functions - 1) returns the name of the test/function and 2) get test with parameters, but not executed??
-# Based on the properties of data, find the most appropriate test to conduct
-# Return the test but do not execute
-# def find_test(dataset: Dataset, comp_data: CombinedData, iv, dv, predictions, design: Dict[str, str], **kwargs):
-#     # Two IV groups (only applies to nominal/ordinal IVs)
-#     if (len(comp_data.dataframes) == 2):
-#         if (is_nominal(iv.metadata['dtype']) and is_independent_samples(iv.metadata['var_name'], design)):
-#             if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
-#                 return lambda : t_test_ind(iv, dv, predictions, comp_data, **kwargs)
-#             elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
-#                 return lambda : mann_whitney_u(iv, dv, predictions, comp_data, **kwargs)
-#             elif (is_nominal(dv.metadata['dtype'])):
-#                 raise AssertionError('Not sure if Fishers is the correct test here - what if have more than 2 x 2 table??')
-#                 return lambda : fishers_exact(iv, dv, predictions, comp_data, **kwargs)
-#         elif (is_nominal(iv.metadata['dtype']) and is_dependent_samples(iv.metadata['var_name'], design)):
-#             if (is_numeric(dv.metadata['dtype']) and is_normal(comp_data, kwargs['alpha'])):
-#                 return lambda : t_test_paired(iv, dv, predictions, comp_data, **kwargs)
-#             elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
-#                 return lambda : wilcoxon_signed_rank(iv, dv, predictions, comp_data, **kwargs)
-#             elif (is_nominal(dv.metadata['dtype'])):
-#                 raise AssertionError('Not sure if McNemar is the correct test here - what if have more than 2 x 2 table??')
-#         elif (is_numeric(iv.metadata['dtype'])): # OR MOVE TO/REPEAT in outer IF/ELSE for comp_data.dataframes == 1??
-#             if (is_numeric(dv.metadata['dtype'])):
-#                 # Check normal distribution of both variables
-#                 if (is_normal(comp_data, kwargs['alpha'], comp_data.dataframes[dv.metadata['var_name']])):
-#                     # Check homoscedasticity
-#                     if (comp_data.properties.var[1] < kwargs['alpha']): 
-#                         return lambda : linear_regression(iv, dv, predictions, comp_data, **kwargs)
-#                     else:  
-#                         return lambda : pearson_corr(iv, dv, predictions, comp_data, **kwargs)
-#                 else: 
-#                     return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
-#             elif (is_numeric(dv.metadata['dtype']) or is_ordinal(dv.metadata['dtype'])):
-#                 return lambda : spearman_corr(iv, dv, predictions, comp_data, **kwargs)
-#             elif (is_nominal(dv.metadata['dtype'])):
-#                 # TODO depends on the number of outcome categories for nominal variable
-#                 raise AssertionError ('Not implemnted - simple logistic regression')
-#     elif (len(comp_data.dataframes) > 2):
-#         raise NotImplementedError
-#     else: 
-#         raise AssertionError('Trying to compare less than 1 variables....?')
-
-                
 
 # This is the function used to determine and then execute test based on CombinedData
 def execute_test_old(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: VarData, predictions: list, design: Dict[str,str]): 
@@ -461,6 +429,8 @@ def bootstrap():
 
 
 __stat_test_to_function__ = {
+    'kendalltau_corr' : kendalltau_corr,
+    'spearman_corr' : spearman_corr,
     'mannwhitney_u' : mannwhitney_u
 }
 
@@ -469,7 +439,7 @@ def lookup_function(test_name):
     if test_name in __stat_test_to_function__: 
         return __stat_test_to_function__[test_name]
     else: 
-        raise ValueError(f"Cannot find the test:{name}")
+        raise ValueError(f"Cannot find the test:{test_name}")
 
 def execute_test(dataset, combined_data: CombinedData, test):         
     # Get function handler

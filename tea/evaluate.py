@@ -392,6 +392,8 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             test_result = execute_test(dataset, combined_data, test, )
             results[test] = test_result
 
+        # TODO: Calculate effect size for experiments!!
+        
         # return ResultData object        
         return results
 

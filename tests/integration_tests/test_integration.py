@@ -3,13 +3,51 @@ import os
 
 base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
 uscrime_data_path = None
+states_path = None
+data_paths = [uscrime_data_path, states_path]
+file_names = ['UScrime.csv', 'statex77.csv']
 
-# def test_load_data():
-#     global base_url, uscrime_data_path
+def test_load_data():
+    global base_url, data_paths, file_names
 
-#     csv_name = 'UScrime.csv'
-#     csv_url = os.path.join(base_url, csv_name)
-#     uscrime_data_path = tea.download_data(csv_url, 'UScrime')
+    for i in range(len(data_paths)):
+        csv_name = file_names[i]
+
+        csv_url = os.path.join(base_url, csv_name)
+        data_paths[i] = tea.download_data(csv_url, csv_name)
+
+def test_corr(): 
+    states_path = "/Users/emjun/.tea/data/statex77.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Illiteracy',
+            'data type' : 'interval',
+            'categories' : [0, 100]
+        },
+        {
+            'name' : 'Life Exp',
+            'data type' : 'ratio',
+            # 'range' : [0,1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['Illiteracy', 'Life Exp'],
+                            'outcome variables': ''
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(states_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Illiteracy', 'Life Exp'])
+
 
 def test_indep_t_test():
     global uscrime_data_path
@@ -44,6 +82,7 @@ def test_indep_t_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['So', 'Prob'])
+
     # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
     # import pdb; pdb.set_trace()
 

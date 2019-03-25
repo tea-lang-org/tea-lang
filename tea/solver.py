@@ -525,32 +525,6 @@ def construct_pearson_corr(combined_data):
                                         normal: list_generic_vars
                                     })
     
-def construct_kendalltau_corr(combined_data): 
-    global kendalltau_corr
-
-    num_vars = len(combined_data.vars)
-
-    generic_vars = []
-    for i in range(num_vars): 
-        name = 'x' + str(i)
-        generic_vars.append(StatVar(name))
-    assert(num_vars == len(generic_vars))
-
-    test_props = []
-    if num_vars == 2: 
-        test_props.append(bivariate)
-    else: 
-        test_props.append(multivariate)
-    
-    list_generic_vars = [[v] for v in generic_vars]
-    kendalltau_corr = StatisticalTest('kendalltau_corr', generic_vars, 
-                                    test_properties=
-                                    test_props,
-                                    properties_for_vars={
-                                        continuous: list_generic_vars,
-                                        normal: list_generic_vars
-                                    })
-
     # Really naive way: 
     # Pearson correlation 
 
@@ -566,16 +540,58 @@ def construct_kendalltau_corr(combined_data):
     
 
 
+
+x0 = StatVar('x0')
+x1 = StatVar('x1')
+
+
+pearson_corr = StatisticalTest('pearson_corr', [x0, x1],
+                                test_properties=
+                                [bivariate],
+                                properties_for_vars={
+                                    continuous: [[x0], [x1]],
+                                    normal: [[x0], [x1]]
+                                })
+
+kendalltau_corr = StatisticalTest('kendalltau_corr', [x0, x1],
+                                test_properties=
+                                [bivariate],
+                                properties_for_vars={
+                                    continuous: [[x0], [x1]]
+                                })
+
+spearman_corr = StatisticalTest('spearman_corr', [x0, x1],
+                                test_properties=
+                                [bivariate],
+                                properties_for_vars={
+                                    continuous_or_ordinal: [[x0], [x1]]
+                                })
+
+## Need both? in case order of categortical and continuous differs? 
+## TODO: Could just sort before apply test? 
+pointbiserial_corr_a = StatisticalTest('pointbiserial_corr_a', [x0, x1],
+                                test_properties=
+                                [bivariate],
+                                properties_for_vars={
+                                    continuous: [[x1]],
+                                    normal: [[x1]],
+                                    categorical: [[x0]],
+                                    eq_variance: [[x0, x1]]
+
+                                })
+
+pointbiserial_corr_b = StatisticalTest('pointbiserial_corr_b', [x0, x1],
+                                test_properties=
+                                [bivariate],
+                                properties_for_vars={
+                                    continuous: [[x0]],
+                                    normal: [[x0]],
+                                    categorical: [[x1]],
+                                    eq_variance: [[x1, x0]]
+                                })                                
+
 x = StatVar('x')
 y = StatVar('y')
-
-
-# pearson_corr = StatisticalTest('pearson_corr', [x,y],
-#                                 test_properties=
-#                                 [bivariate],
-#                                 properties_for_vars={
-#                                     continuous: [[x], [y]]
-#                                 })
 
 students_t = StatisticalTest('students_t', [x, y],
                             test_properties=
@@ -673,7 +689,6 @@ def assume_properties(assumptions: Dict[str,str], solver):
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
 def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
-    import pdb; pdb.set_trace()
     global name
 
     # Reorder variables so that y var is at the end
@@ -687,30 +702,23 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         prop._update(len(combined_data.vars))
 
     # Apply all tests to the variables we are considering now in combined_data
-    # TODO: Need to update the properties so that their z3 variable gets updated, not just Property arity. 
-    # Probably add a function to take care arity and z3??
     for test in all_tests(): 
         variables = combined_data.vars
         stat_vars = []
         for var in variables: 
             stat_vars.append(StatVar(var.metadata[name]))
         
+        # TODO: Move the categorical variables to the front? (Among x and among y) -- for Point biserial??
+        # ^ Relates also the contributor/outcome variables...
         test.apply(*stat_vars)
-    """
-    # Maybe I don't need axioms because they are implicit in the verification step?
-    import pdb; pdb.set_trace()
-    construct_test_axioms(s)
-    # The axioms need to be for particular instance of property variables (not generic variables)
-    # Maybe we could add the generic and then prop()/call to make applied?? -- need correct z3 refs
-    # What does Maureen do for synthesize_props??
-    import pdb; pdb.set_trace()
-    """
+
     solver.push() # Create backtracking point
     model = None # Store model
 
     # For each test, add it to the solver as a constraint. 
     # Add the tests and their properties
     for test in all_tests():
+        # import pdb; pdb.set_trace()
         solver.add(test.__z3__ == z3.And(*test.query()))
         solver.add(test.__z3__ == z3.BoolVal(True))
 
@@ -739,6 +747,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     # If so, verify that the property does hold
                     if model and is_true(model.evaluate(prop.__z3__)):
                         val = verify_prop(dataset, combined_data, prop)
+                        # import pdb; pdb.set_trace()
                         if not val and not test_invalid: # The property does not check
                             solver.pop() # remove the last test
                             test_invalid = True
@@ -746,6 +755,9 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                         solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
 
+    # import pdb; pdb.set_trace()
+    solver.check()
+    model = solver.model() # final model
     # import pdb; pdb.set_trace()
     tests_to_conduct = []
     # Could add all the test props first 

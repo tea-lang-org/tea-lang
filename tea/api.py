@@ -65,7 +65,9 @@ def define_variables(vars: Dict[str, str]):
             categories = var[var_categories]
             v_obj = ordinal(name, categories)
         elif (var[var_dtype] == 'interval'): 
-            drange = var[var_drange]
+            drange=None
+            if var_drange in var: 
+                drange = var[var_drange]
             v_obj = interval(name, drange)
         else: 
             assert(var[var_dtype] == 'ratio')
