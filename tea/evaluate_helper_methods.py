@@ -293,14 +293,21 @@ def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedD
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
 # def utest(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
 def mannwhitney_u(dataset, combined_data: BivariateData):
-    # import pdb; pdb.set_trace()
     assert (len(combined_data.vars) == 2)
+    assert (len(combined_data.get_explanatory_variables()) == 1)
+    assert (len(combined_data.get_explained_variables()) == 1)
 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
     data = []
-    for var in combined_data.vars:
-        var_data = dataset.select(var.metadata[name], where=f"{var.metadata[query]}")
-        data.append(var_data)
 
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        data.append(cat_data)
+    
     return stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
@@ -424,7 +431,7 @@ def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: Co
                 
 
 # This is the function used to determine and then execute test based on CombinedData
-def execute_test(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: VarData, predictions: list, design: Dict[str,str]): 
+def execute_test_old(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: VarData, predictions: list, design: Dict[str,str]): 
     # For power we need sample size, effect size, alpha
     sample_size = 0
     # calculate sample size
@@ -452,37 +459,27 @@ def execute_test(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: Va
 def bootstrap():
     print('Do something with incoming data')
 
+
+__stat_test_to_function__ = {
+    'mannwhitney_u' : mannwhitney_u
+}
+
 # Returns the function that has the @param name
-def lookup_function(name): 
-    try: 
-        return globals()[name.lower()]
-    except:
+def lookup_function(test_name): 
+    if test_name in __stat_test_to_function__: 
+        return __stat_test_to_function__[test_name]
+    else: 
         raise ValueError(f"Cannot find the test:{name}")
 
-def execute_tests(dataset, combined_data: CombinedData, tests): 
-    results = dict()
+def execute_test(dataset, combined_data: CombinedData, test):         
+    # Get function handler
+    test_func = lookup_function(test)
 
-    # stats_tests = []
-    # for test, assumptions in tests.items(): 
-    #     stats_tests.append(test)
-
-    tests_names = []
-    for test in tests: 
-        tests_names.append(test.name)
-    
-    for t in tests_names: 
-        
-        # Get function handler
-        test_func = lookup_function(t)
-
-        # Execute the statistical test
-        stat_result = test_func(dataset, combined_data)
-
-        # Store results
-        results[t] = stat_result
+    # Execute the statistical test
+    stat_result = test_func(dataset, combined_data)
 
     # Return results
-    return results
+    return stat_result
     
 
 """

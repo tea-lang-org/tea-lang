@@ -44,6 +44,7 @@ def test_indep_t_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['So', 'Prob'])
+    # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
     # import pdb; pdb.set_trace()
 
 # def test_get_props():

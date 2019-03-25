@@ -1,7 +1,7 @@
 from tea.ast import *
 from tea.dataset import Dataset
 from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
-from tea.evaluate_helper_methods import determine_study_type, assign_roles, add_paired_property, compute_data_properties, compute_combined_data_properties, execute_tests
+from tea.evaluate_helper_methods import determine_study_type, assign_roles, add_paired_property, compute_data_properties, compute_combined_data_properties, execute_test
 from .solver import synthesize_tests
 # from tea.solver import find_applicable_bivariate_tests
 
@@ -362,7 +362,9 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         # CEGIS-style synthesis
         # Synthesize tests
         tests = synthesize_tests(dataset, assumptions, combined_data)
+        
         import pdb; pdb.set_trace()
+        """"
         # verify_properties(properties_and_tests)
         # get_tests
         # execute_tests
@@ -382,17 +384,16 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
                             property_identifier += f"variable {test.test_vars[var_index].name} "
                         property_identifier += ": %s" % prop.name
                 print(property_identifier)
+        """
+        
+        # Execute and store results from each valid test
+        results = {}
+        for test in tests: 
+            test_result = execute_test(dataset, combined_data, test, )
+            results[test] = test_result
 
-        # Get results from exectuing statistical tests
-        results = execute_tests(dataset, combined_data, tests)
-
-        # Construct ResultData object?
-        # For now...
-        # import pdb; pdb.set_trace()
+        # return ResultData object        
         return results
-
-        # return ResultData object
-
 
     elif isinstance(expr, Mean):
         var = evaluate(dataset, expr.var)

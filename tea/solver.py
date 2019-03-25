@@ -522,11 +522,10 @@ welchs_t = StatisticalTest('welchs_t', [x, y],
                                   groups_normal: [[x, y]]
                                 #   groups_normal: [[y]], # TODO: Check that each group is normally distributed
                                 })
-"""                           
 
 mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
                             test_properties=
-                                [one_x_variable, one_y_variable, independent],
+                                [one_x_variable, one_y_variable, independent_obs],
                             properties_for_vars={
                                   categorical : [[x]],
                                   two_categories: [[x]],
@@ -535,6 +534,7 @@ mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
                                 #   eq_variance: [x, y] # Is this an assumption of mann whitney??
                                 })                                
 
+"""
 
 # Specify variable properties as list of lists so that the same property can
 # apply to multiple variables individually. If "categorical" is specified twice,
@@ -632,7 +632,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             print("no more solutions")
             print(solver.num_scopes())
             solver.pop() 
-            import pdb; pdb.set_trace()
             # model = solver.model() # may need to do a check before call model
         elif result == z3.unknown:
             print("failed to solve")
@@ -659,7 +658,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                         solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
 
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     tests_to_conduct = []
     # Could add all the test props first 
     # Then add all the tests 

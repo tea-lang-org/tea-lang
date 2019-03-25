@@ -10,6 +10,7 @@ library (MASS)
 t.test(Prob ~ So, data=UScrime)
 # could also be written as 
 # t.test(y1, y2) # y1 and y2 dependent variables for the two groups
+wilcox.test(Prob ~ So, data=UScrime)
 
 # Dependent T-Test (p. 166)
 sapply(UScrime[c("U1", "U2")], function(x) (c(mean=mean(x), sd=sd(x))))
