@@ -47,15 +47,15 @@ def all_props():
     global __ALL_PROPERTIES__
     return __ALL_PROPERTIES__
 
-def subset_props(scope): 
-    """A helper for accessing subset of properties based on their scope (Test or variable, for now)"""
-    props = all_props()
-    selected_props = []
-    for p in props: 
-        if p.scope == scope:
-            selected_props.append(p)
+# def subset_props(scope): 
+#     """A helper for accessing subset of properties based on their scope (Test or variable, for now)"""
+#     props = all_props()
+#     selected_props = []
+#     for p in props: 
+#         if p.scope == scope:
+#             selected_props.append(p)
 
-    return selected_props
+#     return selected_props
 
 @attr.s(hash=False, cmp=False, auto_attribs=True, init=False)
 class StatVar:
@@ -179,15 +179,11 @@ class Property:
     description: str
     arity: int
 
-    def __init__(self, name, description, scope, function=None, arity=1):
+    def __init__(self, name, description, function=None, arity=1):
         global __property_map__, __ALL_PROPERTIES__
 
         self.name = name
         self.description = description
-        if scope == 'test' or scope == 'variable': 
-            self.scope = scope
-        else: 
-            raise ValueError(f"Either TEST or VARIABLE is possible, but received {scope}")
         self.function = function
         self.arity = arity
         args = []
@@ -413,26 +409,26 @@ def has_normal_distribution(dataset, var_data, alpha):
     return (norm_test_results[1] > alpha)
 
 # Test properties
-bivariate = Property('is_bivariate', "Exactly two variables involved in analysis", 'test', is_bivariate)
-one_x_variable = Property('has_one_x', "Exactly one explanatory variable", 'test', has_one_x)
-one_y_variable = Property('has_one_y', "Exactly one explained variable", 'test', has_one_y)
-paired_obs = Property('has_paired_observations', "Paired observations", 'test', has_paired_observations)
-independent_obs = Property('has_independent_observations', "Independent (not paired) observations", 'test', has_independent_observations)
-# not_paired = Property('not_paired', "Paired observations", 'test') 
+bivariate = Property('is_bivariate', "Exactly two variables involved in analysis", is_bivariate)
+one_x_variable = Property('has_one_x', "Exactly one explanatory variable", has_one_x)
+one_y_variable = Property('has_one_y', "Exactly one explained variable", has_one_y)
+paired_obs = Property('has_paired_observations', "Paired observations", has_paired_observations)
+independent_obs = Property('has_independent_observations', "Independent (not paired) observations", has_independent_observations)
+# not_paired = Property('not_paired', "Paired observations") 
 
 test_props = [bivariate, one_x_variable, one_y_variable, paired_obs, independent_obs]
 
 # Variable properties
-categorical = Property('is_categorical', "Variable is categorical", 'variable', is_categorical_var)
-two_categories = Property('has_two_categories', "Variable has two categories", 'variable', has_two_categories)
+categorical = Property('is_categorical', "Variable is categorical", is_categorical_var)
+two_categories = Property('has_two_categories', "Variable has two categories", has_two_categories)
 # all_x_variables_categorical = Property('has_all_x_categorical', "All explanatory variables are categorical", 'variable')
 # two_x_variable_categories = Property('has_two_categories_x_var', "Exactly two categories in explanatory variable", 'variable')
-continuous = Property('is_continuous', "Continuous (not categorical) data", 'variable', is_continuous_var)
+continuous = Property('is_continuous', "Continuous (not categorical) data", is_continuous_var)
 # We could create a disjunction of continuous \/ ordinal instead
-continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", 'variable', is_continuous_or_ordinal_var)
-groups_normal = Property('is_groups_normal', "Groups are normally distributed", 'variable', has_groups_normal_distribution, arity=2)
-normal = Property('is_normal', "Normal distribution", 'variable', has_normal_distribution)
-eq_variance = Property('has_equal_variance', "Equal variance", 'variable', has_equal_variance, arity=2)
+continuous_or_ordinal = Property('is_continuous_or_ordinal', "Continuous OR ORDINAL (not nominal) data", is_continuous_or_ordinal_var)
+groups_normal = Property('is_groups_normal', "Groups are normally distributed", has_groups_normal_distribution, arity=2)
+normal = Property('is_normal', "Normal distribution", has_normal_distribution)
+eq_variance = Property('has_equal_variance', "Equal variance", has_equal_variance, arity=2)
 
 
 # two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 'variable', 2)
@@ -660,13 +656,8 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                             solver.pop() # remove the last test
                             test_invalid = True
                             model = None
-                            # solver.add(prop.__z3__ == z3.BoolVal(val))
-                            # Break to prevent from trying to remove test twice.
-                            # If one property is violated, subsequent properties don't need to be checked
-                            # break 
-                        # import pdb; pdb.set_trace()
                         solver.add(prop.__z3__ == z3.BoolVal(val))
-        solver.push()
+        solver.push() # Push latest state as backtracking point
 
     import pdb; pdb.set_trace()
     tests_to_conduct = []
