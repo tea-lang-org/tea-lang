@@ -12,6 +12,7 @@ import copy
 from scipy import stats # Stats library used
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from statsmodels.formula.api import ols
 # import numpy as np # Use some stats from numpy instead
 import pandas as pd
 import bootstrapped as bs
@@ -357,9 +358,12 @@ def pearson_corr(dataset: Dataset, combined_data: CombinedData):
 # Parameters: a, b (b is optional) | axis (optional) 
 def spearman_corr(dataset: Dataset, combined_data: CombinedData):
     assert(len(combined_data.vars) == 2)
+    import pdb; pdb.set_trace()
     
     data = []
     for var in combined_data.vars: 
+        # TODO: Check that var is ordinal. If so, then assign all ordinal values numbers 
+        # Compare to without converting to numbers (in Evernote)
         var_data = get_data(dataset, var)
         data.append(var_data)
 
@@ -462,6 +466,40 @@ def fishers_exact(dataset: Dataset, combined_data: CombinedData):
 
     return stats.fisher_exact(contingency_table, alternative='two-sided')
 
+def f_test(dataset: Dataset, combined_data: CombinedData): 
+    
+    # Construct formula
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    assert(len(xs) == 1)
+    assert(len(ys) == 1)
+
+    x = xs[0]
+    y = ys[0]
+    
+    forumula = ols(f"{y.name} ~ {C(x.name)}", data=dataset.data)
+    import pdb; pdb.set_trace()
+    # >>> moore_lm = ols('conformity ~ C(fcategory, Sum)*C(partner_status, Sum)',
+                #  data=data).fit()
+    # >>> table = sm.stats.anova_lm(moore_lm, typ=2) # Type 2 Anova DataFrame
+
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
+def kruskall_wallis(dataset: Dataset, combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    assert (len(ys) == 1)
+    y = ys[0]
+
+    data = []
+    for x in xs: 
+        cat = [k for k,v in x.metadata[categories].items()]
+        for c in cat: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+            data.append(cat_data)
+    
+    return stats.kruskal(*data)
+
+
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
 # Parameters: x (array-like) | y (array-like)
 def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
@@ -504,6 +542,8 @@ __stat_test_to_function__ = {
     'chi_square' : chi_square,
     'fishers_exact' : fishers_exact,
     'mannwhitney_u' : mannwhitney_u,
+    'f_test' : f_test,
+    'kruskall_wallis' : kruskall_wallis
 }
 
 # Returns the function that has the @param name

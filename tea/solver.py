@@ -532,14 +532,27 @@ def construct_axioms(variables):  # List[StatVar]
     return _axioms
 
 
-# Multivariate tests that accept variable 
+bivariate_constructed = False
+multivariate_constructed = False
+# Constructs all the tests once
+# TODO: Move to a separate file/location
+def construct_all_tests(combined_data: CombinedData): 
+    global bivariate_constructed, multivariate_constructed
+
+    if not bivariate_constructed: 
+        construct_bivariate_tests()
+        bivariate_constructed = True
+
+    if not multivariate_constructed: 
+        construct_mutlivariate_tests(combined_data)
+        multivariate_constructed = True
 
 # The generic StatisticalTests have specific predefined arity.
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
 def construct_mutlivariate_tests(combined_data): 
     construct_f_test(combined_data)    
-
+    construct_kruskall_wallis_test(combined_data)
         
     # Really naive way: 
     # Pearson correlation 
@@ -576,7 +589,7 @@ def construct_f_test(combined_data):
 
     f_test = StatisticalTest('f_test', list_all_vars, # Variable number of factors
                                 test_properties=
-                                [independent_obs],
+                                [independent_obs, one_x_variable, one_y_variable],
                                 properties_for_vars={
                                 continuous: [list_y_vars],
                                 categorical: [list_x_vars], # Variable number of factors
@@ -584,117 +597,167 @@ def construct_f_test(combined_data):
                                 eq_variance: [list_all_vars] # Variable number of factors
                                 }) 
 
-x0 = StatVar('x0')
-x1 = StatVar('x1')
+kruskall_wallis = None
+def construct_kruskall_wallis_test(combined_data): 
+    global kruskall_wallis
 
+    num_vars = len(combined_data.vars)
 
-pearson_corr = StatisticalTest('pearson_corr', [x0, x1],
+    x_vars = []
+    y_vars = []
+    for i in range(num_vars): 
+        name = 'x' + str(i)
+        if (i <= num_vars - 2): # All but the last var
+            x_vars.append(StatVar(name))
+        else:
+            assert(i == num_vars - 1)
+            y_vars.append(StatVar(name)) # last var
+    assert(num_vars == len(x_vars) + len(y_vars))
+
+    list_x_vars = [[v] for v in x_vars]
+    list_y_vars = [[v] for v in y_vars]
+    list_all_vars = list_x_vars + list_y_vars
+
+    kruskall_wallis = StatisticalTest('kruskall_wallis', list_all_vars, # Variable number of factors
                                 test_properties=
-                                [bivariate],
+                                [independent_obs, one_x_variable, one_y_variable],
                                 properties_for_vars={
-                                    continuous: [[x0], [x1]],
-                                    normal: [[x0], [x1]]
-                                })
+                                continuous: [list_y_vars],
+                                categorical: [list_x_vars], # Variable number of factors
+                                }) 
 
-kendalltau_corr = StatisticalTest('kendalltau_corr', [x0, x1],
+
+pearson_corr = None
+kendalltau_corr = None
+spearman_corr = None
+pointbiserial_corr_a = None
+pointbiserial_corr_b = None
+students_t = None
+paired_students_t = None
+welchs_t = None 
+mannwhitney_u = None
+chi_square = None
+fishers_exact = None
+def construct_bivariate_tests(): 
+    global pearson_corr, kendalltau_corr, spearman_corr, pointbiserial_corr_a, pointbiserial_corr_b
+    global students_t, paired_students_t, welchs_t, mannwhitney_u
+    global chi_square, fishers_exact
+
+    ### CORRELATIONS
+    x0 = StatVar('x0')
+    x1 = StatVar('x1')
+
+    pearson_corr = StatisticalTest('pearson_corr', [x0, x1],
+                                    test_properties=
+                                    [bivariate],
+                                    properties_for_vars={
+                                        continuous: [[x0], [x1]],
+                                        normal: [[x0], [x1]]
+                                    })
+
+    kendalltau_corr = StatisticalTest('kendalltau_corr', [x0, x1],
+                                    test_properties=
+                                    [bivariate],
+                                    properties_for_vars={
+                                        continuous: [[x0], [x1]]
+                                    })
+
+    spearman_corr = StatisticalTest('spearman_corr', [x0, x1],
+                                    test_properties=
+                                    [bivariate],
+                                    properties_for_vars={
+                                        continuous_or_ordinal: [[x0], [x1]]
+                                    })
+
+    ## Need both? in case order of categortical and continuous differs? 
+    ## TODO: Could just sort before apply test? 
+    pointbiserial_corr_a = StatisticalTest('pointbiserial_corr_a', [x0, x1],
+                                    test_properties=
+                                    [bivariate],
+                                    properties_for_vars={
+                                        continuous: [[x1]],
+                                        normal: [[x1]],
+                                        categorical: [[x0]],
+                                        two_categories: [[x0]],
+                                        eq_variance: [[x0, x1]]
+
+                                    })
+
+    pointbiserial_corr_b = StatisticalTest('pointbiserial_corr_b', [x0, x1],
+                                    test_properties=
+                                    [bivariate],
+                                    properties_for_vars={
+                                        continuous: [[x0]],
+                                        normal: [[x0]],
+                                        categorical: [[x1]],
+                                        two_categories: [[x1]],
+                                        eq_variance: [[x1, x0]]
+                                    })                                
+
+    ### T-TESTS
+    x = StatVar('x')
+    y = StatVar('y')
+
+    students_t = StatisticalTest('students_t', [x, y],
                                 test_properties=
-                                [bivariate],
+                                    [bivariate, one_x_variable, one_y_variable, independent_obs],
                                 properties_for_vars={
-                                    continuous: [[x0], [x1]]
-                                })
+                                    categorical : [[x]],
+                                    two_categories: [[x]],
+                                    continuous: [[y]],
+                                    groups_normal: [[x, y]],
+                                    eq_variance: [[x, y]] 
+                                    })
 
-spearman_corr = StatisticalTest('spearman_corr', [x0, x1],
+    paired_students_t = StatisticalTest('paired_students_t', [x, y],
                                 test_properties=
-                                [bivariate],
+                                    [bivariate, one_x_variable, one_y_variable, paired_obs],
                                 properties_for_vars={
-                                    continuous_or_ordinal: [[x0], [x1]]
-                                })
+                                    categorical : [[x]],
+                                    two_categories: [[x]],
+                                    continuous: [[y]],
+                                    groups_normal: [[x, y]],
+                                    eq_variance: [[x, y]]
+                                    })
 
-## Need both? in case order of categortical and continuous differs? 
-## TODO: Could just sort before apply test? 
-pointbiserial_corr_a = StatisticalTest('pointbiserial_corr_a', [x0, x1],
+    welchs_t = StatisticalTest('welchs_t', [x, y],
                                 test_properties=
-                                [bivariate],
+                                    [bivariate, one_x_variable, one_y_variable, independent_obs],
                                 properties_for_vars={
-                                    continuous: [[x1]],
-                                    normal: [[x1]],
-                                    categorical: [[x0]],
-                                    eq_variance: [[x0, x1]]
+                                    categorical : [[x]],
+                                    two_categories: [[x]],
+                                    continuous: [[y]],
+                                    groups_normal: [[x, y]]
+                                    #   groups_normal: [[y]], # TODO: Check that each group is normally distributed
+                                    })
 
-                                })
-
-pointbiserial_corr_b = StatisticalTest('pointbiserial_corr_b', [x0, x1],
+    mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
                                 test_properties=
-                                [bivariate],
+                                    [one_x_variable, one_y_variable, independent_obs],
                                 properties_for_vars={
-                                    continuous: [[x0]],
-                                    normal: [[x0]],
-                                    categorical: [[x1]],
-                                    eq_variance: [[x1, x0]]
-                                })                                
+                                    categorical : [[x]],
+                                    two_categories: [[x]],
+                                    continuous_or_ordinal: [[y]],
+                                    # conflicting sources, but remove for now
+                                    #   eq_variance: [x, y] # Is this an assumption of mann whitney??
+                                    })         
 
-x = StatVar('x')
-y = StatVar('y')
+    ### CONTINGENCY TABLES (Categorical data)
+    chi_square = StatisticalTest('chi_square', [x, y],
+                                    test_properties=
+                                    [bivariate, independent_obs, greater_than_5_freq],
+                                    properties_for_vars={
+                                        categorical:  [[x], [y]],
+                                        two_or_more_categories: [[x],[y]]
+                                    })                       
 
-students_t = StatisticalTest('students_t', [x, y],
-                            test_properties=
-                                [bivariate, one_x_variable, one_y_variable, independent_obs],
-                            properties_for_vars={
-                                  categorical : [[x]],
-                                  two_categories: [[x]],
-                                  continuous: [[y]],
-                                  groups_normal: [[x, y]],
-                                  eq_variance: [[x, y]] 
-                                })
-
-paired_students_t = StatisticalTest('paired_students_t', [x, y],
-                            test_properties=
-                                [bivariate, one_x_variable, one_y_variable, paired_obs],
-                            properties_for_vars={
-                                  categorical : [[x]],
-                                  two_categories: [[x]],
-                                  continuous: [[y]],
-                                  groups_normal: [[x, y]],
-                                  eq_variance: [[x, y]]
-                                })
-
-welchs_t = StatisticalTest('welchs_t', [x, y],
-                            test_properties=
-                                [bivariate, one_x_variable, one_y_variable, independent_obs],
-                            properties_for_vars={
-                                  categorical : [[x]],
-                                  two_categories: [[x]],
-                                  continuous: [[y]],
-                                  groups_normal: [[x, y]]
-                                #   groups_normal: [[y]], # TODO: Check that each group is normally distributed
-                                })
-
-mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
-                            test_properties=
-                                [one_x_variable, one_y_variable, independent_obs],
-                            properties_for_vars={
-                                  categorical : [[x]],
-                                  two_categories: [[x]],
-                                  continuous_or_ordinal: [[y]],
-                                # conflicting sources, but remove for now
-                                #   eq_variance: [x, y] # Is this an assumption of mann whitney??
-                                })         
-
-chi_square = StatisticalTest('chi_square', [x, y],
-                                test_properties=
-                                [bivariate, independent_obs, greater_than_5_freq],
-                                properties_for_vars={
-                                    categorical:  [[x], [y]],
-                                    two_or_more_categories: [[x],[y]]
-                                })                       
-
-fishers_exact = StatisticalTest('fishers_exact', [x, y],
-                                test_properties=
-                                [bivariate, independent_obs],
-                                properties_for_vars={
-                                    categorical:  [[x], [y]],
-                                    two_categories: [[x],[y]]
-                                })
+    fishers_exact = StatisticalTest('fishers_exact', [x, y],
+                                    test_properties=
+                                    [bivariate, independent_obs],
+                                    properties_for_vars={
+                                        categorical:  [[x], [y]],
+                                        two_categories: [[x],[y]]
+                                    })
 
 
 """
@@ -753,8 +816,9 @@ def assume_properties(assumptions: Dict[str,str], solver):
 # This is a concrete (rather than symbolic) problem 
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
-def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
-    construct_f_test(combined_data)
+def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):    
+    construct_all_tests(combined_data)
+
     global name
 
     # Reorder variables so that y var is at the end
@@ -791,6 +855,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         # Check the model 
         result = solver.check()
         if result == z3.unsat:
+            # import pdb; pdb.set_trace()
             log("Test is unsat.\n")
             # print("no more solutions")
             # print(solver.num_scopes())
@@ -838,6 +903,9 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         solver.push() # Push latest state as backtracking point
 
     # import pdb; pdb.set_trace()
+    for test in all_tests(): 
+        print(test.name)
+        
     solver.check()
     model = solver.model() # final model
     # import pdb; pdb.set_trace()

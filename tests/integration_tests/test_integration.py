@@ -5,8 +5,10 @@ base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
 uscrime_data_path = None
 states_path = None
 cats_path = None
-data_paths = [uscrime_data_path, states_path, cats_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv']
+cholesterol_path = None
+soya_path = None
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -82,6 +84,69 @@ def test_chi_square():
     tea.hypothesize(['Training', 'Dance'])
 
 
+def test_f_test(): 
+    cholesterol_path = "/Users/emjun/.tea/data/cholesterol.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'trt',
+            'data type' : 'nominal',
+            'categories' : ['1time', '2times', '4times', 'drugD', 'drugE']
+        },
+        {
+            'name' : 'response',
+            'data type' : 'ratio',
+            # 'categories' : ['Yes', 'No']
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': 'trt',
+                            'dependent variables': 'response'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(cholesterol_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['trt', 'response'])
+        
+def test_kruskall_wallis(): 
+    soya_path = "/Users/emjun/.tea/data/soya.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Sperm',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Soya',
+            'data type' : 'ordinal',
+            'categories': ['No Soya', '1 Soya Meal', '4 Soya Meals', '7 Soya Meals']
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            # 'study type': 'observational study', # shouldn't change anything
+                            'independent variables': 'Soya',
+                            'dependent variables': 'Sperm'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(soya_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Soya', 'Sperm'])
 
 def test_indep_t_test():
     global uscrime_data_path
