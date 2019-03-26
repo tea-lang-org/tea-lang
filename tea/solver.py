@@ -538,7 +538,7 @@ def construct_axioms(variables):  # List[StatVar]
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
 def construct_mutlivariate_tests(combined_data): 
-    construct_one_way_anova(combined_data)    
+    construct_f_test(combined_data)    
 
         
     # Really naive way: 
@@ -553,9 +553,9 @@ def construct_mutlivariate_tests(combined_data):
     # Con: Hard to extend??
     # for test in multivariate_tests: 
 
-one_way_anova = None    
-def construct_one_way_anova(combined_data): 
-    global one_way_anova
+f_test = None    
+def construct_f_test(combined_data): 
+    global f_test
 
     num_vars = len(combined_data.vars)
 
@@ -574,7 +574,7 @@ def construct_one_way_anova(combined_data):
     list_y_vars = [[v] for v in y_vars]
     list_all_vars = list_x_vars + list_y_vars
 
-    one_way_anova = StatisticalTest('one_way_anova', list_all_vars, # Variable number of factors
+    f_test = StatisticalTest('f_test', list_all_vars, # Variable number of factors
                                 test_properties=
                                 [independent_obs],
                                 properties_for_vars={
@@ -754,7 +754,7 @@ def assume_properties(assumptions: Dict[str,str], solver):
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
 def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
-    construct_one_way_anova(combined_data)
+    construct_f_test(combined_data)
     global name
 
     # Reorder variables so that y var is at the end
@@ -825,6 +825,8 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                             if val: 
                                 log(f"Property holds.")
                             if not val: 
+                                # if test.name == 'f_test':
+                                #     import pdb; pdb.set_trace()
                                 if not test_invalid: # The property does not check
                                     log(f"Property FAILS")
                                     solver.pop() # remove the last test
