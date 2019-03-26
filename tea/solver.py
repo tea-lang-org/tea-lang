@@ -57,6 +57,11 @@ def all_props():
 
 #     return selected_props
 
+# LOGGING
+# TODO: This shoudl eventually write out to a file somewhere.
+def log(message: str):
+    print(message)
+
 @attr.s(hash=False, cmp=False, auto_attribs=True, init=False)
 class StatVar:
     name: str
@@ -533,7 +538,7 @@ def construct_axioms(variables):  # List[StatVar]
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
 def construct_mutlivariate_tests(combined_data): 
-    construct_pearson_corr(combined_data)    
+    construct_one_way_anova(combined_data)    
 
         
     # Really naive way: 
@@ -548,32 +553,36 @@ def construct_mutlivariate_tests(combined_data):
     # Con: Hard to extend??
     # for test in multivariate_tests: 
 
-    
-def construct_pearson_corr(combined_data): 
-    global pearson_corr
+one_way_anova = None    
+def construct_one_way_anova(combined_data): 
+    global one_way_anova
 
     num_vars = len(combined_data.vars)
 
-    generic_vars = []
+    x_vars = []
+    y_vars = []
     for i in range(num_vars): 
         name = 'x' + str(i)
-        generic_vars.append(StatVar(name))
-    assert(num_vars == len(generic_vars))
+        if (i <= num_vars - 2): # All but the last var
+            x_vars.append(StatVar(name))
+        else:
+            assert(i == num_vars - 1)
+            y_vars.append(StatVar(name)) # last var
+    assert(num_vars == len(x_vars) + len(y_vars))
 
-    test_props = []
-    if num_vars == 2: 
-        test_props.append(bivariate)
-    else: 
-        test_props.append(multivariate)
-    
-    list_generic_vars = [[v] for v in generic_vars]
-    pearson_corr = StatisticalTest('pearson_corr', generic_vars, 
-                                    test_properties=
-                                    test_props,
-                                    properties_for_vars={
-                                        continuous: list_generic_vars,
-                                        normal: list_generic_vars
-                                    })
+    list_x_vars = [[v] for v in x_vars]
+    list_y_vars = [[v] for v in y_vars]
+    list_all_vars = list_x_vars + list_y_vars
+
+    one_way_anova = StatisticalTest('one_way_anova', list_all_vars, # Variable number of factors
+                                test_properties=
+                                [independent_obs],
+                                properties_for_vars={
+                                continuous: [list_y_vars],
+                                categorical: [list_x_vars], # Variable number of factors
+                                groups_normal: [list_all_vars], # Variable number of factors
+                                eq_variance: [list_all_vars] # Variable number of factors
+                                }) 
 
 x0 = StatVar('x0')
 x1 = StatVar('x1')
@@ -685,7 +694,8 @@ fishers_exact = StatisticalTest('fishers_exact', [x, y],
                                 properties_for_vars={
                                     categorical:  [[x], [y]],
                                     two_categories: [[x],[y]]
-                                })                
+                                })
+
 
 """
 
@@ -723,6 +733,8 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
 def assume_properties(assumptions: Dict[str,str], solver): 
     global assumptions_to_properties, alpha
 
+    assumed_props = []
+
     # Go through all assumptions
     for a in assumptions: 
         if a in alpha_keywords:
@@ -733,12 +745,16 @@ def assume_properties(assumptions: Dict[str,str], solver):
                 for var in assumptions[a]: 
                     ap = prop(StatVar(var))
                     solver.add(ap.__z3__ == z3.BoolVal(True))
+                    assumed_props.append(ap)
+    
+    return assumed_props
 
 # Problem statement: Given a set of properties, tell me which tests are valid to run
 # This is a concrete (rather than symbolic) problem 
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
 def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
+    construct_one_way_anova(combined_data)
     global name
 
     # Reorder variables so that y var is at the end
@@ -746,7 +762,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     # Assume properties are True based on user assumptions
     solver = z3.Solver()
     # s = Tactic('qflia').solver()
-    assume_properties(assumptions, solver)
+    assumed_props = assume_properties(assumptions, solver)
     # Update the arity of test-level properties
     for prop in test_props: 
         prop._update(len(combined_data.vars))
@@ -768,15 +784,16 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     # For each test, add it to the solver as a constraint. 
     # Add the tests and their properties
     for test in all_tests():
-        # import pdb; pdb.set_trace()
+        log(f"\nCurrently considering {test.name}")
         solver.add(test.__z3__ == z3.And(*test.query()))
         solver.add(test.__z3__ == z3.BoolVal(True))
 
         # Check the model 
         result = solver.check()
         if result == z3.unsat:
-            print("no more solutions")
-            print(solver.num_scopes())
+            log("Test is unsat.\n")
+            # print("no more solutions")
+            # print(solver.num_scopes())
             solver.pop() 
             # model = solver.model() # may need to do a check before call model
         elif result == z3.unknown:
@@ -793,16 +810,29 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             if model and is_true(model.evaluate(test.__z3__)):
                 # Verify the properties for that test
                 for prop in test._properties:
-                    # Does this property need to hold for the test to be valid?
-                    # If so, verify that the property does hold
-                    if model and is_true(model.evaluate(prop.__z3__)):
-                        val = verify_prop(dataset, combined_data, prop)
-                        # import pdb; pdb.set_trace()
-                        if not val and not test_invalid: # The property does not check
-                            solver.pop() # remove the last test
-                            test_invalid = True
-                            model = None
-                        solver.add(prop.__z3__ == z3.BoolVal(val))
+                    log(f"Testing assumption: {prop._name}.")
+                    need_to_verify = True
+                    # If the prop was assumed by the user, skip verification.
+                    for ap in assumed_props:
+                        if prop is ap: 
+                            log(f"Property was a user assumption. ")
+                            need_to_verify = False
+                    if need_to_verify: 
+                        # Does this property need to hold for the test to be valid?
+                        # If so, verify that the property does hold
+                        if model and is_true(model.evaluate(prop.__z3__)):
+                            val = verify_prop(dataset, combined_data, prop)
+                            if val: 
+                                log(f"Property holds.")
+                            if not val: 
+                                if not test_invalid: # The property does not check
+                                    log(f"Property FAILS")
+                                    solver.pop() # remove the last test
+                                    test_invalid = True
+                                    model = None
+                                else: # test is already invalid. Going here just for completeness of logging
+                                    log(f"EVER GET HERE?")
+                            solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
 
     # import pdb; pdb.set_trace()
