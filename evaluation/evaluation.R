@@ -4,7 +4,11 @@
 # Evaluation is based on R tutorials found in the book entitled 
 # R in Action: Data Analysis and graphics with R by Robert I. Kabacoff (2011).
 
-# Correlation (p. 159-164)
+## Command for taking a dataset (in R's core) and writing out/saving as CSV
+# write.csv(file="statex77.csv", state.x77)
+
+
+### I. Correlation (p. 159-164)
 # Using state.x77 dataset from base R package
 states <- state.x77[,1:6] # Remove Frost and Area columns from original state.x77 dataset
 x <- states[,c("Population", "Income", "Illiteracy", "HS Grad")]
@@ -14,6 +18,23 @@ cor(x, y)
 # and merder rate is 0. Assuming that the population correlation is 0, you'd expect 
 # to see a sample correlation as larage as 0.703 less than 1 time out of 10 million 
 # (that is, p = 1.258e-08). 
+# In base R package, can only test correlation between two variables at a time. 
+cor.test(states[,3], states[,5])
+
+### II. Contingency Tables (for comparing categorical data)
+## From Field et al. Discovering Statistics Using R
+library(gmodels)
+catData <- read.delim("/Users/emjun/Git/tea-lang/evaluation/discovering-statistics-using-r/cats.dat", header=TRUE)
+food <- c(10, 28)
+affection <- c(114, 48)
+catsTable <- cbind(food, affection) 
+CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+# Equivalent to the above
+#CrossTable(catsTable, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+#CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
+
+
+
 
 # Independent T-Test (p. 164-165)
 library (MASS)

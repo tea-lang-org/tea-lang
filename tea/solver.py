@@ -302,6 +302,37 @@ def has_independent_observations(dataset: Dataset, combined_data: CombinedData, 
 
     return not combined_data.properties[paired]
 
+def greater_than_5_frequency(dataset: Dataset, combined_data: CombinedData, alpha): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+
+    if len(xs) == 1: 
+        if len(ys) == 1: 
+            x = xs[0]
+            y = ys[0]
+
+            if x.is_categorical() and y.is_categorical(): 
+
+                # Get the count for each category
+                x_cat = [k for k,v in x.metadata[categories].items()]
+                y_cat = [k for k,v in y.metadata[categories].items()]
+
+                for xc in x_cat: 
+                    for yc in y_cat: 
+                        data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{xc}'", f"{y.metadata[name]} == '{yc}'"])                    
+
+                        # Check that the count is at least five for each of the (x,y) group pairs
+                        if (len(data) < 5): 
+                            return False
+                
+                return True
+            else: 
+                return False
+        else: 
+            raise ValueError(f"Currently, chi square requires/only supports 1 explained variable, instead received: {len(ys)} -- {ys}")    
+    else: 
+        raise ValueError(f"Currently, chi square requires/only supports 1 explanatory variable, instead received: {len(xs)} -- {xs}")
+
 def has_equal_variance(dataset: Dataset, combined_data: CombinedData, alpha):
     xs = None
     ys = None
@@ -384,6 +415,14 @@ def has_two_categories(dataset, var_data, alpha):
     assert(is_categorical_var(dataset, var_data, alpha))
     return len(var_data[0].metadata[categories].keys()) == 2
 
+def has_two_or_more_categories(dataset, var_data, alpha): 
+    assert(len(var_data) == 1)
+    assert(isinstance(var_data[0], VarData))
+
+    # First check that the variable is categorical
+    assert(is_categorical_var(dataset, var_data, alpha))
+    return len(var_data[0].metadata[categories].keys()) >= 2
+
 def is_continuous_var(dataset, var_data, alpha):
     assert(len(var_data) == 1)
     assert(isinstance(var_data[0], VarData))
@@ -415,13 +454,14 @@ one_x_variable = Property('has_one_x', "Exactly one explanatory variable", has_o
 one_y_variable = Property('has_one_y', "Exactly one explained variable", has_one_y)
 paired_obs = Property('has_paired_observations', "Paired observations", has_paired_observations)
 independent_obs = Property('has_independent_observations', "Independent (not paired) observations", has_independent_observations)
-# not_paired = Property('not_paired', "Paired observations") 
+greater_than_5_freq = Property('greater_than_5_freq', "Has a large sample size", greater_than_5_frequency, arity=2)
 
 test_props = [bivariate, one_x_variable, one_y_variable, paired_obs, independent_obs]
 
 # Variable properties
 categorical = Property('is_categorical', "Variable is categorical", is_categorical_var)
 two_categories = Property('has_two_categories', "Variable has two categories", has_two_categories)
+two_or_more_categories = Property('has_two_or_more_categories', "Variable has two or more categories", has_two_or_more_categories)
 # all_x_variables_categorical = Property('has_all_x_categorical', "All explanatory variables are categorical", 'variable')
 # two_x_variable_categories = Property('has_two_categories_x_var', "Exactly two categories in explanatory variable", 'variable')
 continuous = Property('is_continuous', "Continuous (not categorical) data", is_continuous_var)
@@ -489,15 +529,25 @@ def construct_axioms(variables):  # List[StatVar]
 
 # Multivariate tests that accept variable 
 
-spearmanr_corr = None
-kendalltau_corr = None
-pointbiserial_corr = None
-
 # The generic StatisticalTests have specific predefined arity.
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
 def construct_mutlivariate_tests(combined_data): 
     construct_pearson_corr(combined_data)    
+
+        
+    # Really naive way: 
+    # Pearson correlation 
+
+    # Tau correlation 
+
+    #....
+
+    # enumerate all tests that have variable arities. 
+    # Pro: Reuse StatVars
+    # Con: Hard to extend??
+    # for test in multivariate_tests: 
+
     
 def construct_pearson_corr(combined_data): 
     global pearson_corr
@@ -524,22 +574,6 @@ def construct_pearson_corr(combined_data):
                                         continuous: list_generic_vars,
                                         normal: list_generic_vars
                                     })
-    
-    # Really naive way: 
-    # Pearson correlation 
-
-    # Tau correlation 
-
-    #....
-
-    # enumerate all tests that have variable arities. 
-    # Pro: Reuse StatVars
-    # Con: Hard to extend??
-    # for test in multivariate_tests: 
-
-    
-
-
 
 x0 = StatVar('x0')
 x1 = StatVar('x1')
@@ -635,7 +669,23 @@ mannwhitney_u = StatisticalTest('mannwhitney_u', [x, y],
                                   continuous_or_ordinal: [[y]],
                                 # conflicting sources, but remove for now
                                 #   eq_variance: [x, y] # Is this an assumption of mann whitney??
-                                })                                
+                                })         
+
+chi_square = StatisticalTest('chi_square', [x, y],
+                                test_properties=
+                                [bivariate, independent_obs, greater_than_5_freq],
+                                properties_for_vars={
+                                    categorical:  [[x], [y]],
+                                    two_or_more_categories: [[x],[y]]
+                                })                       
+
+fishers_exact = StatisticalTest('fishers_exact', [x, y],
+                                test_properties=
+                                [bivariate, independent_obs],
+                                properties_for_vars={
+                                    categorical:  [[x], [y]],
+                                    two_categories: [[x],[y]]
+                                })                
 
 """
 

@@ -310,17 +310,6 @@ def mannwhitney_u(dataset, combined_data: BivariateData):
     
     return stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
 
-# https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
-# Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
-def fishers_exact(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    assert(len(comp_data.dataframes) == 2)
-    assert(len(predictions) == 1)
-
-    data = []
-    # calculate the 2 x 2 table 
-    table = []
-    stats.fisher_exact(table, alternative='two-sided')
-
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html
 # Parameters: a, b (array-like) | axis | nan_policy (default is 'propagate', optional)
 def t_test_paired(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
@@ -351,12 +340,15 @@ def wilcoxon_signed_rank(iv: VarData, dv: VarData, predictions: list, comp_data:
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
 # Parameters: x (array-like) | y (array-like)
-def pearson_corr(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    assert(len(comp_data.dataframes) == 2)
-
+def pearson_corr(dataset: Dataset, combined_data: CombinedData):
+    assert(len(combined_data.vars) == 2)
+    
     data = []
-    for key, val in comp_data.dataframes.items():
-        data.append(val)
+    for var in combined_data.vars: 
+        var_data = get_data(dataset, var)
+        data.append(var_data)
+
+    assert(len(data) == 2)
 
     return stats.pearsonr(data[0], data[1])
 
@@ -389,8 +381,86 @@ def kendalltau_corr(dataset: Dataset, combined_data: CombinedData):
 
     return stats.kendalltau(data[0], data[1])
 
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html
+# Parameters: observed (contingency table) | correction (bool for Yates' correction) | lambda (change statistic computed)
+def chi_square(dataset: Dataset, combined_data: CombinedData): 
+    # Compute the contingency table
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
 
+    if len(xs) == 1: 
+        if len(ys) == 1: 
+            x = xs[0]
+            y = ys[0]
 
+            # Get the count for each category
+            x_cat = [k for k,v in x.metadata[categories].items()]
+            y_cat = [k for k,v in y.metadata[categories].items()]
+
+            contingency_table = []
+            contingency_table_key = [] # labels for the order in which data is stored in data array (define above)
+
+            for xc in x_cat: 
+                table_row = []
+                table_row_key = []
+                for yc in y_cat: 
+                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{xc}'", f"{y.metadata[name]} == '{yc}'"])
+                    table_row.append(len(data))
+
+                    x_y_key = str(x.metadata[name]) + ':' + str(xc) + ' by ' + str(y.metadata[name]) + ':' + str(yc)
+                    table_row_key.append(x_y_key)
+                
+                assert(len(table_row_key) == len(table_row))
+                assert(len(table_row) == len(y_cat))
+                contingency_table.append(table_row)
+                contingency_table_key.append(table_row_key)
+            
+        else: 
+            raise ValueError(f"Currently, chi square requires/only supports 1 explained variable, instead received: {len(ys)} -- {ys}")    
+    else: 
+        raise ValueError(f"Currently, chi square requires/only supports 1 explanatory variable, instead received: {len(xs)} -- {xs}")
+    
+
+    # chi2, p, dof, ex = chi2_contingency(obs, correction=False)
+    return stats.chi2_contingency(contingency_table, correction=False)
+
+# https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
+# Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
+def fishers_exact(dataset: Dataset, combined_data: CombinedData): 
+    assert(len(combined_data.vars) == 2)
+
+    # Compute the contingency table
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    assert(len(xs) == 1)
+    assert(len(ys) == 1)
+
+    x = xs[0]
+    y = ys[0]
+
+    # Get the count for each category
+    x_cat = [k for k,v in x.metadata[categories].items()]
+    y_cat = [k for k,v in y.metadata[categories].items()]
+
+    contingency_table = []
+    contingency_table_key = [] # labels for the order in which data is stored in data array (define above)
+
+    for xc in x_cat: 
+        table_row = []
+        table_row_key = []
+        for yc in y_cat: 
+            data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{xc}'", f"{y.metadata[name]} == '{yc}'"])
+            table_row.append(len(data))
+
+            x_y_key = str(x.metadata[name]) + ':' + str(xc) + ' by ' + str(y.metadata[name]) + ':' + str(yc)
+            table_row_key.append(x_y_key)
+        
+        assert(len(table_row_key) == len(table_row))
+        assert(len(table_row) == len(y_cat))
+        contingency_table.append(table_row)
+        contingency_table_key.append(table_row_key)
+
+    return stats.fisher_exact(contingency_table, alternative='two-sided')
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
 # Parameters: x (array-like) | y (array-like)
@@ -431,7 +501,9 @@ def bootstrap():
 __stat_test_to_function__ = {
     'kendalltau_corr' : kendalltau_corr,
     'spearman_corr' : spearman_corr,
-    'mannwhitney_u' : mannwhitney_u
+    'chi_square' : chi_square,
+    'fishers_exact' : fishers_exact,
+    'mannwhitney_u' : mannwhitney_u,
 }
 
 # Returns the function that has the @param name

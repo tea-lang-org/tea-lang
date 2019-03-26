@@ -4,8 +4,9 @@ import os
 base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
 uscrime_data_path = None
 states_path = None
-data_paths = [uscrime_data_path, states_path]
-file_names = ['UScrime.csv', 'statex77.csv']
+cats_path = None
+data_paths = [uscrime_data_path, states_path, cats_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -47,6 +48,39 @@ def test_corr():
     tea.assume(assumptions)
 
     tea.hypothesize(['Illiteracy', 'Life Exp'])
+
+def test_chi_square(): 
+    cats_path = "/Users/emjun/.tea/data/catsData.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Training',
+            'data type' : 'nominal',
+            'categories' : ['Food as Reward', 'Affection as Reward']
+        },
+        {
+            'name' : 'Dance',
+            'data type' : 'nominal',
+            'categories' : ['Yes', 'No']
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': 'Training',
+                            'outcome variables': 'Dance'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(cats_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Training', 'Dance'])
+
 
 
 def test_indep_t_test():
