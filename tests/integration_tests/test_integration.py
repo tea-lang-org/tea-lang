@@ -186,7 +186,7 @@ def test_rm_one_way_anova():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
 
-    tea.hypothesize(['uptake', 'conc'])
+    tea.hypothesize(['uptake', 'conc']) # Picks friedman!
 
 def test_indep_t_test():
     global uscrime_data_path

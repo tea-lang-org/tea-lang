@@ -501,6 +501,22 @@ def kruskall_wallis(dataset: Dataset, combined_data: CombinedData):
     
     return stats.kruskal(*data)
 
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.friedmanchisquare.html#scipy.stats.friedmanchisquare
+def friedman(dataset: Dataset, combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    assert (len(ys) == 1)
+    y = ys[0]
+
+    data = []
+    for x in xs: 
+        cat = [k for k,v in x.metadata[categories].items()]
+        for c in cat: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+            data.append(cat_data)
+    
+    return stats.friedmanchisquare(*data)
+
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
 # Parameters: x (array-like) | y (array-like)
@@ -545,7 +561,8 @@ __stat_test_to_function__ = {
     'fishers_exact' : fishers_exact,
     'mannwhitney_u' : mannwhitney_u,
     'f_test' : f_test,
-    'kruskall_wallis' : kruskall_wallis
+    'kruskall_wallis' : kruskall_wallis,
+    'friedman': friedman
 }
 
 # Returns the function that has the @param name

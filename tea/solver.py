@@ -661,10 +661,12 @@ welchs_t = None
 mannwhitney_u = None
 chi_square = None
 fishers_exact = None
+friedman = None
 def construct_bivariate_tests(combined_data: CombinedData): 
     global pearson_corr, kendalltau_corr, spearman_corr, pointbiserial_corr_a, pointbiserial_corr_b
     global students_t, paired_students_t, welchs_t, mannwhitney_u
     global chi_square, fishers_exact
+    global friedman
 
     assert(len(combined_data.vars) == 2)
 
@@ -788,6 +790,15 @@ def construct_bivariate_tests(combined_data: CombinedData):
     construct_f_test(combined_data)    
     construct_kruskall_wallis_test(combined_data)
     construct_repeated_measures_one_way_anova(combined_data)
+
+    friedman = StatisticalTest('friedman', [x,y], # Variable number of factors
+                            test_properties=
+                            [paired_obs, one_x_variable, one_y_variable],
+                            properties_for_vars={
+                            continuous: [[y]],
+                            categorical: [[x]], # Variable number of factors
+                            two_or_more_categories: [[x]],
+                            }) 
 
 
 """
