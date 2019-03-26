@@ -358,17 +358,20 @@ def pearson_corr(dataset: Dataset, combined_data: CombinedData):
 # Parameters: a, b (b is optional) | axis (optional) 
 def spearman_corr(dataset: Dataset, combined_data: CombinedData):
     assert(len(combined_data.vars) == 2)
-    import pdb; pdb.set_trace()
     
     data = []
     for var in combined_data.vars: 
         # TODO: Check that var is ordinal. If so, then assign all ordinal values numbers 
         # Compare to without converting to numbers (in Evernote)
         var_data = get_data(dataset, var)
+        if var.is_ordinal(): 
+            ordered_cat = var.metadata[categories]
+            num_var_data = [ordered_cat[v] for v in var_data]
+            var_data = num_var_data
+
         data.append(var_data)
-
+    
     assert(len(data) == 2)
-
     return stats.spearmanr(data[0], data[1])
 
 # https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
@@ -391,8 +394,7 @@ def chi_square(dataset: Dataset, combined_data: CombinedData):
     # Compute the contingency table
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
-
-    if len(xs) == 1: 
+   if len(xs) == 1: 
         if len(ys) == 1: 
             x = xs[0]
             y = ys[0]
