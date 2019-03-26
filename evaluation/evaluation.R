@@ -76,6 +76,25 @@ soyaData$Ranks<-rank(soyaData$Sperm)
 by(soyaData$Ranks, soyaData$Soya, mean)
 
 
+### IV. Repeated Measures ANOVA
+# From Kabacoff (p. 237)
+w1b1 <- subset(CO2, Treatment == 'chilled')
+# conc is within subjects
+# type is between subjects
+fit <- aov(uptake ~ conc*Type + Error(Plant/(conc), w1b1), data=CO2)
+summary(fit)
+
+par(las=2)
+par(mar=c(10,4,4,2))
+with(w1b1, interaction.plot(conc, Type, uptake, 
+                            type='b', col=c('red','blue'), pch=c(16, 18),
+                            main='Interaction Plot for Plant Type and Concentration'))
+boxplot(uptake ~ Type*conc, data = w1b1, col=(c('gold', 'green')), 
+        main='Chilled Quebec and Mississippi PLants', 
+        ylab='Carbon dioxide uptake rate')
+
+
+
 # Independent T-Test (p. 164-165)
 library (MASS)
 t.test(Prob ~ So, data=UScrime)

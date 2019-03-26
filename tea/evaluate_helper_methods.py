@@ -394,7 +394,7 @@ def chi_square(dataset: Dataset, combined_data: CombinedData):
     # Compute the contingency table
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
-   if len(xs) == 1: 
+    if len(xs) == 1: 
         if len(ys) == 1: 
             x = xs[0]
             y = ys[0]

@@ -124,6 +124,8 @@ class StatisticalTest:
 
     # Question: does this mean you can't consider two tests of the same type on different variables at once?
     def apply(self, *test_vars):
+        if len(test_vars) != len(self.test_vars): 
+            import pdb; pdb.set_trace()
         assert len(test_vars) == len(self.test_vars)
         self.test_vars = test_vars
 
@@ -540,7 +542,7 @@ def construct_all_tests(combined_data: CombinedData):
     global bivariate_constructed, multivariate_constructed
 
     if not bivariate_constructed: 
-        construct_bivariate_tests()
+        construct_bivariate_tests(combined_data)
         bivariate_constructed = True
 
     if not multivariate_constructed: 
@@ -551,23 +553,10 @@ def construct_all_tests(combined_data: CombinedData):
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
 def construct_mutlivariate_tests(combined_data): 
-    construct_f_test(combined_data)    
-    construct_kruskall_wallis_test(combined_data)
-        
-    # Really naive way: 
-    # Pearson correlation 
-
-    # Tau correlation 
-
-    #....
-
-    # enumerate all tests that have variable arities. 
-    # Pro: Reuse StatVars
-    # Con: Hard to extend??
-    # for test in multivariate_tests: 
+    pass
 
 f_test = None    
-def construct_f_test(combined_data): 
+def construct_f_test(combined_data: CombinedData): 
     global f_test
 
     num_vars = len(combined_data.vars)
@@ -593,12 +582,45 @@ def construct_f_test(combined_data):
                                 properties_for_vars={
                                 continuous: [list_y_vars],
                                 categorical: [list_x_vars], # Variable number of factors
+                                two_or_more_categories: [list_x_vars],
+                                groups_normal: [list_all_vars], # Variable number of factors
+                                eq_variance: [list_all_vars] # Variable number of factors
+                                }) 
+
+rm_one_way_anova = None
+def construct_repeated_measures_one_way_anova(combined_data: CombinedData): 
+    global rm_one_way_anova
+
+    num_vars = len(combined_data.vars)
+
+    x_vars = []
+    y_vars = []
+    for i in range(num_vars): 
+        name = 'x' + str(i)
+        if (i <= num_vars - 2): # All but the last var
+            x_vars.append(StatVar(name))
+        else:
+            assert(i == num_vars - 1)
+            y_vars.append(StatVar(name)) # last var
+    assert(num_vars == len(x_vars) + len(y_vars))
+
+    list_x_vars = [[v] for v in x_vars]
+    list_y_vars = [[v] for v in y_vars]
+    list_all_vars = list_x_vars + list_y_vars
+
+    rm_one_way_anova = StatisticalTest('rm_one_way_anova', list_all_vars, # Variable number of factors
+                                test_properties=
+                                [paired_obs, one_x_variable, one_y_variable],
+                                properties_for_vars={
+                                continuous: [list_y_vars],
+                                categorical: [list_x_vars], # Variable number of factors
+                                two_or_more_categories: [list_x_vars],
                                 groups_normal: [list_all_vars], # Variable number of factors
                                 eq_variance: [list_all_vars] # Variable number of factors
                                 }) 
 
 kruskall_wallis = None
-def construct_kruskall_wallis_test(combined_data): 
+def construct_kruskall_wallis_test(combined_data: CombinedData): 
     global kruskall_wallis
 
     num_vars = len(combined_data.vars)
@@ -624,6 +646,7 @@ def construct_kruskall_wallis_test(combined_data):
                                 properties_for_vars={
                                 continuous: [list_y_vars],
                                 categorical: [list_x_vars], # Variable number of factors
+                                two_or_more_categories: [list_x_vars]
                                 }) 
 
 
@@ -638,10 +661,12 @@ welchs_t = None
 mannwhitney_u = None
 chi_square = None
 fishers_exact = None
-def construct_bivariate_tests(): 
+def construct_bivariate_tests(combined_data: CombinedData): 
     global pearson_corr, kendalltau_corr, spearman_corr, pointbiserial_corr_a, pointbiserial_corr_b
     global students_t, paired_students_t, welchs_t, mannwhitney_u
     global chi_square, fishers_exact
+
+    assert(len(combined_data.vars) == 2)
 
     ### CORRELATIONS
     x0 = StatVar('x0')
@@ -758,6 +783,11 @@ def construct_bivariate_tests():
                                         categorical:  [[x], [y]],
                                         two_categories: [[x],[y]]
                                     })
+
+    ### ANOVAs
+    construct_f_test(combined_data)    
+    construct_kruskall_wallis_test(combined_data)
+    construct_repeated_measures_one_way_anova(combined_data)
 
 
 """

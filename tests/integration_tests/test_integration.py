@@ -7,8 +7,9 @@ states_path = None
 cats_path = None
 cholesterol_path = None
 soya_path = None
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv']
+co2_path = None
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -135,7 +136,8 @@ def test_kruskall_wallis():
                             'study type': 'experiment',
                             # 'study type': 'observational study', # shouldn't change anything
                             'independent variables': 'Soya',
-                            'dependent variables': 'Sperm'
+                            'dependent variables': 'Sperm',
+                            # 'within subjects': 'Soya' # Correctly does not choose Kruskall Wallis
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
@@ -147,6 +149,44 @@ def test_kruskall_wallis():
     tea.assume(assumptions)
 
     tea.hypothesize(['Soya', 'Sperm'])
+
+def test_rm_one_way_anova(): 
+    co2_path = "/Users/emjun/.tea/data/co2.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'uptake',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Type',
+            'data type' : 'nominal',
+            'categories': ['Quebec', 'Mississippi']
+        },
+        {
+            'name' : 'conc',
+            'data type' : 'ordinal',
+            'categories': [95, 175, 250, 350, 500, 675, 1000]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': ['Type', 'conc'],
+                            'dependent variables': 'uptake',
+                            'within subjects': 'conc',
+                            'between subjects': 'Type'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(co2_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['uptake', 'conc'])
 
 def test_indep_t_test():
     global uscrime_data_path
