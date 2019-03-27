@@ -188,6 +188,44 @@ def test_rm_one_way_anova():
 
     tea.hypothesize(['uptake', 'conc']) # Picks friedman!
 
+def test_two_way_anova(): 
+    co2_path = "/Users/emjun/.tea/data/co2.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'uptake',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Type',
+            'data type' : 'nominal',
+            'categories': ['Quebec', 'Mississippi']
+        },
+        {
+            'name' : 'conc',
+            'data type' : 'ordinal',
+            'categories': [95, 175, 250, 350, 500, 675, 1000]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': ['Type', 'conc'],
+                            'dependent variables': 'uptake',
+                            'within subjects': 'conc',
+                            'between subjects': 'Type'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(co2_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
+
 def test_indep_t_test():
     global uscrime_data_path
     uscrime_data_path = "/Users/emjun/.tea/data/UScrime.csv"
