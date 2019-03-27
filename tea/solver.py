@@ -109,8 +109,19 @@ class StatisticalTest:
         for key in properties_for_vars:
             # properties_for_vars is a list of lists of variables. Get the indices of the variables
             # in each list.
-            for args in properties_for_vars[key]:
-                indices = [self.test_vars.index(arg) for arg in args]
+            for prop_args in properties_for_vars[key]:
+                indices = []
+                # import pdb; pdb.set_trace()
+                # for arg in prop_args: 
+                    # if len(prop_args) == 1: 
+                    #     indices.append(self.test_vars.index(arg))
+                    # else: 
+                    #     tmp = []
+                    #     import pdb; pdb.set_trace()
+                    #     for a in arg: 
+                    #         tmp.append(self.test_vars.index(a))
+                    #     indices.append(tmp)
+                indices = [self.test_vars.index(arg) for arg in prop_args]
                 if key not in self.properties_for_vars.keys():
                     self.properties_for_vars[key] = []
                 self.properties_for_vars[key].append(indices)
@@ -553,11 +564,12 @@ def construct_all_tests(combined_data: CombinedData):
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
 def construct_mutlivariate_tests(combined_data): 
-    pass
+    construct_factorial_ANOVA(combined_data)
+    # pass
 
-f_test = None    
-def construct_f_test(combined_data: CombinedData): 
-    global f_test
+factorial_ANOVA = None    
+def construct_factorial_ANOVA(combined_data: CombinedData): 
+    global factorial_ANOVA
 
     num_vars = len(combined_data.vars)
 
@@ -576,15 +588,88 @@ def construct_f_test(combined_data: CombinedData):
     list_y_vars = [[v] for v in y_vars]
     list_all_vars = list_x_vars + list_y_vars
 
-    f_test = StatisticalTest('f_test', list_all_vars, # Variable number of factors
+    check_pairs = [[x, y_vars] for x in list_x_vars]
+
+    assert(len(list_y_vars) == 1)
+    import pdb; pdb.set_trace()
+    factorial_ANOVA = StatisticalTest('factorial_ANOVA', list_all_vars, # Variable number of factors
                                 test_properties=
-                                [independent_obs, one_x_variable, one_y_variable],
+                                [one_y_variable],
+                                # [one_y_variable, two_or_more_x_variables],
                                 properties_for_vars={
                                 continuous: [list_y_vars],
                                 categorical: [list_x_vars], # Variable number of factors
                                 two_or_more_categories: [list_x_vars],
-                                groups_normal: [list_all_vars], # Variable number of factors
-                                eq_variance: [list_all_vars] # Variable number of factors
+                                groups_normal: [check_pairs], # Variable number of factors
+                                eq_variance: [check_pairs] # Variable number of factors
+                                }) 
+    x_vars = []
+    y_vars = []
+    all_vars = []
+    for i in range(num_vars): 
+        name = 'x' + str(i)
+        if (i <= num_vars - 2): # All but the last var
+            x = StatVar(name)
+            x_vars.append(x)
+            all_vars.append(x)
+        else:
+            assert(i == num_vars - 1)
+            y = StatVar(name)
+            y_vars.append(y) # last var
+            all_vars.append(y)
+    assert(num_vars == len(x_vars) + len(y_vars))
+
+    # list_x_vars = [[v] for v in x_vars]
+    # list_y_vars = [[v] for v in y_vars]
+    # list_all_vars = list_x_vars + list_y_vars
+
+    f_test = StatisticalTest('f_test', all_vars, # Variable number of factors
+                                test_properties=
+                                [independent_obs, one_x_variable, one_y_variable],
+                                properties_for_vars={
+                                continuous: [y_vars],
+                                categorical: [x_vars], # Variable number of factors
+                                two_or_more_categories: [x_vars],
+                                groups_normal: [all_vars], # Variable number of factors
+                                eq_variance: [all_vars] # Variable number of factors
+                                }) 
+
+
+f_test = None    
+def construct_f_test(combined_data: CombinedData): 
+    global f_test
+
+    num_vars = len(combined_data.vars)
+
+    x_vars = []
+    y_vars = []
+    all_vars = []
+    for i in range(num_vars): 
+        name = 'x' + str(i)
+        if (i <= num_vars - 2): # All but the last var
+            x = StatVar(name)
+            x_vars.append(x)
+            all_vars.append(x)
+        else:
+            assert(i == num_vars - 1)
+            y = StatVar(name)
+            y_vars.append(y) # last var
+            all_vars.append(y)
+    assert(num_vars == len(x_vars) + len(y_vars))
+
+    # list_x_vars = [[v] for v in x_vars]
+    # list_y_vars = [[v] for v in y_vars]
+    # list_all_vars = list_x_vars + list_y_vars
+
+    f_test = StatisticalTest('f_test', all_vars, # Variable number of factors
+                                test_properties=
+                                [independent_obs, one_x_variable, one_y_variable],
+                                properties_for_vars={
+                                continuous: [y_vars],
+                                categorical: [x_vars], # Variable number of factors
+                                two_or_more_categories: [x_vars],
+                                groups_normal: [all_vars], # Variable number of factors
+                                eq_variance: [all_vars] # Variable number of factors
                                 }) 
 
 rm_one_way_anova = None
@@ -666,7 +751,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
     global pearson_corr, kendalltau_corr, spearman_corr, pointbiserial_corr_a, pointbiserial_corr_b
     global students_t, paired_students_t, welchs_t, mannwhitney_u
     global chi_square, fishers_exact
-    global friedman
+    global f_test, kruskall_wallis, friedman, rm_one_way_anova
 
     assert(len(combined_data.vars) == 2)
 
@@ -787,9 +872,37 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                     })
 
     ### ANOVAs
-    construct_f_test(combined_data)    
-    construct_kruskall_wallis_test(combined_data)
-    construct_repeated_measures_one_way_anova(combined_data)
+    f_test = StatisticalTest('f_test', [x, y], # Variable number of factors
+                                test_properties=
+                                [independent_obs, one_x_variable, one_y_variable],
+                                properties_for_vars={
+                                continuous: [[y]],
+                                categorical: [[x]], # Variable number of factors
+                                two_or_more_categories: [[x]],
+                                groups_normal: [[x, y]], # Variable number of factors
+                                eq_variance: [[x, y]] # Variable number of factors
+                                }) 
+    
+    kruskall_wallis = StatisticalTest('kruskall_wallis', [x, y], # Variable number of factors
+                                test_properties=
+                                [independent_obs, one_x_variable, one_y_variable],
+                                properties_for_vars={
+                                continuous: [[y]],
+                                categorical: [[x]], # Variable number of factors
+                                two_or_more_categories: [[x]]
+                                })
+
+    
+    rm_one_way_anova = StatisticalTest('rm_one_way_anova', [x, y], # Variable number of factors
+                            test_properties=
+                            [paired_obs, one_x_variable, one_y_variable],
+                            properties_for_vars={
+                            continuous: [[y]],
+                            categorical: [[x]], # Variable number of factors
+                            two_or_more_categories: [[x]],
+                            groups_normal: [[x, y]], # Variable number of factors
+                            eq_variance: [[x, y]] # Variable number of factors
+                            }) 
 
     friedman = StatisticalTest('friedman', [x,y], # Variable number of factors
                             test_properties=
