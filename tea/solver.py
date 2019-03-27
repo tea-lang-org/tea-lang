@@ -111,16 +111,10 @@ class StatisticalTest:
             # in each list.
             for prop_args in properties_for_vars[key]:
                 indices = []
-                # import pdb; pdb.set_trace()
-                # for arg in prop_args: 
-                    # if len(prop_args) == 1: 
-                    #     indices.append(self.test_vars.index(arg))
-                    # else: 
-                    #     tmp = []
-                    #     import pdb; pdb.set_trace()
-                    #     for a in arg: 
-                    #         tmp.append(self.test_vars.index(a))
-                    #     indices.append(tmp)
+                # if self.name == 'pointbiserial_corr_a': 
+                #     import pdb; pdb.set_trace()
+                # if self.name == 'factorial_ANOVA': 
+                #     import pdb; pdb.set_trace()
                 indices = [self.test_vars.index(arg) for arg in prop_args]
                 if key not in self.properties_for_vars.keys():
                     self.properties_for_vars[key] = []
@@ -575,163 +569,37 @@ def construct_factorial_ANOVA(combined_data: CombinedData):
 
     x_vars = []
     y_vars = []
+    all_vars = []
     for i in range(num_vars): 
         name = 'x' + str(i)
         if (i <= num_vars - 2): # All but the last var
-            x_vars.append(StatVar(name))
+            x = StatVar(name)
+            x_vars.append(x)
+            all_vars.append(x)
         else:
             assert(i == num_vars - 1)
-            y_vars.append(StatVar(name)) # last var
+            y = StatVar(name)
+            y_vars.append(y) # last var
+            all_vars.append(y)
     assert(num_vars == len(x_vars) + len(y_vars))
 
-    list_x_vars = [[v] for v in x_vars]
-    list_y_vars = [[v] for v in y_vars]
-    list_all_vars = list_x_vars + list_y_vars
+    # list_x_vars = [[v] for v in x_vars]
+    # list_y_vars = [[v] for v in y_vars]
+    # list_all_vars = list_x_vars + list_y_vars
 
-    check_pairs = [[x, y_vars] for x in list_x_vars]
+    assert(len(y_vars) == 1)
+    pairs_list = [[x, y_vars[0]] for x in x_vars]
 
-    assert(len(list_y_vars) == 1)
-    import pdb; pdb.set_trace()
-    factorial_ANOVA = StatisticalTest('factorial_ANOVA', list_all_vars, # Variable number of factors
+    factorial_ANOVA = StatisticalTest('factorial_ANOVA', all_vars, # Variable number of factors
                                 test_properties=
                                 [one_y_variable],
                                 # [one_y_variable, two_or_more_x_variables],
                                 properties_for_vars={
-                                continuous: [list_y_vars],
-                                categorical: [list_x_vars], # Variable number of factors
-                                two_or_more_categories: [list_x_vars],
-                                groups_normal: [check_pairs], # Variable number of factors
-                                eq_variance: [check_pairs] # Variable number of factors
-                                }) 
-    x_vars = []
-    y_vars = []
-    all_vars = []
-    for i in range(num_vars): 
-        name = 'x' + str(i)
-        if (i <= num_vars - 2): # All but the last var
-            x = StatVar(name)
-            x_vars.append(x)
-            all_vars.append(x)
-        else:
-            assert(i == num_vars - 1)
-            y = StatVar(name)
-            y_vars.append(y) # last var
-            all_vars.append(y)
-    assert(num_vars == len(x_vars) + len(y_vars))
-
-    # list_x_vars = [[v] for v in x_vars]
-    # list_y_vars = [[v] for v in y_vars]
-    # list_all_vars = list_x_vars + list_y_vars
-
-    f_test = StatisticalTest('f_test', all_vars, # Variable number of factors
-                                test_properties=
-                                [independent_obs, one_x_variable, one_y_variable],
-                                properties_for_vars={
                                 continuous: [y_vars],
                                 categorical: [x_vars], # Variable number of factors
                                 two_or_more_categories: [x_vars],
-                                groups_normal: [all_vars], # Variable number of factors
-                                eq_variance: [all_vars] # Variable number of factors
-                                }) 
-
-
-f_test = None    
-def construct_f_test(combined_data: CombinedData): 
-    global f_test
-
-    num_vars = len(combined_data.vars)
-
-    x_vars = []
-    y_vars = []
-    all_vars = []
-    for i in range(num_vars): 
-        name = 'x' + str(i)
-        if (i <= num_vars - 2): # All but the last var
-            x = StatVar(name)
-            x_vars.append(x)
-            all_vars.append(x)
-        else:
-            assert(i == num_vars - 1)
-            y = StatVar(name)
-            y_vars.append(y) # last var
-            all_vars.append(y)
-    assert(num_vars == len(x_vars) + len(y_vars))
-
-    # list_x_vars = [[v] for v in x_vars]
-    # list_y_vars = [[v] for v in y_vars]
-    # list_all_vars = list_x_vars + list_y_vars
-
-    f_test = StatisticalTest('f_test', all_vars, # Variable number of factors
-                                test_properties=
-                                [independent_obs, one_x_variable, one_y_variable],
-                                properties_for_vars={
-                                continuous: [y_vars],
-                                categorical: [x_vars], # Variable number of factors
-                                two_or_more_categories: [x_vars],
-                                groups_normal: [all_vars], # Variable number of factors
-                                eq_variance: [all_vars] # Variable number of factors
-                                }) 
-
-rm_one_way_anova = None
-def construct_repeated_measures_one_way_anova(combined_data: CombinedData): 
-    global rm_one_way_anova
-
-    num_vars = len(combined_data.vars)
-
-    x_vars = []
-    y_vars = []
-    for i in range(num_vars): 
-        name = 'x' + str(i)
-        if (i <= num_vars - 2): # All but the last var
-            x_vars.append(StatVar(name))
-        else:
-            assert(i == num_vars - 1)
-            y_vars.append(StatVar(name)) # last var
-    assert(num_vars == len(x_vars) + len(y_vars))
-
-    list_x_vars = [[v] for v in x_vars]
-    list_y_vars = [[v] for v in y_vars]
-    list_all_vars = list_x_vars + list_y_vars
-
-    rm_one_way_anova = StatisticalTest('rm_one_way_anova', list_all_vars, # Variable number of factors
-                                test_properties=
-                                [paired_obs, one_x_variable, one_y_variable],
-                                properties_for_vars={
-                                continuous: [list_y_vars],
-                                categorical: [list_x_vars], # Variable number of factors
-                                two_or_more_categories: [list_x_vars],
-                                groups_normal: [list_all_vars], # Variable number of factors
-                                eq_variance: [list_all_vars] # Variable number of factors
-                                }) 
-
-kruskall_wallis = None
-def construct_kruskall_wallis_test(combined_data: CombinedData): 
-    global kruskall_wallis
-
-    num_vars = len(combined_data.vars)
-
-    x_vars = []
-    y_vars = []
-    for i in range(num_vars): 
-        name = 'x' + str(i)
-        if (i <= num_vars - 2): # All but the last var
-            x_vars.append(StatVar(name))
-        else:
-            assert(i == num_vars - 1)
-            y_vars.append(StatVar(name)) # last var
-    assert(num_vars == len(x_vars) + len(y_vars))
-
-    list_x_vars = [[v] for v in x_vars]
-    list_y_vars = [[v] for v in y_vars]
-    list_all_vars = list_x_vars + list_y_vars
-
-    kruskall_wallis = StatisticalTest('kruskall_wallis', list_all_vars, # Variable number of factors
-                                test_properties=
-                                [independent_obs, one_x_variable, one_y_variable],
-                                properties_for_vars={
-                                continuous: [list_y_vars],
-                                categorical: [list_x_vars], # Variable number of factors
-                                two_or_more_categories: [list_x_vars]
+                                groups_normal: pairs_list, # Variable number of factors
+                                eq_variance: pairs_list # Variable number of factors
                                 }) 
 
 
@@ -746,6 +614,9 @@ welchs_t = None
 mannwhitney_u = None
 chi_square = None
 fishers_exact = None
+f_test = None    
+rm_one_way_anova = None
+kruskall_wallis = None
 friedman = None
 def construct_bivariate_tests(combined_data: CombinedData): 
     global pearson_corr, kendalltau_corr, spearman_corr, pointbiserial_corr_a, pointbiserial_corr_b
