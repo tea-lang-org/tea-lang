@@ -301,6 +301,22 @@ def students_t(dataset, combined_data: BivariateData):
     
     return stats.ttest_ind(data[0], data[1], equal_var=True)
 
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html#scipy.stats.ttest_rel
+# Possible parameters: a, b : array | axis (without, over entire arrays) | nan_policy (optional) 
+def paired_students_t(dataset, combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
+    data = []
+
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        data.append(cat_data)
+    
+    return stats.ttest_rel(data[0], data[1])
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
 def welchs_t(dataset, combined_data: BivariateData):
@@ -417,6 +433,9 @@ def kendalltau_corr(dataset: Dataset, combined_data: CombinedData):
 
     return stats.kendalltau(data[0], data[1])
 
+def pointbiserial(dataset: Dataset, combined_data: CombinedData): 
+    return True
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html
 # Parameters: observed (contingency table) | correction (bool for Yates' correction) | lambda (change statistic computed)
 def chi_square(dataset: Dataset, combined_data: CombinedData): 
@@ -519,6 +538,9 @@ def f_test(dataset: Dataset, combined_data: CombinedData):
 def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData): 
     return True
 
+def rm_one_way_anova(dataset: Dataset, combined_data: CombinedData): 
+    return True
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
 def kruskall_wallis(dataset: Dataset, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -589,17 +611,24 @@ def bootstrap():
 
 
 __stat_test_to_function__ = {
-    'students_t': students_t,
-    'welchs_t': welchs_t,
     'kendalltau_corr' : kendalltau_corr,
     'spearman_corr' : spearman_corr,
+    'pointbiserial_corr_a': pointbiserial,
+    'pointbiserial_corr_b': pointbiserial,
+    
+    'students_t': students_t,
+    'welchs_t': welchs_t,
+    'mannwhitney_u' : mannwhitney_u,
+    'paired_students_t' :paired_students_t,
+
     'chi_square' : chi_square,
     'fishers_exact' : fishers_exact,
-    'mannwhitney_u' : mannwhitney_u,
+    
     'f_test' : f_test,
     'kruskall_wallis' : kruskall_wallis,
     'friedman': friedman,
-    'factorial_ANOVA': factorial_ANOVA
+    'factorial_ANOVA': factorial_ANOVA,
+    'rm_one_way_anova': rm_one_way_anova
 }
 
 # Returns the function that has the @param name

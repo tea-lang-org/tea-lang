@@ -11,8 +11,9 @@ co2_path = None
 exam_path = None
 liar_path = None 
 pbcorr_path = None
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv']
+spider_path = None
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -266,6 +267,45 @@ def test_indep_t_test():
 
     # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
     # import pdb; pdb.set_trace()
+
+
+def test_paired_t_test(): 
+    print("\nPearson Correlation from Field et al.")
+    print("Expected outcome: Paired/Dependent t-test")
+
+    global spider_path
+    spider_path = "/Users/emjun/.tea/data/spiderLong.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Group',
+            'data type' : 'nominal',
+            'categories' : ['Picture', 'Real Spider']
+        },
+        {
+            'name' : 'Anxiety',
+            'data type' : 'ratio'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': 'Group',
+                            'dependent variables': 'Anxiety',
+                            'within subjects' : 'Group'
+
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05
+    }
+
+    tea.data(spider_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
+
 
 # def test_chi_square(): 
 #     cats_path = "/Users/emjun/.tea/data/catsData.csv"

@@ -363,7 +363,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         # Synthesize tests
         tests = synthesize_tests(dataset, assumptions, combined_data)
         
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         """"
         # verify_properties(properties_and_tests)
         # get_tests

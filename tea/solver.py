@@ -491,6 +491,14 @@ def has_two_or_more_categories(dataset, var_data, alpha):
     assert(is_categorical_var(dataset, var_data, alpha))
     return len(var_data[0].metadata[categories].keys()) >= 2
 
+def has_three_or_more_categories(dataset, var_data, alpha): 
+    assert(len(var_data) == 1)
+    assert(isinstance(var_data[0], VarData))
+
+    # First check that the variable is categorical
+    assert(is_categorical_var(dataset, var_data, alpha))
+    return len(var_data[0].metadata[categories].keys()) >= 3
+
 def is_continuous_var(dataset, var_data, alpha):
     assert(len(var_data) == 1)
     assert(isinstance(var_data[0], VarData))
@@ -530,6 +538,7 @@ test_props = [bivariate, one_x_variable, one_y_variable, paired_obs, independent
 categorical = Property('is_categorical', "Variable is categorical", is_categorical_var)
 two_categories = Property('has_two_categories', "Variable has two categories", has_two_categories)
 two_or_more_categories = Property('has_two_or_more_categories', "Variable has two or more categories", has_two_or_more_categories)
+three_or_more_categories = Property('has_three_or_more_categories', "Variable has three or more categories", has_three_or_more_categories)
 # all_x_variables_categorical = Property('has_all_x_categorical', "All explanatory variables are categorical", 'variable')
 # two_x_variable_categories = Property('has_two_categories_x_var', "Exactly two categories in explanatory variable", 'variable')
 continuous = Property('is_continuous', "Continuous (not categorical) data", is_continuous_var)
@@ -843,7 +852,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                 properties_for_vars={
                                 continuous: [[y]],
                                 categorical: [[x]], # Variable number of factors
-                                two_or_more_categories: [[x]],
+                                three_or_more_categories: [[x]],
                                 }) 
 
 
