@@ -129,6 +129,7 @@ def get_var_from_list(var_name: str, vars: list):
     return None # Does not exist
 
 def is_well_formed_prediction(prediction_type: str, vars: list, prediction: str):
+    # import pdb; pdb.set_trace()
     if (categorical_prediction == prediction_type):
         var_ind = prediction.index(categorical_prediction_delimiter)
         var_name = prediction[:var_ind].strip()
@@ -206,7 +207,18 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
                 var = get_var_from_list(var_name, vars)
                 lhs = prediction[delimiter_ind+1:comparator_ind].strip()
                 rhs = prediction[comparator_ind+1:].strip()
+                # rhs = rhs[deli]
+                
+                types = set(type(k) for k in var.categories.keys())
+                assert(len(types) == 1) # Assert all keys have the same type
+                cat_type = next(iter(types))
 
+                # import pdb; pdb.set_trace()
+
+                if isinstance(lhs, str) and cat_type == int: 
+                    lhs = int(lhs)
+                    rhs = int(rhs)
+                
                 assert(lhs in var.categories.keys())
                 assert(rhs in var.categories.keys())
                 if c == '<': 
@@ -292,6 +304,7 @@ def predict(vars: list, predictions: list=None):
     
             # Prediction pertains to neither categorical nor numerical data                 
             else: 
+                import pdb; pdb.set_trace()
                 raise ValueError(f"Prediction is malformed: {p}")
             
             formulated_predictions.append(pred)

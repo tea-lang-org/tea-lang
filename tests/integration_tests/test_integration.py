@@ -8,8 +8,10 @@ cats_path = None
 cholesterol_path = None
 soya_path = None
 co2_path = None
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv']
+exam_path = None
+liar_path = None 
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -20,7 +22,9 @@ def test_load_data():
         csv_url = os.path.join(base_url, csv_name)
         data_paths[i] = tea.download_data(csv_url, csv_name)
 
-def test_corr(): 
+# Example from Kabacoff
+# Expected outcome: Pearson correlation 
+def test_pearson_corr(): 
     states_path = "/Users/emjun/.tea/data/statex77.csv"
 
     # Declare and annotate the variables of interest
@@ -52,218 +56,305 @@ def test_corr():
 
     tea.hypothesize(['Illiteracy', 'Life Exp'])
 
-def test_chi_square(): 
-    cats_path = "/Users/emjun/.tea/data/catsData.csv"
+def test_pearson_corr_2(): 
+    exam_path = "/Users/emjun/.tea/data/exam.csv"
 
     # Declare and annotate the variables of interest
     variables = [
         {
-            'name' : 'Training',
-            'data type' : 'nominal',
-            'categories' : ['Food as Reward', 'Affection as Reward']
+            'name' : 'Exam',
+            'data type' : 'ratio',
+            'range' : [0, 100]
         },
         {
-            'name' : 'Dance',
+            'name' : 'Anxiety',
+            'data type' : 'interval',
+            'range' : [0, 100]
+        },
+        {
+            'name' : 'Gender',
             'data type' : 'nominal',
-            'categories' : ['Yes', 'No']
+            'categories' : ['Male', 'Female']
+        },
+        {
+            'name' : 'Revise',
+            'data type' : 'ratio'
         }
     ]
     experimental_design = {
                             'study type': 'observational study',
-                            'contributor variables': 'Training',
-                            'outcome variables': 'Dance'
+                            'contributor variables': ['Anxiety', 'Gender', 'Revise'],
+                            'outcome variables': 'Exam'
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(cats_path)
+    tea.data(exam_path)
     tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['Training', 'Dance'])
+    tea.hypothesize(['Anxiety', 'Exam'])
+    tea.hypothesize(['Revise', 'Exam'])
+    tea.hypothesize(['Anxiety', 'Revise'])
+
+    # Anxiety, Exam, and Revise are all not normally distributed. Therefore, Tea picks spearman and kendall
 
 
-def test_f_test(): 
-    cholesterol_path = "/Users/emjun/.tea/data/cholesterol.csv"
+def test_spearman_corr(): 
+    liar_path = "/Users/emjun/.tea/data/liar.csv"
 
     # Declare and annotate the variables of interest
     variables = [
         {
-            'name' : 'trt',
-            'data type' : 'nominal',
-            'categories' : ['1time', '2times', '4times', 'drugD', 'drugE']
+            'name' : 'Creativity',
+            'data type' : 'interval'
         },
         {
-            'name' : 'response',
-            'data type' : 'ratio',
-            # 'categories' : ['Yes', 'No']
+            'name' : 'Position',
+            'data type' : 'ordinal',
+            'categories' : [6, 5, 4, 3, 2, 1] # ordered from lowest to highest
+        },
+        {
+            'name' : 'Novice',
+            'data type' : 'nominal',
+            'categories' : [0, 1]
         }
     ]
     experimental_design = {
-                            'study type': 'experiment',
-                            'independent variables': 'trt',
-                            'dependent variables': 'response'
+                            'study type': 'observational study',
+                            'contributor variables': ['Novice', 'Creativity'],
+                            'outcome variables': 'Position'
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(cholesterol_path)
+    tea.data(liar_path)
     tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['trt', 'response'])
+    tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
+
+# Same as test for Spearman rho
+def test_kendall_tau_corr(): 
+    liar_path = "/Users/emjun/.tea/data/liar.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Creativity',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Position',
+            'data type' : 'ordinal',
+            'categories' : [6, 5, 4, 3, 2, 1] # ordered from lowest to highest
+        },
+        {
+            'name' : 'Novice',
+            'data type' : 'nominal',
+            'categories' : [0, 1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['Novice', 'Creativity'],
+                            'outcome variables': 'Position'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(liar_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
+
+
+# def test_chi_square(): 
+#     cats_path = "/Users/emjun/.tea/data/catsData.csv"
+
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name' : 'Training',
+#             'data type' : 'nominal',
+#             'categories' : ['Food as Reward', 'Affection as Reward']
+#         },
+#         {
+#             'name' : 'Dance',
+#             'data type' : 'nominal',
+#             'categories' : ['Yes', 'No']
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'observational study',
+#                             'contributor variables': 'Training',
+#                             'outcome variables': 'Dance'
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05,
+#     }
+
+#     tea.data(cats_path)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions)
+
+#     tea.hypothesize(['Training', 'Dance'])
+
+
+# def test_f_test(): 
+#     cholesterol_path = "/Users/emjun/.tea/data/cholesterol.csv"
+
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name' : 'trt',
+#             'data type' : 'nominal',
+#             'categories' : ['1time', '2times', '4times', 'drugD', 'drugE']
+#         },
+#         {
+#             'name' : 'response',
+#             'data type' : 'ratio',
+#             # 'categories' : ['Yes', 'No']
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'experiment',
+#                             'independent variables': 'trt',
+#                             'dependent variables': 'response'
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05,
+#     }
+
+#     tea.data(cholesterol_path)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions)
+
+#     tea.hypothesize(['trt', 'response'])
         
-def test_kruskall_wallis(): 
-    soya_path = "/Users/emjun/.tea/data/soya.csv"
+# def test_kruskall_wallis(): 
+#     soya_path = "/Users/emjun/.tea/data/soya.csv"
 
-    # Declare and annotate the variables of interest
-    variables = [
-        {
-            'name' : 'Sperm',
-            'data type' : 'interval'
-        },
-        {
-            'name' : 'Soya',
-            'data type' : 'ordinal',
-            'categories': ['No Soya', '1 Soya Meal', '4 Soya Meals', '7 Soya Meals']
-        }
-    ]
-    experimental_design = {
-                            'study type': 'experiment',
-                            # 'study type': 'observational study', # shouldn't change anything
-                            'independent variables': 'Soya',
-                            'dependent variables': 'Sperm',
-                            # 'within subjects': 'Soya' # Correctly does not choose Kruskall Wallis
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05,
-    }
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name' : 'Sperm',
+#             'data type' : 'interval'
+#         },
+#         {
+#             'name' : 'Soya',
+#             'data type' : 'ordinal',
+#             'categories': ['No Soya', '1 Soya Meal', '4 Soya Meals', '7 Soya Meals']
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'experiment',
+#                             # 'study type': 'observational study', # shouldn't change anything
+#                             'independent variables': 'Soya',
+#                             'dependent variables': 'Sperm',
+#                             # 'within subjects': 'Soya' # Correctly does not choose Kruskall Wallis
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05,
+#     }
 
-    tea.data(soya_path)
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
+#     tea.data(soya_path)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions)
 
-    tea.hypothesize(['Soya', 'Sperm'])
+#     tea.hypothesize(['Soya', 'Sperm'])
 
-def test_rm_one_way_anova(): 
-    co2_path = "/Users/emjun/.tea/data/co2.csv"
+# def test_rm_one_way_anova(): 
+#     co2_path = "/Users/emjun/.tea/data/co2.csv"
 
-    # Declare and annotate the variables of interest
-    variables = [
-        {
-            'name' : 'uptake',
-            'data type' : 'interval'
-        },
-        {
-            'name' : 'Type',
-            'data type' : 'nominal',
-            'categories': ['Quebec', 'Mississippi']
-        },
-        {
-            'name' : 'conc',
-            'data type' : 'ordinal',
-            'categories': [95, 175, 250, 350, 500, 675, 1000]
-        }
-    ]
-    experimental_design = {
-                            'study type': 'experiment',
-                            'independent variables': ['Type', 'conc'],
-                            'dependent variables': 'uptake',
-                            'within subjects': 'conc',
-                            'between subjects': 'Type'
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05,
-    }
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name' : 'uptake',
+#             'data type' : 'interval'
+#         },
+#         {
+#             'name' : 'Type',
+#             'data type' : 'nominal',
+#             'categories': ['Quebec', 'Mississippi']
+#         },
+#         {
+#             'name' : 'conc',
+#             'data type' : 'ordinal',
+#             'categories': [95, 175, 250, 350, 500, 675, 1000]
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'experiment',
+#                             'independent variables': ['Type', 'conc'],
+#                             'dependent variables': 'uptake',
+#                             'within subjects': 'conc',
+#                             'between subjects': 'Type'
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05,
+#     }
 
-    tea.data(co2_path)
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
+#     tea.data(co2_path)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions)
 
-    tea.hypothesize(['uptake', 'conc']) # Picks friedman!
+#     tea.hypothesize(['uptake', 'conc']) # Picks friedman!
 
-def test_two_way_anova(): 
-    co2_path = "/Users/emjun/.tea/data/co2.csv"
+# def test_two_way_anova(): 
+#     co2_path = "/Users/emjun/.tea/data/co2.csv"
 
-    # Declare and annotate the variables of interest
-    variables = [
-        {
-            'name' : 'uptake',
-            'data type' : 'interval'
-        },
-        {
-            'name' : 'Type',
-            'data type' : 'nominal',
-            'categories': ['Quebec', 'Mississippi']
-        },
-        {
-            'name' : 'conc',
-            'data type' : 'ordinal',
-            'categories': [95, 175, 250, 350, 500, 675, 1000]
-        }
-    ]
-    experimental_design = {
-                            'study type': 'experiment',
-                            'independent variables': ['Type', 'conc'],
-                            'dependent variables': 'uptake',
-                            'within subjects': 'conc',
-                            'between subjects': 'Type'
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05,
-    }
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name' : 'uptake',
+#             'data type' : 'interval'
+#         },
+#         {
+#             'name' : 'Type',
+#             'data type' : 'nominal',
+#             'categories': ['Quebec', 'Mississippi']
+#         },
+#         {
+#             'name' : 'conc',
+#             'data type' : 'ordinal',
+#             'categories': [95, 175, 250, 350, 500, 675, 1000]
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'experiment',
+#                             'independent variables': ['Type', 'conc'],
+#                             'dependent variables': 'uptake',
+#                             'within subjects': 'conc',
+#                             'between subjects': 'Type'
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05,
+#     }
 
-    tea.data(co2_path)
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
+#     tea.data(co2_path)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions)
 
-    tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
+#     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
 
-def test_indep_t_test():
-    global uscrime_data_path
-    uscrime_data_path = "/Users/emjun/.tea/data/UScrime.csv"
+# def test_indep_t_test():
+#     global uscrime_data_path
+#     uscrime_data_path = "/Users/emjun/.tea/data/UScrime.csv"
 
-    # Declare and annotate the variables of interest
-    variables = [
-        {
-            'name' : 'So',
-            'data type' : 'nominal',
-            'categories' : ['0', '1']
-        },
-        {
-            'name' : 'Prob',
-            'data type' : 'ratio',
-            'range' : [0,1]
-        }
-    ]
-    experimental_design = {
-                            'study type': 'observational study',
-                            'contributor variables': 'So',
-                            'outcome variables': 'Prob',
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05,
-        'normal distribution': ['So']
-    }
-
-    tea.data(uscrime_data_path)
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
-
-    tea.hypothesize(['So', 'Prob'])
-
-    # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
-    # import pdb; pdb.set_trace()
-
-# def test_get_props():
+#     # Declare and annotate the variables of interest
 #     variables = [
 #         {
 #             'name' : 'So',
@@ -282,16 +373,49 @@ def test_indep_t_test():
 #                             'outcome variables': 'Prob',
 #                         }
 #     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05
+#         'Type I (False Positive) Error Rate': 0.05,
+#         'normal distribution': ['So']
 #     }
 
+#     tea.data(uscrime_data_path)
 #     tea.define_variables(variables)
 #     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
 #     tea.assume(assumptions)
 
-#     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
-#     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'mannwhitney_u'])
-    # import pdb; pdb.set_trace()
+#     tea.hypothesize(['So', 'Prob'])
+
+#     # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
+#     # import pdb; pdb.set_trace()
+
+# # def test_get_props():
+# #     variables = [
+# #         {
+# #             'name' : 'So',
+# #             'data type' : 'nominal',
+# #             'categories' : ['0', '1']
+# #         },
+# #         {
+# #             'name' : 'Prob',
+# #             'data type' : 'ratio',
+# #             'range' : [0,1]
+# #         }
+# #     ]
+# #     experimental_design = {
+# #                             'study type': 'observational study',
+# #                             'contributor variables': 'So',
+# #                             'outcome variables': 'Prob',
+# #                         }
+# #     assumptions = {
+# #         'Type I (False Positive) Error Rate': 0.05
+# #     }
+
+# #     tea.define_variables(variables)
+# #     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+# #     tea.assume(assumptions)
+
+# #     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'chi_square'])
+# #     tea.divine_properties(vars=['So', 'Prob'], tests=['students_t', 'mannwhitney_u'])
+#     # import pdb; pdb.set_trace()
     
 
 
@@ -302,20 +426,20 @@ def test_indep_t_test():
 
 
 
-    ## IMPORTANT:
-    # The above example from the tutorial does not explicate all the assumptions. 
-    # We find that t-test is not appropriate because both groups are not normally distributed, 
-    # but this is not discussed in the tutorial. This shows us potential for Tea to be used as 
-    # a validation and learning tool.
+#     ## IMPORTANT:
+#     # The above example from the tutorial does not explicate all the assumptions. 
+#     # We find that t-test is not appropriate because both groups are not normally distributed, 
+#     # but this is not discussed in the tutorial. This shows us potential for Tea to be used as 
+#     # a validation and learning tool.
 
-    ## TODO: What happens if we had the assumptions?
-    # --> May need to query the solver twice:
-    # 1. With only data computed propertie
-    # 2. With assumptions
+#     ## TODO: What happens if we had the assumptions?
+#     # --> May need to query the solver twice:
+#     # 1. With only data computed propertie
+#     # 2. With assumptions
 
 
-    # Can always redefine experimental design 
-    # tea.define_study_design(experimental_design)
+#     # Can always redefine experimental design 
+#     # tea.define_study_design(experimental_design)
 
 
 # def test_dep_t_test():
@@ -366,8 +490,8 @@ def test_indep_t_test():
 
 
 
-# ## ADD TO PAPER
-# # What happens when have no participant_id?
-# # --> ask for key
-# # ---> if there is no key, assume that each row is a separate/unique participant/observation 
-# # --> May want to surface this assumption to the user....
+# # ## ADD TO PAPER
+# # # What happens when have no participant_id?
+# # # --> ask for key
+# # # ---> if there is no key, assume that each row is a separate/unique participant/observation 
+# # # --> May want to surface this assumption to the user....

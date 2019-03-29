@@ -7,8 +7,10 @@
 ## Command for taking a dataset (in R's core) and writing out/saving as CSV
 # write.csv(file="statex77.csv", state.x77)
 
+base_path = "/Users/emjun/Git/tea-lang/evaluation/discovering-statistics-using-r/"
 
-### I. Correlation (p. 159-164)
+####### CORRELATIONS #######
+### Pearson Correlation (p. 159-164)
 # Using state.x77 dataset from base R package
 states <- state.x77[,1:6] # Remove Frost and Area columns from original state.x77 dataset
 x <- states[,c("Population", "Income", "Illiteracy", "HS Grad")]
@@ -20,6 +22,49 @@ cor(x, y)
 # (that is, p = 1.258e-08). 
 # In base R package, can only test correlation between two variables at a time. 
 cor.test(states[,3], states[,5])
+
+### Pearson Correlation (p. 221)
+# Field et al. (p. 219 - 221)
+# Code from Supplementary Material
+# Without p-values
+path = paste(base_path, "exam.dat", sep="")
+examData<- read.delim(path, header=TRUE)
+examData2 <- examData[,c("Exam", "Anxiety", "Revise")]
+cor(examData2)
+# With p-values 
+library(Hmisc)
+examMatrix<-as.matrix(examData[, c("Exam", "Anxiety", "Revise")])
+Hmisc::rcorr(examMatrix)
+Hmisc::rcorr(as.matrix(examData[, c("Exam", "Anxiety", "Revise")]))
+
+cor.test(examData$Anxiety, examData$Exam)
+cor.test(examData$Revise, examData$Exam)
+cor.test(examData$Anxiety, examData$Revise)
+
+### Spearman Rho Correlation (p. 223 - 225)
+# Field et al. 
+path = paste(base_path, "liar.dat", sep="")
+liarData = read.delim(path,  header = TRUE)
+head(liarData)
+
+cor(liarData$Position, liarData$Creativity, method = "spearman")
+cor.test(liarData$Position, liarData$Creativity, alternative = "less", method = "spearman")
+
+liarMatrix<-as.matrix(liarData[, c("Position", "Creativity")])
+rcorr(liarMatrix)
+
+### Kendall's tau Correlation (p. 225 - 226)
+# Field et al. 
+cor(liarData$Position, liarData$Creativity, method = "kendall")
+cor(liarData$Position, liarData$Creativity, method = "spearman")
+cor.test(liarData$Position, liarData$Creativity, alternative = "less", method = "pearson")
+
+### Pointbiseral ()
+# Field et al.
+
+#####################
+
+####### BIVARIATE COMPARISON OF MEANS #######
 
 ### II. Contingency Tables (for comparing categorical data)
 ## From Field et al. Discovering Statistics Using R
@@ -97,7 +142,7 @@ boxplot(uptake ~ Type*conc, data = w1b1, col=(c('gold', 'green')),
 
 # Independent T-Test (p. 164-165)
 library (MASS)
-t.test(Prob ~ So, data=UScrime)
+t.test(Prob ~ So, data=UScrime, var.equal=TRUE)
 # could also be written as 
 # t.test(y1, y2) # y1 and y2 dependent variables for the two groups
 wilcox.test(Prob ~ So, data=UScrime)

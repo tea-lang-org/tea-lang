@@ -370,7 +370,27 @@ def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha):
         else: 
             raise ValueError(f"Currently, chi square requires/only supports 1 explained variable, instead received: {len(ys)} -- {ys}")    
     else: 
-        raise ValueError(f"Currently, chi square requires/only supports 1 explanatory variable, instead received: {len(xs)} -- {xs}")
+        # import pdb; pdb.set_trace()
+        x0 = xs[0]
+        x1 = xs[1]
+        
+        if x0.is_categorical() and x1.is_categorical():
+            # Get the count for each category
+            x0_cat = [k for k,v in x0.metadata[categories].items()]
+            x1_cat = [k for k,v in x1.metadata[categories].items()]
+
+            for x0c in x0_cat: 
+                for x1c in x1_cat: 
+                    data = dataset.select(x1.metadata[name], where=[f"{x.metadata[name]} == '{xc}'", f"{x1.metadata[name]} == '{x1c}'"])                    
+
+                    # Check that the count is at least five for each of the (x,x1) group pairs
+                    if (len(data) < 5): 
+                        return False
+            return True
+        else: 
+            return False
+
+
 
 def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
     xs = None
@@ -405,7 +425,7 @@ def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
                 else: 
                     raise ValueError(f"var_data_data object is neither BivariateData nor MultivariateData: {type(var_data)}")
 
-    return (eq_var[1] < alpha)
+    return (eq_var[1] > alpha)
 
 def has_groups_normal_distribution(dataset, var_data, alpha):
     xs = []
@@ -684,7 +704,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                         test_properties=
                                         [bivariate],
                                         properties_for_vars={
-                                            continuous: [[x0], [x1]]
+                                            continuous_or_ordinal: [[x0], [x1]]
                                         })
 
         spearman_corr = StatisticalTest('spearman_corr', [x0, x1],
@@ -730,8 +750,8 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                         categorical : [[x]],
                                         two_categories: [[x]],
                                         continuous: [[y]],
-                                        groups_normal: [[x, y]],
-                                        eq_variance: [[x, y]] 
+                                        eq_variance: [[x, y]],
+                                        groups_normal: [[x, y]]
                                         })
 
         paired_students_t = StatisticalTest('paired_students_t', [x, y],
@@ -993,6 +1013,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             pass
 
     reset_all_tests()
+    # import pdb; pdb.set_trace()
     return tests_to_conduct
 
 def which_props(tests_names: list, var_names: List[str]):
