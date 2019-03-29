@@ -285,16 +285,39 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-def t_test_ind(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    assert(len(comp_data.dataframes) == 2)
-    assert(len(predictions) == 1)
+def students_t(dataset, combined_data: BivariateData):
+    # assert(len(predictions) == 1)
 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
     data = []
-    for key, val in comp_data.dataframes.items():
-        data.append(val)
 
-    # What if we just return a lambda and all the test signatures are the same? That way, easy to swap out with constraint version?
-    return stats.ttest_ind(data[0], data[1], equal_var=is_equal_variance(comp_data, kwargs['alpha']))
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        data.append(cat_data)
+    
+    return stats.ttest_ind(data[0], data[1], equal_var=True)
+
+# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
+# Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
+def welchs_t(dataset, combined_data: BivariateData):
+    # assert(len(predictions) == 1)
+
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
+    data = []
+
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        data.append(cat_data)
+    
+    return stats.ttest_ind(data[0], data[1], equal_var=False)
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
@@ -485,11 +508,16 @@ def f_test(dataset: Dataset, combined_data: CombinedData):
     x = xs[0]
     y = ys[0]
     
-    forumula = ols(f"{y.name} ~ {C(x.name)}", data=dataset.data)
-    import pdb; pdb.set_trace()
+    formula = ols(f"{y.metadata[name]} ~ C({x.metadata[name]})", data=dataset.data)
+    model =formula.fit()
+    return sm.stats.anova_lm(model, type=2)
+    # import pdb; pdb.set_trace()
     # >>> moore_lm = ols('conformity ~ C(fcategory, Sum)*C(partner_status, Sum)',
                 #  data=data).fit()
     # >>> table = sm.stats.anova_lm(moore_lm, typ=2) # Type 2 Anova DataFrame
+
+def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData): 
+    return True
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
 def kruskall_wallis(dataset: Dataset, combined_data: CombinedData): 
@@ -561,6 +589,8 @@ def bootstrap():
 
 
 __stat_test_to_function__ = {
+    'students_t': students_t,
+    'welchs_t': welchs_t,
     'kendalltau_corr' : kendalltau_corr,
     'spearman_corr' : spearman_corr,
     'chi_square' : chi_square,
@@ -568,7 +598,8 @@ __stat_test_to_function__ = {
     'mannwhitney_u' : mannwhitney_u,
     'f_test' : f_test,
     'kruskall_wallis' : kruskall_wallis,
-    'friedman': friedman
+    'friedman': friedman,
+    'factorial_ANOVA': factorial_ANOVA
 }
 
 # Returns the function that has the @param name
