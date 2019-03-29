@@ -12,11 +12,15 @@ exam_path = None
 liar_path = None 
 pbcorr_path = None
 spider_path = None
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv']
+drug_path = None
+alcohol_path = None
+ecstasy_path = None
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
+    global drug_path 
 
     for i in range(len(data_paths)):
         csv_name = file_names[i]
@@ -306,6 +310,128 @@ def test_paired_t_test():
 
     tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
 
+def test_wilcoxon_signed_rank(): 
+    print("\nPearson Correlation from Field et al.")
+    print("Expected outcome: Wilcoxon signed rank test")
+
+    # global alcohol_path
+    alcohol_path = "/Users/emjun/.tea/data/alcohol.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'drug',
+            'data type' : 'nominal',
+            'categories' : ['Alcohol']
+        },
+        {
+            'name' : 'day',
+            'data type' : 'nominal',
+            'categories': ['sundayBDI', 'wedsBDI']
+        },
+        {
+            'name' : 'value',
+            'data type' : 'ratio'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': 'day',
+                            'dependent variables': 'value',
+                            'within subjects' : 'day'
+
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05
+    }
+
+    tea.data(alcohol_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['day', 'value'], ['day:sundayBDI > wedsBDI'])
+
+def test_f_test(): 
+    cholesterol_path = "/Users/emjun/.tea/data/cholesterol.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'trt',
+            'data type' : 'nominal',
+            'categories' : ['1time', '2times', '4times', 'drugD', 'drugE']
+        },
+        {
+            'name' : 'response',
+            'data type' : 'ratio',
+            # 'categories' : ['Yes', 'No']
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': 'trt',
+                            'dependent variables': 'response'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(cholesterol_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['trt', 'response'])
+        
+
+
+"""
+def test_anova_test(): 
+    print("\nPearson Correlation from Field et al.")
+    print("Expected outcome: Wilcoxon signed rank test")
+
+    global drug_path
+    # spider_path = "/Users/emjun/.tea/data/spiderLong.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'drug',
+            'data type' : 'nominal',
+            'categories' : ['Ecstasy', 'Alcohol']
+        },
+        {
+            'name' : 'sundayBDI',
+            'data type' : 'ratio'
+        },
+        {
+            'name' : 'wedsBDI',
+            'data type' : 'ratio'
+        },
+        {
+            'name' : 'BDIchange',
+            'data type' : 'ratio'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': 'drug',
+                            'dependent variables': '',
+                            'within subjects' : 'Group'
+
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05
+    }
+
+    tea.data(spider_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
+"""
 
 # def test_chi_square(): 
 #     cats_path = "/Users/emjun/.tea/data/catsData.csv"
@@ -340,38 +466,7 @@ def test_paired_t_test():
 #     tea.hypothesize(['Training', 'Dance'])
 
 
-# def test_f_test(): 
-#     cholesterol_path = "/Users/emjun/.tea/data/cholesterol.csv"
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'trt',
-#             'data type' : 'nominal',
-#             'categories' : ['1time', '2times', '4times', 'drugD', 'drugE']
-#         },
-#         {
-#             'name' : 'response',
-#             'data type' : 'ratio',
-#             # 'categories' : ['Yes', 'No']
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'experiment',
-#                             'independent variables': 'trt',
-#                             'dependent variables': 'response'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
-
-#     tea.data(cholesterol_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
-
-#     tea.hypothesize(['trt', 'response'])
-        
 # def test_kruskall_wallis(): 
 #     soya_path = "/Users/emjun/.tea/data/soya.csv"
 

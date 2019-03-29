@@ -356,32 +356,20 @@ def mannwhitney_u(dataset, combined_data: BivariateData):
     
     return stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
 
-# https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html
-# Parameters: a, b (array-like) | axis | nan_policy (default is 'propagate', optional)
-def t_test_paired(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    assert(len(comp_data.dataframes) == 2)
-    assert(len(predictions) == 1)
-
-    data = []
-    for key, val in comp_data.dataframes.items():
-        data.append(val)
-
-    return stats.ttest_rel(data[0], data[1])
-
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
-def wilcoxon_signed_rank(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    assert(len(comp_data.dataframes) == 2)
-    assert(len(predictions) == 1)
-
+def wilcoxon_signed_rank(dataset: Dataset, combined_data: CombinedData):
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
     data = []
-    for key, val in comp_data.dataframes.items():
-        # Use numbers for categories in ordinal data
-        if (is_ordinal(dv.metadata['dtype'])):
-            numeric = [dv.metadata['categories'][x] for x in val]
-            val = numeric
-        data.append(val)
 
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        data.append(cat_data)
+    
     return stats.wilcoxon(data[0], data[1])
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
@@ -619,7 +607,8 @@ __stat_test_to_function__ = {
     'students_t': students_t,
     'welchs_t': welchs_t,
     'mannwhitney_u' : mannwhitney_u,
-    'paired_students_t' :paired_students_t,
+    'paired_students_t' : paired_students_t,
+    'wilcoxon_signed_rank' : wilcoxon_signed_rank,
 
     'chi_square' : chi_square,
     'fishers_exact' : fishers_exact,

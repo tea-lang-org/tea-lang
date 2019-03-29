@@ -7,6 +7,7 @@
 ## Command for taking a dataset (in R's core) and writing out/saving as CSV
 # write.csv(file="statex77.csv", state.x77)
 
+library(reshape)
 base_path = "/Users/emjun/Git/tea-lang/evaluation/discovering-statistics-using-r/"
 
 ####### CORRELATIONS #######
@@ -91,8 +92,34 @@ spiderLong = read.delim(long_path,  header = TRUE)
 dep.t.test2<-t.test(Anxiety ~ Group, data = spiderLong, paired = TRUE)
 dep.t.test2
 
+### Wilcoxon Signed Rank ###
+path = paste(base_path, "Drug.dat", sep="")
+drugData = read.delim(path,  header = TRUE)
+drugData$BDIchange<-drugData$wedsBDI-drugData$sundayBDI
+# by(drugData$BDIchange, drugData$drug, stat.desc, basic = FALSE, norm = TRUE)
+alcoholData = drugData[drugData$drug == 'Alcohol',1:3]
+ecstasyData = drugData[drugData$drug == 'Ecstasy',1:3]
 
-## ANALYSIS IN WIDE FORMAT
+alcoholData_long <- melt(alcoholData, id=c("drug")) 
+ecstasyData_long <- melt(ecstasyData, id=c("drug")) 
+
+alcoholModel<-wilcox.test(alcoholData$wedsBDI, alcoholData$sundayBDI,  paired = TRUE, correct= FALSE)
+alcoholModel
+ecstasyModel<-wilcox.test(ecstasyData$wedsBDI, ecstasyData$sundayBDI, paired = TRUE, correct= FALSE)
+ecstasyModel
+
+rFromWilcox(alcoholModel, 20)
+rFromWilcox(ecstasyModel, 20)
+
+long_drugData <- melt(a)
+
+# boxplot<-ggplot(drugData, aes(drug, BDIchange)) + geom_boxplot()
+# boxplot
+
+# alcoholData<-subset(drugData, drug == "Alcohol")
+# ecstasyData<-subset(drugData, drug == "Ecstasy")
+
+## SKIP: ANALYSIS IN WIDE FORMAT
 # Kabacoff (p. 166)
 sapply(UScrime[c("U1", "U2")], function(x) (c(mean=mean(x), sd=sd(x))))
 # with: Evaluate an R expression in an environment constructed from data, possibly modifying (a copy of) the original data.
@@ -101,14 +128,12 @@ with(UScrime, t.test(U1, U2, paired=TRUE))
 #t.test(U1, U2, data=UScrime, paired=TRUE) # not valid
 t.test(UScrime$U1, UScrime$U2, data=UScrime, paired=TRUE) 
 
-
 # Independent Non-parametric Test: Wilcoxon rank sum test AKA Mann Whitney U test
 # Default: two-tailed test
 # Can add options: exact, alternative=less, alternative=greater
 wilcox.test(Prob ~ So, data=UScrime)
 # or wilcox.test(y1, y2) -- see above
 with(UScrime, by(Prob, So, median))
-
 
 # Dependent Non-parametric Test: Wilcoxon signed-rank test (not even called this in book) -- how are you supposed to learn if name not used?
 sapply(UScrime[c("U1", "U2")], median)
@@ -118,21 +143,10 @@ with(UScrime, wilcox.test(U1, U2, paired=TRUE))
 # In wilcox.test.default(U1, U2, paired = TRUE) :
 # cannot compute exact p-value with ties
 
+######################
 
-### II. Contingency Tables (for comparing categorical data)
-## From Field et al. Discovering Statistics Using R
-library(gmodels)
-catData <- read.delim("/Users/emjun/Git/tea-lang/evaluation/discovering-statistics-using-r/cats.dat", header=TRUE)
-food <- c(10, 28)
-affection <- c(114, 48)
-catsTable <- cbind(food, affection) 
-CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
-# Equivalent to the above
-#CrossTable(catsTable, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
-#CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
-
-
-### III. One-Way ANOVA (F-test)
+####### MULTIVARIATE #######
+### One-Way ANOVA (F-test)
 ## From Kabacoff (p. 225)
 ## Originally from Westfall, Tombia, Rom, & Hochberg (1999)
 library(multcomp)
@@ -191,7 +205,20 @@ boxplot(uptake ~ Type*conc, data = w1b1, col=(c('gold', 'green')),
         main='Chilled Quebec and Mississippi PLants', 
         ylab='Carbon dioxide uptake rate')
 
+##################
 
+######## PROPROTIONS #######
+### II. Contingency Tables (for comparing categorical data)
+## From Field et al. Discovering Statistics Using R
+library(gmodels)
+catData <- read.delim("/Users/emjun/Git/tea-lang/evaluation/discovering-statistics-using-r/cats.dat", header=TRUE)
+food <- c(10, 28)
+affection <- c(114, 48)
+catsTable <- cbind(food, affection) 
+CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+# Equivalent to the above
+#CrossTable(catsTable, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+#CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
 
 
 

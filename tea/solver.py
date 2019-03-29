@@ -40,6 +40,7 @@ def reset_all_tests():
     paired_students_t = None
     welchs_t = None 
     mannwhitney_u = None
+    wilcoxon_signed_rank = None
     chi_square = None
     fishers_exact = None
     f_test = None    
@@ -763,17 +764,6 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                         groups_normal: [[x, y]]
                                         })
 
-        paired_students_t = StatisticalTest('paired_students_t', [x, y],
-                                    test_properties=
-                                        [bivariate, one_x_variable, one_y_variable, paired_obs],
-                                    properties_for_vars={
-                                        categorical : [[x]],
-                                        two_categories: [[x]],
-                                        continuous: [[y]],
-                                        groups_normal: [[x, y]],
-                                        eq_variance: [[x, y]]
-                                        })
-
         welchs_t = StatisticalTest('welchs_t', [x, y],
                                     test_properties=
                                         [bivariate, one_x_variable, one_y_variable, independent_obs],
@@ -794,7 +784,27 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                         continuous_or_ordinal: [[y]],
                                         # conflicting sources, but remove for now
                                         #   eq_variance: [x, y] # Is this an assumption of mann whitney??
-                                        })         
+                                        })       
+        
+        paired_students_t = StatisticalTest('paired_students_t', [x, y],
+                                    test_properties=
+                                        [bivariate, one_x_variable, one_y_variable, paired_obs],
+                                    properties_for_vars={
+                                        categorical : [[x]],
+                                        two_categories: [[x]],
+                                        continuous: [[y]],
+                                        groups_normal: [[x, y]],
+                                        eq_variance: [[x, y]]
+                                        })  
+        
+        wilcoxon_signed_rank = StatisticalTest('wilcoxon_signed_rank', [x, y],
+                                    test_properties=
+                                        [bivariate, one_x_variable, one_y_variable, paired_obs],
+                                    properties_for_vars={
+                                        categorical : [[x]],
+                                        two_categories: [[x]],
+                                        continuous: [[y]],
+                                        })
 
         ### CONTINGENCY TABLES (Categorical data)
         chi_square = StatisticalTest('chi_square', [x, y],
