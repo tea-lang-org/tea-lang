@@ -10,8 +10,9 @@ soya_path = None
 co2_path = None
 exam_path = None
 liar_path = None 
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv']
+pbcorr_path = None
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -25,6 +26,9 @@ def test_load_data():
 # Example from Kabacoff
 # Expected outcome: Pearson correlation 
 def test_pearson_corr(): 
+    print("\nPearson Correlation from Kabacoff")
+    print("Expected outcome: Pearson")
+
     states_path = "/Users/emjun/.tea/data/statex77.csv"
 
     # Declare and annotate the variables of interest
@@ -57,6 +61,8 @@ def test_pearson_corr():
     tea.hypothesize(['Illiteracy', 'Life Exp'])
 
 def test_pearson_corr_2(): 
+    print("\nPearson Correlation from Field et al.")
+    print("Expected outcome: Pearson")
     exam_path = "/Users/emjun/.tea/data/exam.csv"
 
     # Declare and annotate the variables of interest
@@ -103,6 +109,9 @@ def test_pearson_corr_2():
 
 
 def test_spearman_corr(): 
+    print("\nPearson Correlation from Field et al.")
+    print("Expected outcome: Spearman")
+
     liar_path = "/Users/emjun/.tea/data/liar.csv"
 
     # Declare and annotate the variables of interest
@@ -140,6 +149,9 @@ def test_spearman_corr():
 
 # Same as test for Spearman rho
 def test_kendall_tau_corr(): 
+    print("\nPearson Correlation from Field et al.")
+    print("Expected outcome: Kendall Tau")
+
     liar_path = "/Users/emjun/.tea/data/liar.csv"
 
     # Declare and annotate the variables of interest
@@ -173,8 +185,87 @@ def test_kendall_tau_corr():
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
+    tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
 
+def test_pointbiserial_corr(): 
+    print("\nPearson Correlation from Field et al.")
+    print("Expected outcome: Pointbiserial")
+
+    pbcorr_path = "/Users/emjun/.tea/data/pbcorr.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'time',
+            'data type' : 'ratio'
+        },
+        {
+            'name' : 'gender',
+            'data type' : 'nominal',
+            'categories' : [0, 1] # ordered from lowest to highest
+        },
+        {
+            'name' : 'recode',
+            'data type' : 'nominal',
+            'categories' : [0, 1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['gender', 'recode'],
+                            'outcome variables': 'time'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(pbcorr_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['time', 'gender'], ['gender:1 > 0']) # I think this works!?
+
+
+def test_indep_t_test():
+    print("\nPearson Correlation from Kabacoff")
+    print("Expected outcome: Student's t-test")
+
+    global uscrime_data_path
+    uscrime_data_path = "/Users/emjun/.tea/data/UScrime.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'So',
+            'data type' : 'nominal',
+            'categories' : ['0', '1']
+        },
+        {
+            'name' : 'Prob',
+            'data type' : 'ratio',
+            'range' : [0,1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': 'So',
+                            'outcome variables': 'Prob',
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+        'normal distribution': ['So']
+    }
+
+    tea.data(uscrime_data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])
+
+    # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
+    # import pdb; pdb.set_trace()
 
 # def test_chi_square(): 
 #     cats_path = "/Users/emjun/.tea/data/catsData.csv"

@@ -922,7 +922,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     for prop in test_props: 
         prop._update(len(combined_data.vars))
 
-    print(combined_data)
+    # print(combined_data)
     # Apply all tests to the variables we are considering now in combined_data
     for test in all_tests(): 
         variables = combined_data.vars
@@ -933,7 +933,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         # TODO: Move the categorical variables to the front? (Among x and among y) -- for Point biserial??
         # ^ Relates also the contributor/outcome variables...
         # import pdb; pdb.set_trace()
-        print(test.__dict__)
+        # print(test.__dict__)
         test.apply(*stat_vars)
 
     solver.push() # Create backtracking point
@@ -958,7 +958,8 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         elif result == z3.unknown:
             print("failed to solve")
             try:
-                print(solver.model())
+                # print(solver.model())
+                pass
             except z3.Z3Exception:
                 return
         else:
@@ -995,10 +996,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                                     log(f"EVER GET HERE?")
                             solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
-
-    # import pdb; pdb.set_trace()
-    for test in all_tests(): 
-        print(test.name)
         
     solver.check()
     model = solver.model() # final model
@@ -1074,7 +1071,8 @@ def which_props(tests_names: list, var_names: List[str]):
     elif result == z3.unknown:
         print("failed to solve")
         try:
-            print(s.model())
+            # print(s.model())
+            print(f"Failed to solve: {s.model()}")
         except z3.Z3Exception:
             return
     else:

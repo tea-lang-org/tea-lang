@@ -39,7 +39,7 @@ Hmisc::rcorr(as.matrix(examData[, c("Exam", "Anxiety", "Revise")]))
 
 cor.test(examData$Anxiety, examData$Exam)
 cor.test(examData$Revise, examData$Exam)
-cor.test(examData$Anxiety, examData$Revise)
+cor.test(examData$Anxiety, examData$Revhead(ise)
 
 ### Spearman Rho Correlation (p. 223 - 225)
 # Field et al. 
@@ -61,7 +61,14 @@ cor.test(liarData$Position, liarData$Creativity, alternative = "less", method = 
 
 ### Pointbiseral ()
 # Field et al.
+path = paste(base_path,"pbcorr.csv", sep="")
+catData = read.csv(path, header = TRUE)
+cor.test(catData$time, catData$gender)
+cor.test(catData$time, catData$recode)
+catFrequencies<-table(catData$gender)
+prop.table(catFrequencies)
 
+# polyserial(catData$time, catData$gender)
 #####################
 
 ####### BIVARIATE COMPARISON OF MEANS #######
