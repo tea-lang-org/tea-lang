@@ -504,8 +504,7 @@ def fishers_exact(dataset: Dataset, combined_data: CombinedData):
 
     return stats.fisher_exact(contingency_table, alternative='two-sided')
 
-def f_test(dataset: Dataset, combined_data: CombinedData): 
-    
+def f_test(dataset: Dataset, combined_data: CombinedData):  
     # Construct formula
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -524,7 +523,25 @@ def f_test(dataset: Dataset, combined_data: CombinedData):
     # >>> table = sm.stats.anova_lm(moore_lm, typ=2) # Type 2 Anova DataFrame
 
 def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData): 
-    return True
+    # Construct formula
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    assert(len(ys) == 1)
+
+    y = ys[0]
+    
+    formula = f"{y.metadata[name]} ~ "
+
+    for i in range(len(xs)): 
+        x = xs[i]
+        formula += f"C({x.metadata[name]})"
+
+        if i < len(xs) - 1: 
+            formula += " + "
+    
+    ols_formula = ols(formula, data=dataset.data)
+    model = ols_formula.fit()
+    return sm.stats.anova_lm(model, type=2)
 
 def rm_one_way_anova(dataset: Dataset, combined_data: CombinedData): 
     return True

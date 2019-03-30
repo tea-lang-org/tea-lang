@@ -146,7 +146,7 @@ with(UScrime, wilcox.test(U1, U2, paired=TRUE))
 ######################
 
 ####### MULTIVARIATE #######
-### One-Way ANOVA (F-test)
+### One-Way ANOVA (F-test) ###
 ## From Kabacoff (p. 225)
 ## Originally from Westfall, Tombia, Rom, & Hochberg (1999)
 library(multcomp)
@@ -162,7 +162,7 @@ summary(fit)
 kw_fit <- kruskal.test(response ~ trt, data=cholesterol)
 summary(kw_fit)
 
-### IV. Kruskall-Wallis (non-parametric alternative to ANVOA)
+### Kruskall-Wallis (non-parametric alternative to ANVOA) ###
 ## From Field et al. Discovering Statistics Using R
 soya_file = '/Users/emjun/Git/tea-lang/evaluation/discovering-statistics-using-r/soya.dat'
 
@@ -187,8 +187,7 @@ kruskal.test(Sperm ~ Soya, data = soyaData)
 soyaData$Ranks<-rank(soyaData$Sperm)
 by(soyaData$Ranks, soyaData$Soya, mean)
 
-
-### IV. Repeated Measures ANOVA
+### Repeated Measures ANOVA ###
 # From Kabacoff (p. 237)
 w1b1 <- subset(CO2, Treatment == 'chilled')
 # conc is within subjects
@@ -204,6 +203,101 @@ with(w1b1, interaction.plot(conc, Type, uptake,
 boxplot(uptake ~ Type*conc, data = w1b1, col=(c('gold', 'green')), 
         main='Chilled Quebec and Mississippi PLants', 
         ylab='Carbon dioxide uptake rate')
+
+### FACTORIAL ANOVA ###
+path = paste(base_path, 'goggles.csv', sep="")
+gogglesData<-read.csv(path, header = TRUE)
+gogglesData$alcohol<-factor(gogglesData$alcohol, levels = c("None", "2 Pints", "4 Pints"))
+
+id<-(1:48)
+gender<-gl(2, 24, labels = c("Female", "Male"))
+alcohol<-gl(3, 8, 48, labels = c("None", "2 Pints", "4 Pints"))
+attractiveness<-c(65,70,60,60,60,55,60,55,70,65,60,70,65,60,60,50,55,65,70,55,55,60,50,50,50,55,80,65,70,75,75,65,45,60,85,65,70,70,80,60,30,30,30,55,35,20,45,40)
+
+gogglesData<-data.frame(gender, alcohol, attractiveness)
+
+#Self Test
+by(gogglesData$attractiveness, gogglesData$gender, stat.desc)
+by(gogglesData$attractiveness, gogglesData$alcohol, stat.desc)
+by(gogglesData$attractiveness, list(gogglesData$alcohol, gogglesData$gender), stat.desc, basic = FALSE)
+
+
+#Graphs
+boxplot <- ggplot(gogglesData, aes(alcohol, attractiveness))
+boxplot + geom_boxplot() + facet_wrap(~gender) + labs(x = "Alcohol Consumption", y = "Mean Attractiveness of Date (%)")
+imageFile <- paste(imageDirectory,"12 Goggles Boxplot.png",sep="/")
+ggsave(file = imageFile)
+
+line <- ggplot(gogglesData, aes(alcohol, attractiveness, colour = gender))
+line + stat_summary(fun.y = mean, geom = "point") + stat_summary(fun.y = mean, geom = "line", aes(group= gender)) + stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2) + labs(x = "Alcohol Consumption", y = "Mean Attractiveness of Date (%)", colour = "Gender") 
+imageFile <- paste(imageDirectory,"12 Goggles Interaction Line.png",sep="/")
+ggsave(file = imageFile)
+
+bar <- ggplot(gogglesData, aes(alcohol, attractiveness, fill = gender))
+bar + stat_summary(fun.y = mean, geom = "bar", position="dodge") + stat_summary(fun.data = mean_cl_normal, geom = "errorbar", position=position_dodge(width=0.90), width = 0.2) + labs(x = "Alcohol Consumption", y = "Mean Attractiveness of Date (%)", fill = "Gender") 
+imageFile <- paste(imageDirectory,"12 Goggles Interaction Bar.png",sep="/")
+ggsave(file = imageFile)
+
+
+bar <- ggplot(gogglesData, aes(gender, attractiveness))
+bar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") + stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + labs(x = "Gender", y = "Mean Attractiveness of Date (%)") + scale_y_continuous(breaks=seq(0,80, by = 10))
+imageFile <- paste(imageDirectory,"12 Goggles Gender Main Effect Bar.png",sep="/")
+ggsave(file = imageFile)
+
+bar <- ggplot(gogglesData, aes(alcohol, attractiveness))
+bar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") + stat_summary(fun.data = mean_cl_normal, geom = "pointrange") + labs(x = "Alcohol Consumption", y = "Mean Attractiveness of Date (%)") + scale_y_continuous(breaks=seq(0,80, by = 10))
+imageFile <- paste(imageDirectory,"12 Goggles Alcohol Main Effect Bar.png",sep="/")
+ggsave(file = imageFile)
+
+#Levene's Test
+leveneTest(gogglesData$attractiveness, gogglesData$gender, center = median)
+leveneTest(gogglesData$attractiveness, gogglesData$alcohol, center = median)
+leveneTest(gogglesData$attractiveness, interaction(gogglesData$alcohol, gogglesData$gender), center = median)
+
+levene.test(gogglesData$attractiveness, gogglesData$gender)
+levene.test(gogglesData$attractiveness, gogglesData$alcohol)
+levene.test(gogglesData$attractiveness, interaction(gogglesData$alcohol, gogglesData$gender))
+
+
+#ANOVA
+contrasts(gogglesData$alcohol)<-cbind(c(-2, 1, 1), c(0, -1, 1))
+contrasts(gogglesData$gender)<-c(-1, 1)
+gogglesModel<-aov(attractiveness ~ gender+alcohol+gender:alcohol, data = gogglesData)
+Anova(gogglesModel, type="III")
+
+genderEffect<-effect("gender", gogglesModel)
+summary(genderEffect)
+alcoholEffect<-effect("alcohol", gogglesModel)
+summary(alcoholEffect)
+interactionMeans<-allEffects(gogglesModel)
+summary(interactionMeans)
+
+summary.lm(gogglesModel)
+
+pairwise.t.test(gogglesData$attractiveness, gogglesData$alcohol, p.adjust.method = "bonferroni")
+pairwise.t.test(gogglesData$attractiveness, gogglesData$alcohol, p.adjust.method = "BH")
+
+postHocs<-glht(gogglesModel, linfct = mcp(alcohol = "Tukey"))
+summary(postHocs)
+confint(postHocs)
+
+
+plot(gogglesModel)
+
+#simple effects
+gogglesData$simple<-gl(6,8)
+gogglesData$simple<-factor(gogglesData$simple, levels = c(1:6), labels = c("F_None","F_2pints", "F_4pints","M_None","M_2pints", "M_4pints"))
+
+alcEffect1<-c(-2, 1, 1, -2, 1, 1)
+alcEffect2<-c(0, -1, 1, 0, -1, 1)
+gender_none<-c(-1, 0, 0, 1, 0, 0)
+gender_twoPint<-c(0, -1, 0, 0, 1, 0)
+gender_fourPint<-c(0, 0, -1, 0, 0, 1)
+simpleEff<-cbind(alcEffect1, alcEffect2, gender_none, gender_twoPint, gender_fourPint)
+
+contrasts(gogglesData$simple)<-simpleEff
+simpleEffectModel<-aov(attractiveness ~ simple, data = gogglesData)
+summary.lm(simpleEffectModel)
 
 ##################
 

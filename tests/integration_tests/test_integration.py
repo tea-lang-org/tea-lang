@@ -15,8 +15,9 @@ spider_path = None
 drug_path = None
 alcohol_path = None
 ecstasy_path = None
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv']
+goggles_path = None
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path, goggles_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -353,6 +354,9 @@ def test_wilcoxon_signed_rank():
     tea.hypothesize(['day', 'value'], ['day:sundayBDI > wedsBDI'])
 
 def test_f_test(): 
+    print("\nFrom Field et al.")
+    print("Expected outcome: Oneway ANOVA (F) test")
+
     cholesterol_path = "/Users/emjun/.tea/data/cholesterol.csv"
 
     # Declare and annotate the variables of interest
@@ -385,6 +389,9 @@ def test_f_test():
     tea.hypothesize(['trt', 'response'])
         
 def test_kruskall_wallis(): 
+    print("\nFrom Field et al.")
+    print("Expected outcome: Kruskall Wallis")
+
     soya_path = "/Users/emjun/.tea/data/soya.csv"
 
     # Declare and annotate the variables of interest
@@ -416,6 +423,128 @@ def test_kruskall_wallis():
     tea.assume(assumptions)
 
     tea.hypothesize(['Soya', 'Sperm'])
+
+def test_rm_one_way_anova(): 
+    print("\nFrom Field et al.")
+    print("Expected outcome: Repeated Measures One Way ANOVA")
+
+    co2_path = "/Users/emjun/.tea/data/co2.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'uptake',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Type',
+            'data type' : 'nominal',
+            'categories': ['Quebec', 'Mississippi']
+        },
+        {
+            'name' : 'conc',
+            'data type' : 'ordinal',
+            'categories': [95, 175, 250, 350, 500, 675, 1000]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': ['Type', 'conc'],
+                            'dependent variables': 'uptake',
+                            'within subjects': 'conc',
+                            'between subjects': 'Type'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(co2_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['uptake', 'conc']) # Picks friedman!
+
+def test_factorial_anova():
+    print("\nFrom Field et al.")
+    print("Expected outcome: Factorial ANOVA")
+
+    goggles_path = "/Users/emjun/.tea/data/gogglesData.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'gender',
+            'data type' : 'nominal',
+            'categories' : ['Female', 'Male']
+        },
+        {
+            'name' : 'alcohol',
+            'data type' : 'nominal',
+            'categories': ['None', '2 Pints', '4 Pints']
+        },
+        {
+            'name' : 'attractiveness',
+            'data type' : 'interval'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': ['gender', 'alcohol'],
+                            'dependent variables': 'attractiveness',
+                            # 'within subjects': 'conc',
+                            # 'between subjects': 'Type'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(goggles_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['attractiveness', 'gender', 'alcohol']) 
+
+def test_two_way_anova(): 
+    co2_path = "/Users/emjun/.tea/data/co2.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'uptake',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Type',
+            'data type' : 'nominal',
+            'categories': ['Quebec', 'Mississippi']
+        },
+        {
+            'name' : 'conc',
+            'data type' : 'ordinal',
+            'categories': [95, 175, 250, 350, 500, 675, 1000]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': ['Type', 'conc'],
+                            'dependent variables': 'uptake',
+                            'within subjects': 'conc',
+                            'between subjects': 'Type'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(co2_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
+
+
 
 """
 def test_anova_test(): 
@@ -498,83 +627,6 @@ def test_anova_test():
 
 
 
-
-
-# def test_rm_one_way_anova(): 
-#     co2_path = "/Users/emjun/.tea/data/co2.csv"
-
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'uptake',
-#             'data type' : 'interval'
-#         },
-#         {
-#             'name' : 'Type',
-#             'data type' : 'nominal',
-#             'categories': ['Quebec', 'Mississippi']
-#         },
-#         {
-#             'name' : 'conc',
-#             'data type' : 'ordinal',
-#             'categories': [95, 175, 250, 350, 500, 675, 1000]
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'experiment',
-#                             'independent variables': ['Type', 'conc'],
-#                             'dependent variables': 'uptake',
-#                             'within subjects': 'conc',
-#                             'between subjects': 'Type'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
-
-#     tea.data(co2_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
-
-#     tea.hypothesize(['uptake', 'conc']) # Picks friedman!
-
-# def test_two_way_anova(): 
-#     co2_path = "/Users/emjun/.tea/data/co2.csv"
-
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'uptake',
-#             'data type' : 'interval'
-#         },
-#         {
-#             'name' : 'Type',
-#             'data type' : 'nominal',
-#             'categories': ['Quebec', 'Mississippi']
-#         },
-#         {
-#             'name' : 'conc',
-#             'data type' : 'ordinal',
-#             'categories': [95, 175, 250, 350, 500, 675, 1000]
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'experiment',
-#                             'independent variables': ['Type', 'conc'],
-#                             'dependent variables': 'uptake',
-#                             'within subjects': 'conc',
-#                             'between subjects': 'Type'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
-
-#     tea.data(co2_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
-
-#     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
 
 # def test_indep_t_test():
 #     global uscrime_data_path

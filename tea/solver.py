@@ -668,8 +668,8 @@ def construct_factorial_ANOVA(combined_data: CombinedData):
                                 continuous: [y_vars],
                                 categorical: list_x_vars, # Variable number of factors
                                 two_or_more_categories: list_x_vars,
-                                groups_normal: pairs_list, # Variable number of factors
-                                eq_variance: pairs_list # Variable number of factors
+                                # groups_normal: pairs_list, # Variable number of factors
+                                # eq_variance: pairs_list # Variable number of factors
                                 }) 
 
 
