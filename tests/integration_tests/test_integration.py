@@ -384,7 +384,38 @@ def test_f_test():
 
     tea.hypothesize(['trt', 'response'])
         
+def test_kruskall_wallis(): 
+    soya_path = "/Users/emjun/.tea/data/soya.csv"
 
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Sperm',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Soya',
+            'data type' : 'ordinal',
+            'categories': ['No Soya', '1 Soya Meal', '4 Soya Meals', '7 Soya Meals']
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            # 'study type': 'observational study', # shouldn't change anything
+                            'independent variables': 'Soya',
+                            'dependent variables': 'Sperm',
+                            # 'within subjects': 'Soya' # Correctly does not choose Kruskall Wallis
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(soya_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Soya', 'Sperm'])
 
 """
 def test_anova_test(): 
@@ -467,38 +498,7 @@ def test_anova_test():
 
 
 
-# def test_kruskall_wallis(): 
-#     soya_path = "/Users/emjun/.tea/data/soya.csv"
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Sperm',
-#             'data type' : 'interval'
-#         },
-#         {
-#             'name' : 'Soya',
-#             'data type' : 'ordinal',
-#             'categories': ['No Soya', '1 Soya Meal', '4 Soya Meals', '7 Soya Meals']
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'experiment',
-#                             # 'study type': 'observational study', # shouldn't change anything
-#                             'independent variables': 'Soya',
-#                             'dependent variables': 'Sperm',
-#                             # 'within subjects': 'Soya' # Correctly does not choose Kruskall Wallis
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
-
-#     tea.data(soya_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
-
-#     tea.hypothesize(['Soya', 'Sperm'])
 
 # def test_rm_one_way_anova(): 
 #     co2_path = "/Users/emjun/.tea/data/co2.csv"
