@@ -16,8 +16,9 @@ drug_path = None
 alcohol_path = None
 ecstasy_path = None
 goggles_path = None
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path, goggles_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv']
+goggles_dummy_path = None
+data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path, goggles_path, goggles_dummy_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -492,8 +493,7 @@ def test_factorial_anova():
                             'study type': 'experiment',
                             'independent variables': ['gender', 'alcohol'],
                             'dependent variables': 'attractiveness',
-                            # 'within subjects': 'conc',
-                            # 'between subjects': 'Type'
+                            'between subjects': ['gender', 'alcohol']
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
@@ -505,6 +505,53 @@ def test_factorial_anova():
     tea.assume(assumptions)
 
     tea.hypothesize(['attractiveness', 'gender', 'alcohol']) 
+
+def test_factorial_anova_2():
+    print("\nFrom Field et al.")
+    print("Expected outcome: Factorial ANOVA")
+
+    goggles_dummy_path = "/Users/emjun/.tea/data/gogglesData_dummy.csv"
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'gender',
+            'data type' : 'nominal',
+            'categories' : ['Female', 'Male']
+        },
+        {
+            'name' : 'alcohol',
+            'data type' : 'nominal',
+            'categories': ['None', '2 Pints', '4 Pints']
+        },
+        {
+            'name' : 'attractiveness',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'dummy',
+            'data type' : 'nominal',
+            'categories': [1, 2]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': ['gender', 'alcohol', 'dummy'],
+                            'dependent variables': 'attractiveness',
+                            # 'within subjects': 'conc',
+                            'between subjects': ['gender', 'alcohol', 'dummy']
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(goggles_dummy_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['attractiveness', 'gender', 'alcohol', 'dummy']) 
+
 
 def test_two_way_anova(): 
     co2_path = "/Users/emjun/.tea/data/co2.csv"

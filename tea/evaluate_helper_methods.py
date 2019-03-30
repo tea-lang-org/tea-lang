@@ -10,6 +10,7 @@ from types import SimpleNamespace # allows for dot notation access for dictionar
 import copy
 
 from scipy import stats # Stats library used
+from sklearn import preprocessing # for creating interaction effects
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from statsmodels.formula.api import ols
@@ -523,6 +524,18 @@ def f_test(dataset: Dataset, combined_data: CombinedData):
     # >>> table = sm.stats.anova_lm(moore_lm, typ=2) # Type 2 Anova DataFrame
 
 def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData): 
+
+    # Private function to prevent duplicate symmetric interactions
+    # (e.g., ''A*B' is the same as 'B*A', both should not occur in ANOVA formula twice)
+    def is_interaction_unique(interactions, inter):
+        for existing_inter in interactions: 
+            variables = inter.split('*')
+            # Check if the varibles in inter already exist in another interaction
+            exists = [(v in existing_inter) for v in variables]
+            # If all of the variables in inter already exist, this means 
+            # the interaction is not unique!
+            return not all(exists)
+
     # Construct formula
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -539,6 +552,21 @@ def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData):
         if i < len(xs) - 1: 
             formula += " + "
     
+    
+    # Add the interactions
+    interactions = []
+    for i in range(len(xs)): 
+        x_i = xs[i]
+        inter = f"C({x_i.metadata[name]})" 
+        for j in range(len(xs)):
+            if i != j: 
+                x_j = xs[j]
+                inter += " * " + f"C({x_j.metadata[name]})"
+                interactions.append(inter)
+                
+                if is_interaction_unique(interactions, inter):
+                    formula += " + " +  inter
+
     ols_formula = ols(formula, data=dataset.data)
     model = ols_formula.fit()
     return sm.stats.anova_lm(model, type=2)

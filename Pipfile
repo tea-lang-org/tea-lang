@@ -9,6 +9,7 @@ verify_ssl = true
 attrs = "*"
 pandas = "*"
 scipy = "*"
+sklearn = "*"
 statsmodels = "*"
 bootstrapped = "*"
 pipfile = "*"

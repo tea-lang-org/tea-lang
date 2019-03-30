@@ -949,9 +949,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         for var in variables: 
             stat_vars.append(StatVar(var.metadata[name]))
         
-        # TODO: Move the categorical variables to the front? (Among x and among y) -- for Point biserial??
-        # ^ Relates also the contributor/outcome variables...
-        # import pdb; pdb.set_trace()
         # print(test.__dict__)
         test.apply(*stat_vars)
 
