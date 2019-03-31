@@ -33,7 +33,7 @@ def test_load_data():
 # Example from Kabacoff
 # Expected outcome: Pearson correlation 
 def test_pearson_corr(): 
-    print("\nPearson Correlation from Kabacoff")
+    print("\nfrom Kabacoff")
     print("Expected outcome: Pearson")
 
     states_path = "/Users/emjun/.tea/data/statex77.csv"
@@ -58,6 +58,7 @@ def test_pearson_corr():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
+        'normal distribution': ['Illiteracy', 'Life Exp']
     }
 
     tea.data(states_path)
@@ -66,9 +67,10 @@ def test_pearson_corr():
     tea.assume(assumptions)
 
     tea.hypothesize(['Illiteracy', 'Life Exp'])
+    import pdb; pdb.set_trace()
 
 def test_pearson_corr_2(): 
-    print("\nPearson Correlation from Field et al.")
+    print("\nfrom Field et al.")
     print("Expected outcome: Pearson")
     exam_path = "/Users/emjun/.tea/data/exam.csv"
 
@@ -116,7 +118,7 @@ def test_pearson_corr_2():
 
 
 def test_spearman_corr(): 
-    print("\nPearson Correlation from Field et al.")
+    print("\nfrom Field et al.")
     print("Expected outcome: Spearman")
 
     liar_path = "/Users/emjun/.tea/data/liar.csv"
@@ -156,7 +158,7 @@ def test_spearman_corr():
 
 # Same as test for Spearman rho
 def test_kendall_tau_corr(): 
-    print("\nPearson Correlation from Field et al.")
+    print("\nfrom Field et al.")
     print("Expected outcome: Kendall Tau")
 
     liar_path = "/Users/emjun/.tea/data/liar.csv"
@@ -195,7 +197,7 @@ def test_kendall_tau_corr():
     tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
 
 def test_pointbiserial_corr(): 
-    print("\nPearson Correlation from Field et al.")
+    print("\nfrom Field et al.")
     print("Expected outcome: Pointbiserial")
 
     pbcorr_path = "/Users/emjun/.tea/data/pbcorr.csv"
@@ -235,7 +237,7 @@ def test_pointbiserial_corr():
 
 
 def test_indep_t_test():
-    print("\nPearson Correlation from Kabacoff")
+    print("\nfrom Kabacoff")
     print("Expected outcome: Student's t-test")
 
     global uscrime_data_path
@@ -261,7 +263,9 @@ def test_indep_t_test():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
-        'normal distribution': ['So']
+        'normal distribution': ['So'],
+        'groups normally distributed': [['So', 'Prob']]
+
     }
 
     tea.data(uscrime_data_path)
@@ -276,7 +280,7 @@ def test_indep_t_test():
 
 
 def test_paired_t_test(): 
-    print("\nPearson Correlation from Field et al.")
+    print("\nfrom Field et al.")
     print("Expected outcome: Paired/Dependent t-test")
 
     global spider_path
@@ -313,7 +317,7 @@ def test_paired_t_test():
     tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
 
 def test_wilcoxon_signed_rank(): 
-    print("\nPearson Correlation from Field et al.")
+    print("\nfrom Field et al.")
     print("Expected outcome: Wilcoxon signed rank test")
 
     # global alcohol_path
@@ -595,7 +599,7 @@ def test_two_way_anova():
 
 """
 def test_anova_test(): 
-    print("\nPearson Correlation from Field et al.")
+    print("\nfrom Field et al.")
     print("Expected outcome: Wilcoxon signed rank test")
 
     global drug_path

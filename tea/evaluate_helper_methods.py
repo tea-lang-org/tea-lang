@@ -16,7 +16,8 @@ import statsmodels.formula.api as smf
 from statsmodels.formula.api import ols
 # import numpy as np # Use some stats from numpy instead
 import pandas as pd
-import bootstrapped as bs
+import bootstrapped.bootstrap as bs
+import bootstrapped.stats_functions as bs_stats
 
 
 def determine_study_type(vars_data: list, design: Dict[str, str]):
@@ -523,18 +524,18 @@ def f_test(dataset: Dataset, combined_data: CombinedData):
                 #  data=data).fit()
     # >>> table = sm.stats.anova_lm(moore_lm, typ=2) # Type 2 Anova DataFrame
 
+# Private function to prevent duplicate symmetric interactions
+# (e.g., ''A*B' is the same as 'B*A', both should not occur in ANOVA formula twice)
+def _is_interaction_unique(interactions, inter):
+    for existing_inter in interactions: 
+        variables = inter.split('*')
+        # Check if the varibles in inter already exist in another interaction
+        exists = [(v in existing_inter) for v in variables]
+        # If all of the variables in inter already exist, this means 
+        # the interaction is not unique!
+        return not all(exists)
+        
 def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData): 
-
-    # Private function to prevent duplicate symmetric interactions
-    # (e.g., ''A*B' is the same as 'B*A', both should not occur in ANOVA formula twice)
-    def is_interaction_unique(interactions, inter):
-        for existing_inter in interactions: 
-            variables = inter.split('*')
-            # Check if the varibles in inter already exist in another interaction
-            exists = [(v in existing_inter) for v in variables]
-            # If all of the variables in inter already exist, this means 
-            # the interaction is not unique!
-            return not all(exists)
 
     # Construct formula
     xs = combined_data.get_explanatory_variables()
@@ -564,7 +565,7 @@ def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData):
                 inter += " * " + f"C({x_j.metadata[name]})"
                 interactions.append(inter)
                 
-                if is_interaction_unique(interactions, inter):
+                if _is_interaction_unique(interactions, inter):
                     formula += " + " +  inter
 
     ols_formula = ols(formula, data=dataset.data)
@@ -583,6 +584,8 @@ def kruskall_wallis(dataset: Dataset, combined_data: CombinedData):
 
     data = []
     for x in xs: 
+        if x.metadata[categories] is None: 
+            import pdb; pdb.set_trace()
         cat = [k for k,v in x.metadata[categories].items()]
         for c in cat: 
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
@@ -612,38 +615,52 @@ def friedman(dataset: Dataset, combined_data: CombinedData):
 def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
     import pdb; pdb.set_trace()
     return stats.linregress(iv.dataframe, dv.dataframe)
-
-# This is the function used to determine and then execute test based on CombinedData
-def execute_test_old(dataset: Dataset, data_props: CombinedData, iv: VarData, dv: VarData, predictions: list, design: Dict[str,str]): 
-    # For power we need sample size, effect size, alpha
-    sample_size = 0
-    # calculate sample size
-    for df in data_props.dataframes:
-        sample_size += len(data_props.dataframes[df])
-
-    effect_size = design['effect size'] if ('effect size' in design) else [.2, .5, .8] # default range unless user defines
-    
-    alpha = design['alpha'] if ('alpha' in design) else .05
-    
-    # Find test
-    stat_test = find_test(dataset, data_props, iv, dv, predictions, design, sample_size=sample_size, effect_size=effect_size, alpha=alpha)
-    
-    # Execute test
-    if stat_test: 
-        results = stat_test()
-    else: 
-        results = bootstrap()
-    stat_test_name = results.__class__.__name__
-
-    # Wrap results in ResData and return
-    return ResData(iv=iv.metadata['var_name'], dv=dv.metadata['var_name'], test_name=stat_test_name, results=results, properties=data_props.properties, predictions=predictions)
     
 # def bootstrap(data):
-def bootstrap():
-    print('Do something with incoming data')
+def bootstrap(dataset: Dataset, combined_data: CombinedData):
+    calculations = {}
+
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+
+    for y in ys: 
+        # for now
+        assert(len(ys) == 1)
+        
+        # Main effects
+        for x in xs: 
+            cat = [k for k,v in x.metadata[categories].items()]
+            for c in cat: 
+                cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                stat = bs.bootstrap(cat_data.to_numpy(), stat_func=bs_stats.median)
+                calculations[c] = stat
+                # import pdb; pdb.set_trace()
+                # store all the medians & confidence intervals
+                # return all the medians & CIs
+                # data.append(cat_data)
+
+        # Interaction effects
+        # Add the interactions
+        # interactions = []
+        # for i in range(len(xs)): 
+        #     x_i = xs[i]
+        #     # inter = f"{x_i.metadata[name]}" 
+        #     for j in range(len(xs)):
+        #         if i != j: 
+        #             x_j = xs[j]
+        #             # inter += " * " + f"C({x_j.metadata[name]})"
+        #             interactions.append(inter)
+                    
+        #             if _is_interaction_unique(interactions, inter):
+        #                 formula += " + " +  inter
+
+
+    # import pdb; pdb.set_trace()
+    # Start with the case where there are only 2 groups to compare (like t-test)
 
 
 __stat_test_to_function__ = {
+    'pearson_corr' : pearson_corr,
     'kendalltau_corr' : kendalltau_corr,
     'spearman_corr' : spearman_corr,
     'pointbiserial_corr_a': pointbiserial,
@@ -662,7 +679,9 @@ __stat_test_to_function__ = {
     'kruskall_wallis' : kruskall_wallis,
     'friedman': friedman,
     'factorial_ANOVA': factorial_ANOVA,
-    'rm_one_way_anova': rm_one_way_anova
+    'rm_one_way_anova': rm_one_way_anova,
+
+    'bootstrap': bootstrap
 }
 
 # Returns the function that has the @param name

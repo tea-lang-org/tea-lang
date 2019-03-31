@@ -17,6 +17,7 @@ contributor_identifier = 'contributor variables'
 
 # For statistical properties of data
 normal_distribution = 'normal distribution'
+groups_normal = 'groups normally distributed'
 log_normal_distribution = 'log normal distribution'
 variance = 'variance'
 sample_size = 'sample size'
@@ -36,7 +37,14 @@ query = 'query'
 alpha_keywords = ['Type I (False Positive) Error Rate', 'alpha']
 
 assumptions_to_properties = {
-    normal_distribution : 'is_normal',
-    log_normal_distribution : 'is_log_normal',
-    eq_variance : 'has_equal_variance'
+    normal_distribution : ['is_normal'],
+    groups_normal : ['is_groups_normal'],
+    log_normal_distribution : ['is_log_normal'],
+    eq_variance : ['has_equal_variance']
 }
+
+# LOGGING
+# TODO: This shoudl eventually write out to a file somewhere.
+def log(message: str):
+    print(message)
+    # pass

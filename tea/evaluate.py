@@ -388,6 +388,9 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         
         # Execute and store results from each valid test
         results = {}
+        if len(tests) == 0: 
+            tests.append('bootstrap') # Default to bootstrap
+            
         for test in tests: 
             test_result = execute_test(dataset, combined_data, test, )
             results[test] = test_result

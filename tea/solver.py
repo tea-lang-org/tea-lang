@@ -85,11 +85,6 @@ def all_props():
 
 #     return selected_props
 
-# LOGGING
-# TODO: This shoudl eventually write out to a file somewhere.
-def log(message: str):
-    print(message)
-
 @attr.s(hash=False, cmp=False, auto_attribs=True, init=False)
 class StatVar:
     name: str
@@ -213,7 +208,6 @@ class StatisticalTest:
         global __test_map__
         return __test_map__.get(var)
 
-@attr.s(hash=False, init=False, repr=False, str=False)
 class Property:
     name: str
     description: str
@@ -243,6 +237,12 @@ class Property:
     def __repr__(self):
         return f"Property({self.name})"
 
+    def __eq__(self, other):
+        return self.arity == other.arity and self.name == other.name and self.function == other.function
+
+    def __hash__(self):
+        return hash((self.arity, self.name, self.function))
+
     def __call__(self, *var_names):
         if len(var_names) != self.arity:
             raise Exception(f"{self.name} property has arity {self.arity} " \
@@ -267,17 +267,16 @@ class Property:
         args.append(z3.BoolSort())
         self.__z3__ = z3.Function(self.name, *args)  # e.g. continuous(x)
 
-@attr.s(hash=False, init=False, repr=False, str=False)
 class AppliedProperty:
     property: Property
 
-    def __init__(self, prop, test_vars):
+    def __init__(self, prop, pvars):
         global __property_var_map__
         self.property = prop  # e.g. continuous
-        self.test_vars = test_vars  # (StatVar(name='x'),)
+        self.vars = pvars  # (StatVar(name='x'),)
         # self._name = ""
         z3_args = []
-        for tv in test_vars:
+        for tv in pvars:
             # Allows for unique identification of prop -> var, but not looking up from model because that refs prop name
             # self._name += tv.name + ":"
             # self._name + tv.name
@@ -298,13 +297,16 @@ class AppliedProperty:
             __property_var_map__[self._name] = []
 
         # TODO: When does __property_var_map__ need to be cleared?
-        __property_var_map__[self._name].append(test_vars)
+        __property_var_map__[self._name].append(self.vars)
 
     def __str__(self):
         return f"property_for_var:{self._name}"
 
     def __repr__(self):
         return f"AppliedProperty({self._name})"
+    
+    def __eq__(self, other):
+        return self.property == other.property and self.vars == other.vars
 
     @staticmethod
     def get_by_z3_var(name):
@@ -371,7 +373,6 @@ def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha):
         else: 
             raise ValueError(f"Currently, chi square requires/only supports 1 explained variable, instead received: {len(ys)} -- {ys}")    
     else: 
-        # import pdb; pdb.set_trace()
         x0 = xs[0]
         x1 = xs[1]
         
@@ -394,14 +395,12 @@ def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha):
 
 
 def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
-    xs = None
-    ys = None
+    xs = var_data.get_explanatory_variables()
+    ys = var_data.get_explained_variables()
     cat_xs = []
     cont_ys = []
     grouped_data = []
-    
-    xs = var_data.get_explanatory_variables()
-    ys = var_data.get_explained_variables()
+
 
     for x in xs: 
         if x.is_categorical(): 
@@ -411,6 +410,7 @@ def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
         if y.is_continuous(): 
             cont_ys.append(y)
     
+    eq_var = (None, None)
     if cat_xs and cont_ys: 
         for y in ys:
             for x in xs: 
@@ -425,6 +425,11 @@ def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
                 #     var_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
                     raise ValueError(f"var_data_data object is neither BivariateData nor MultivariateData: {type(var_data)}")
+
+    if eq_var[0] is None and eq_var[1] is None:
+        import pdb; pdb.set_trace()
+        # raise Exception("did not compute variance, this is a bug")
+        return False
 
     return (eq_var[1] > alpha)
 
@@ -632,7 +637,6 @@ def construct_mutlivariate_tests(combined_data):
 
 factorial_ANOVA = None
 def construct_factorial_ANOVA(combined_data: CombinedData): 
-    # import pdb; pdb.set_trace()
     global factorial_ANOVA
 
     num_vars = len(combined_data.vars)
@@ -668,8 +672,8 @@ def construct_factorial_ANOVA(combined_data: CombinedData):
                                 continuous: [y_vars],
                                 categorical: list_x_vars, # Variable number of factors
                                 two_or_more_categories: list_x_vars,
-                                # groups_normal: pairs_list, # Variable number of factors
-                                # eq_variance: pairs_list # Variable number of factors
+                                groups_normal: pairs_list, # Variable number of factors
+                                eq_variance: pairs_list # Variable number of factors
                                 }) 
 
 
@@ -683,7 +687,7 @@ paired_students_t = None
 welchs_t = None 
 mannwhitney_u = None
 chi_square = None
-fishers_exact = None
+fishers_exact = None 
 f_test = None    
 rm_one_way_anova = None
 kruskall_wallis = None
@@ -883,14 +887,14 @@ chi_square_test = StatisticalTest('chi_square', [x, y],
 def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedProperty):
     global alpha
 
-    if (len(prop.test_vars) == len(combined_data.vars)):
+    if (len(prop.vars) == len(combined_data.vars)):
         kwargs = {'dataset': dataset, 'var_data': combined_data, 'alpha': alpha}
         prop_val = __property_to_function__[prop.__z3__](**kwargs)    
     else: 
-        assert (len(prop.test_vars) < len(combined_data.vars))
+        assert (len(prop.vars) < len(combined_data.vars))
         var_data = []
         # For each of the variables for which we are checking the current prop
-        for test_var in prop.test_vars:
+        for test_var in prop.vars:
             # For each variable in all variables in combined data
             for var in combined_data.vars:
                 if var.metadata[name] == test_var.name:
@@ -903,7 +907,7 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
     return prop_val
 
 # Assumes properties to hold
-def assume_properties(assumptions: Dict[str,str], solver): 
+def assume_properties(stat_var_map, assumptions: Dict[str,str], solver): 
     global assumptions_to_properties, alpha
 
     assumed_props = []
@@ -912,14 +916,32 @@ def assume_properties(assumptions: Dict[str,str], solver):
     for a in assumptions: 
         if a in alpha_keywords:
             alpha = float(assumptions[a])
-        # Apply corresponding properties to all variables for which the property is assumed
-        for prop in all_props(): 
-            if a in assumptions_to_properties and prop.name == assumptions_to_properties[a]: 
-                for var in assumptions[a]: 
-                    ap = prop(StatVar(var))
-                    solver.add(ap.__z3__ == z3.BoolVal(True))
-                    assumed_props.append(ap)
-    
+        elif a in assumptions_to_properties:
+            # Apply corresponding properties to all variables for which the property is assumed
+            for prop in all_props(): 
+                if prop.name in assumptions_to_properties[a]: 
+                    # Convert assumptions to use correct statistical variable names.
+                    stat_vars = []
+                    for var in assumptions[a]:
+                        # This is really hacky -- should probably change the 
+                        # incoming assumptions data structure before calling this method
+                        if isinstance(var, str):
+                            assert var in stat_var_map 
+                            # stat_vars.append(stat_var_map[var]) 
+                            ap = prop(stat_var_map[var]) 
+                            assumed_props.append(ap)
+                            solver.add(ap.__z3__ == z3.BoolVal(True))
+                        else: 
+                            assert isinstance(var, list)
+                            stat_vars = [stat_var_map[v] for v in var]
+                            ap = prop(*stat_vars)
+                            assumed_props.append(ap)
+                            solver.add(ap.__z3__ == z3.BoolVal(True))
+                    
+                    
+        else:
+            pass
+
     return assumed_props
 
 # Problem statement: Given a set of properties, tell me which tests are valid to run
@@ -930,13 +952,23 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     construct_all_tests(combined_data)
 
     global name
+    stat_var_map = {}
 
     # Reorder variables so that y var is at the end
     combined_data._update_vars() 
+
+    # Compute unique statisical variable names from the combined data.
+    combined_data_vars = []
+    for v in combined_data.vars:
+        var = StatVar(v.metadata[name])
+        stat_var_map[v.metadata[name]] = var 
+        combined_data_vars.append(var)
+
     # Assume properties are True based on user assumptions
     solver = z3.Solver()
     # s = Tactic('qflia').solver()
-    assumed_props = assume_properties(assumptions, solver)
+    assumed_props = assume_properties(stat_var_map, assumptions, solver)
+
     # Update the arity of test-level properties
     for prop in test_props: 
         prop._update(len(combined_data.vars))
@@ -944,13 +976,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     # print(combined_data)
     # Apply all tests to the variables we are considering now in combined_data
     for test in all_tests(): 
-        variables = combined_data.vars
-        stat_vars = []
-        for var in variables: 
-            stat_vars.append(StatVar(var.metadata[name]))
-        
-        # print(test.__dict__)
-        test.apply(*stat_vars)
+        test.apply(*combined_data_vars)
 
     solver.push() # Create backtracking point
     model = None # Store model
@@ -990,7 +1016,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     need_to_verify = True
                     # If the prop was assumed by the user, skip verification.
                     for ap in assumed_props:
-                        if prop is ap: 
+                        if prop == ap: 
                             log(f"Property was a user assumption. ")
                             need_to_verify = False
                     if need_to_verify: 
