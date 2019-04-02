@@ -1,6 +1,7 @@
 import attr
+# from z3 import *
 import z3
-from z3 import is_true 
+# from z3 import z3.is_true 
 from tea.dataset import Dataset
 from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
 from tea.evaluate_helper_methods import get_data, compute_normal_distribution, compute_eq_variance
@@ -1009,7 +1010,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             test_invalid = False
             # Does the test apply?
             # Would this ever be false??
-            if model and is_true(model.evaluate(test.__z3__)):
+            if model and z3.is_true(model.evaluate(test.__z3__)):
                 # Verify the properties for that test
                 for prop in test._properties:
                     log(f"Testing assumption: {prop._name}.")
@@ -1022,7 +1023,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     if need_to_verify: 
                         # Does this property need to hold for the test to be valid?
                         # If so, verify that the property does hold
-                        if model and is_true(model.evaluate(prop.__z3__)):
+                        if model and z3.is_true(model.evaluate(prop.__z3__)):
                             val = verify_prop(dataset, combined_data, prop)
                             if val: 
                                 log(f"Property holds.")
@@ -1046,7 +1047,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     # Could add all the test props first 
     # Then add all the tests 
     for test in all_tests():
-        if model and is_true(model.evaluate(test.__z3__)):
+        if model and z3.is_true(model.evaluate(test.__z3__)):
             tests_to_conduct.append(test.name)
         elif not model: # No test applies
             pass

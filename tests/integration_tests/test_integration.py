@@ -30,12 +30,26 @@ def test_load_data():
         csv_url = os.path.join(base_url, csv_name)
         data_paths[i] = tea.download_data(csv_url, csv_name)
 
+eval_file = 'eval.txt'
+
+def log(expected, result): 
+    global eval_file
+
+    file = open(eval_file, "a")
+
+    file.write("\nExpected:")
+    file.write(expected)
+    file.wsrite("\n")
+    file.write("Result:")
+    import pdb; pdb.set_trace()
+    file.write(str(result))
+    file.write('\n--------') # divide tests
+    import pdb; pdb.set_trace()
+
+
 # Example from Kabacoff
 # Expected outcome: Pearson correlation 
 def test_pearson_corr(): 
-    print("\nfrom Kabacoff")
-    print("Expected outcome: Pearson")
-
     states_path = "/Users/emjun/.tea/data/statex77.csv"
 
     # Declare and annotate the variables of interest
@@ -58,7 +72,7 @@ def test_pearson_corr():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
-        'normal distribution': ['Illiteracy', 'Life Exp']
+        # 'normal distribution': ['Illiteracy', 'Life Exp']
     }
 
     tea.data(states_path)
@@ -66,8 +80,13 @@ def test_pearson_corr():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
 
-    tea.hypothesize(['Illiteracy', 'Life Exp'])
-    import pdb; pdb.set_trace()
+    results = tea.hypothesize(['Illiteracy', 'Life Exp'])
+    print("\nfrom Kabacoff")
+    print("Expected outcome: Pearson")
+    log('Pearson', str(results))
+    
+
+    # Suggests non-parametric 
 
 def test_pearson_corr_2(): 
     print("\nfrom Field et al.")
@@ -110,16 +129,21 @@ def test_pearson_corr_2():
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['Anxiety', 'Exam'])
-    tea.hypothesize(['Revise', 'Exam'])
-    tea.hypothesize(['Anxiety', 'Revise'])
+    results = tea.hypothesize(['Anxiety', 'Exam'])
+    log('Pearson', results)
+    results = tea.hypothesize(['Revise', 'Exam'])
+    log('Pearson', results)
+    results = tea.hypothesize(['Anxiety', 'Revise'])
+    log('Pearson', results)
+    print("\nfrom Field et al.")
+    print("Expected outcome: Pearson")
+
+    # suggests non parametric
 
     # Anxiety, Exam, and Revise are all not normally distributed. Therefore, Tea picks spearman and kendall
 
 
 def test_spearman_corr(): 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Spearman")
 
     liar_path = "/Users/emjun/.tea/data/liar.csv"
 
@@ -154,7 +178,12 @@ def test_spearman_corr():
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
+    results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
+    print("\nfrom Field et al.")
+    print("Expected outcome: Spearman")
+    log('Spearman', results)
+    
+    # Returns Spearman
 
 # Same as test for Spearman rho
 def test_kendall_tau_corr(): 
@@ -194,7 +223,12 @@ def test_kendall_tau_corr():
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
+    results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
+    print("\nfrom Field et al.")
+    print("Expected outcome: Kendall Tau")
+    log("Kendall Tau", results)
+    import pdb; pdb.set_trace()
+    # Returns: Kendall Tau and Pearson 
 
 def test_pointbiserial_corr(): 
     print("\nfrom Field et al.")
@@ -234,7 +268,12 @@ def test_pointbiserial_corr():
     tea.assume(assumptions)
 
     tea.hypothesize(['time', 'gender'], ['gender:1 > 0']) # I think this works!?
-
+    print("\nfrom Field et al.")
+    print("Expected outcome: Pointbiserial")
+    import pdb; pdb.set_trace()
+    #  Results: {'mannwhitney_u': MannwhitneyuResult(statistic=262.0,
+    #  pvalue=0.0058742825311290285), 'kruskall_wallis':
+    #  KruskalResult(statistic=7.629432016171138, pvalue=0.00574233835210006)}
 
 def test_indep_t_test():
     print("\nfrom Kabacoff")
@@ -274,6 +313,14 @@ def test_indep_t_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])
+    print("\nfrom Kabacoff")
+    print("Expected outcome: Student's t-test")
+    import pdb; pdb.set_trace()
+    # Results: {'students_t': Ttest_indResult(statistic=-4.202130736875173, pvalue=0.00012364897266532775), 'welchs_t': Ttest_indResult(statistic=-3.8953717090736655, pvalue=0.0006505783178002014), 'mannwhitney_u': MannwhitneyuResult(statistic=81.0, pvalue=0.00018546387565891538), 'f_test':             df    sum_sq   mean_sq          F    PR(>F)
+# C(So)      1.0  0.006702  0.006702  17.657903  0.000124
+# Residual  45.0  0.017079  0.000380        NaN       NaN, 'kruskall_wallis': KruskalResult(statistic=14.056955645161281, pvalue=0.00017735665596242664), 'factorial_ANOVA':             df    sum_sq   mean_sq          F    PR(>F)
+# C(So)      1.0  0.006702  0.006702  17.657903  0.000124
+# Residual  45.0  0.017079  0.000380        NaN       NaN}
 
     # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
     # import pdb; pdb.set_trace()
@@ -315,6 +362,14 @@ def test_paired_t_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
+
+    print("\nfrom Field et al.")
+    print("Expected outcome: Paired/Dependent t-test")
+    import pdb; pdb.set_trace()
+    # Results: {'pointbiserial_corr_a': True, 'paired_students_t': Ttest_relResult(statistic=-2.472533427497901, pvalue=0.030981783136040896), 'wilcoxon_signed_rank': WilcoxonResult(statistic=8.0, pvalue=0.045855524379089546), 'rm_one_way_anova': True, 'factorial_ANOVA':             df  sum_sq  mean_sq         F    PR(>F)
+# C(Group)   1.0   294.0    294.0  2.826923  0.106839
+# Residual  22.0  2288.0    104.0       NaN       NaN}
+    
 
 def test_wilcoxon_signed_rank(): 
     print("\nfrom Field et al.")
@@ -358,6 +413,11 @@ def test_wilcoxon_signed_rank():
 
     tea.hypothesize(['day', 'value'], ['day:sundayBDI > wedsBDI'])
 
+    print("\nfrom Field et al.")
+    print("Expected outcome: Wilcoxon signed rank test")
+    import pdb; pdb.set_trace()
+    # Results: {'pointbiserial_corr_a': True, 'wilcoxon_signed_rank': WilcoxonResult(statistic=8.0, pvalue=0.04656776138686537)}
+
 def test_f_test(): 
     print("\nFrom Field et al.")
     print("Expected outcome: Oneway ANOVA (F) test")
@@ -392,6 +452,9 @@ def test_f_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['trt', 'response'])
+    print("\nFrom Field et al.")
+    print("Expected outcome: Oneway ANOVA (F) test")
+    import pdb; pdb.set_trace()
         
 def test_kruskall_wallis(): 
     print("\nFrom Field et al.")
@@ -428,6 +491,10 @@ def test_kruskall_wallis():
     tea.assume(assumptions)
 
     tea.hypothesize(['Soya', 'Sperm'])
+
+    print("\nFrom Field et al.")
+    print("Expected outcome: Kruskall Wallis")
+    import pdb; pdb.set_trace()
 
 def test_rm_one_way_anova(): 
     print("\nFrom Field et al.")
@@ -470,6 +537,10 @@ def test_rm_one_way_anova():
 
     tea.hypothesize(['uptake', 'conc']) # Picks friedman!
 
+    print("\nFrom Field et al.")
+    print("Expected outcome: Repeated Measures One Way ANOVA")
+    import pdb; pdb.set_trace()
+
 def test_factorial_anova():
     print("\nFrom Field et al.")
     print("Expected outcome: Factorial ANOVA")
@@ -509,6 +580,9 @@ def test_factorial_anova():
     tea.assume(assumptions)
 
     tea.hypothesize(['attractiveness', 'gender', 'alcohol']) 
+    print("\nFrom Field et al.")
+    print("Expected outcome: Factorial ANOVA")
+    import pdb; pdb.set_trace()
 
 def test_factorial_anova_2():
     print("\nFrom Field et al.")
@@ -555,6 +629,9 @@ def test_factorial_anova_2():
     tea.assume(assumptions)
 
     tea.hypothesize(['attractiveness', 'gender', 'alcohol', 'dummy']) 
+    print("\nFrom Field et al.")
+    print("Expected outcome: Factorial ANOVA")
+    import pdb; pdb.set_trace()
 
 
 def test_two_way_anova(): 
@@ -594,6 +671,8 @@ def test_two_way_anova():
     tea.assume(assumptions)
 
     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
+    print('Supposed to be 2 way ANOVA')
+    import pdb; pdb.set_trace()
 
 
 
@@ -644,37 +723,39 @@ def test_anova_test():
     tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
 """
 
-# def test_chi_square(): 
-#     cats_path = "/Users/emjun/.tea/data/catsData.csv"
+def test_chi_square(): 
+    cats_path = "/Users/emjun/.tea/data/catsData.csv"
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Training',
-#             'data type' : 'nominal',
-#             'categories' : ['Food as Reward', 'Affection as Reward']
-#         },
-#         {
-#             'name' : 'Dance',
-#             'data type' : 'nominal',
-#             'categories' : ['Yes', 'No']
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': 'Training',
-#                             'outcome variables': 'Dance'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Training',
+            'data type' : 'nominal',
+            'categories' : ['Food as Reward', 'Affection as Reward']
+        },
+        {
+            'name' : 'Dance',
+            'data type' : 'nominal',
+            'categories' : ['Yes', 'No']
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': 'Training',
+                            'outcome variables': 'Dance'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
 
-#     tea.data(cats_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
+    tea.data(cats_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
 
-#     tea.hypothesize(['Training', 'Dance'])
+    tea.hypothesize(['Training', 'Dance'])
+    print('Chi square')
+    import pdb; pdb.set_trace()
 
 
 
