@@ -301,6 +301,8 @@ class AppliedProperty:
         # TODO: When does __property_var_map__ need to be cleared?
         __property_var_map__[self._name].append(self.vars)
 
+        self.property_test_results = None
+
     def __str__(self):
         return f"property_for_var:{self._name}"
 
@@ -471,11 +473,11 @@ def has_groups_normal_distribution(dataset, var_data, alpha):
                     grouped_data.append(data)
 
                 for group in grouped_data:
-                    group_normal_test_results = compute_normal_distribution(group)
-                    if (group_normal_test_results[1] <= alpha):
-                        return False
+                    result = compute_normal_distribution(group)
+                    if (result[1] <= alpha):
+                        return False, result
 
-    return True
+    return True, result
 
 def is_categorical_var(dataset, var_data, alpha):
     assert(len(var_data) == 1)
@@ -529,7 +531,7 @@ def has_normal_distribution(dataset, var_data, alpha):
     data = get_data(dataset, var_data[0])
     norm_test_results = compute_normal_distribution(data)
 
-    return (norm_test_results[1] > alpha)
+    return (norm_test_results[1] > alpha), norm_test_results
 
 # Test properties
 bivariate = Property('is_bivariate', "Exactly two variables involved in analysis", is_bivariate)
@@ -905,8 +907,16 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
         # if prop._name == 'is_groups_normal':
         #     import pdb; pdb.set_trace()
         prop_val = __property_to_function__[prop.__z3__](**kwargs)
+
+    ret_val = None
+    if isinstance(prop_val, tuple):
+        assert len(prop_val) == 2
+        ret_val = prop_val[0]
+        prop.property_test_results = prop_val[1]
+    else:
+        ret_val = prop_val
     
-    return prop_val
+    return ret_val
 
 # Assumes properties to hold
 def assume_properties(stat_var_map, assumptions: Dict[str,str], solver): 
@@ -1020,6 +1030,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     for ap in assumed_props:
                         if prop == ap: 
                             log(f"Property was a user assumption. ")
+                            prop.property_test_results = "Assumed true."
                             need_to_verify = False
                     if need_to_verify: 
                         # Does this property need to hold for the test to be valid?

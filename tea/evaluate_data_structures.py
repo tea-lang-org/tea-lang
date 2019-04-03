@@ -9,28 +9,6 @@ from types import SimpleNamespace # allows for dot notation access for dictionar
 class Value(object):
     pass
 
-@attr.s(init=True, repr=False, str=False)
-class ResultData(Value):
-    test_to_results = attr.ib(type=dict)
-
-    def _pretty_print(self):
-        output = "\nResults:\n--------------"
-        for test_name, results in self.test_to_results.items():
-            output += f"\nTest: {test_name}\n"
-            if hasattr(results, '_fields'):
-                for field in results._fields:
-                    output += f"{field}: {getattr(results, field)}\n"
-            else:
-                output += f"{str(results)}\n"
-
-        return output
-
-    def __repr__(self):
-        return self._pretty_print()
-    
-    def __str__(self):  # Maybe what the user sees?
-        return self._pretty_print()
-
 
 @attr.s(init=True)
 class VarData(Value):

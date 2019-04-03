@@ -233,12 +233,14 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
 
 ## CHANGED TO SHAPIRO TEST
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html
-# Null hypothesis is that distribution comes from normal distribution. 
+# Null hypothesis is that distribution comes from normal distribution.
+NormalTest = namedtuple('NormalTest', ('W', 'p_value'))
+
 def compute_normal_distribution(data):
     # norm_test = stats.normaltest(data, axis=0)
     # return (norm_test[0], norm_test[1])
-    shapiro_test = stats.shapiro(data)
-    return shapiro_test
+    w, p_value = stats.shapiro(data)
+    return NormalTest(w, p_value)
     # TODO: may want to compute/find the best distribution if not normal
  
 # @returns bootstrapped variance for @param data
