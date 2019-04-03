@@ -1,6 +1,7 @@
 import attr
 # from z3 import *
 import z3
+from z3 import BoolSort
 # from z3 import z3.is_true 
 from tea.dataset import Dataset
 from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
