@@ -7,6 +7,7 @@ from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, M
 import attr
 from typing import Any, Dict, List
 from types import SimpleNamespace # allows for dot notation access for dictionaries
+from collections import namedtuple
 import copy
 
 from scipy import stats # Stats library used
@@ -428,6 +429,9 @@ def pointbiserial(dataset: Dataset, combined_data: CombinedData):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html
 # Parameters: observed (contingency table) | correction (bool for Yates' correction) | lambda (change statistic computed)
+ChisquareResult = namedtuple('ChisquareResult', ('chi2', 'p', 'dof', 'expected'))
+
+
 def chi_square(dataset: Dataset, combined_data: CombinedData): 
     # Compute the contingency table
     xs = combined_data.get_explanatory_variables()
@@ -463,13 +467,16 @@ def chi_square(dataset: Dataset, combined_data: CombinedData):
             raise ValueError(f"Currently, chi square requires/only supports 1 explained variable, instead received: {len(ys)} -- {ys}")    
     else: 
         raise ValueError(f"Currently, chi square requires/only supports 1 explanatory variable, instead received: {len(xs)} -- {xs}")
-    
 
     # chi2, p, dof, ex = chi2_contingency(obs, correction=False)
-    return stats.chi2_contingency(contingency_table, correction=False)
+
+    chi2, p, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
+    return ChisquareResult(chi2, p, dof, ex)
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
 # Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
+FishersResult = namedtuple('FishersResult', ('oddsratio', 'p_value'))
+
 def fishers_exact(dataset: Dataset, combined_data: CombinedData): 
     assert(len(combined_data.vars) == 2)
 
@@ -504,7 +511,8 @@ def fishers_exact(dataset: Dataset, combined_data: CombinedData):
         contingency_table.append(table_row)
         contingency_table_key.append(table_row_key)
 
-    return stats.fisher_exact(contingency_table, alternative='two-sided')
+    odds_ratio, p_value = stats.fisher_exact(contingency_table, alternative='two-sided')
+    return FishersResult(odds_ratio, p_value)
 
 def f_test(dataset: Dataset, combined_data: CombinedData):  
     # Construct formula

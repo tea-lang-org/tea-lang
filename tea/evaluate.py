@@ -1,6 +1,6 @@
 from tea.ast import *
 from tea.dataset import Dataset
-from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
+from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData, ResultData # runtime data structures
 from tea.evaluate_helper_methods import determine_study_type, assign_roles, add_paired_property, compute_data_properties, compute_combined_data_properties, execute_test
 from .solver import synthesize_tests
 # from tea.solver import find_applicable_bivariate_tests
@@ -397,8 +397,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
 
         # TODO: Calculate effect size for experiments!!
 
-        # return ResultData object        
-        return results
+        return ResultData(results)
 
     elif isinstance(expr, Mean):
         var = evaluate(dataset, expr.var)

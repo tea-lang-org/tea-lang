@@ -132,7 +132,7 @@ def hypothesize(vars: list, prediction: str=None):
     result = evaluate(dataset_obj, relationship, assumptions, study_design)
     # all_results[relationship] -- How to check for multiple comparison problem?
     # import pdb; pdb.set_trace()
-    print(f"\n Results: {result}")
+    print(f"\n{result}")
     return result
 
 
