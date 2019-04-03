@@ -39,7 +39,7 @@ def log(expected, result):
 
     file.write("\nExpected:")
     file.write(expected)
-    file.wsrite("\n")
+    file.write("\n")
     file.write("Result:")
     import pdb; pdb.set_trace()
     file.write(str(result))
