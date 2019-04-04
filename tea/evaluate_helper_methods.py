@@ -17,6 +17,7 @@ import statsmodels.formula.api as smf
 from statsmodels.formula.api import ols
 # import numpy as np # Use some stats from numpy instead
 import pandas as pd
+from statsmodels.stats.anova import AnovaRM
 import bootstrapped.bootstrap as bs
 import bootstrapped.stats_functions as bs_stats
 
@@ -301,8 +302,10 @@ def students_t(dataset, combined_data: BivariateData):
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
-    
+        
     return stats.ttest_ind(data[0], data[1], equal_var=True)
+
+    # greater-than test when p/2 < alpha and t > 0, and of a less-than test when p/2 < alpha and t < 0
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html#scipy.stats.ttest_rel
 # Possible parameters: a, b : array | axis (without, over entire arrays) | nan_policy (optional) 
@@ -425,12 +428,25 @@ def kendalltau_corr(dataset: Dataset, combined_data: CombinedData):
     return stats.kendalltau(data[0], data[1])
 
 def pointbiserial(dataset: Dataset, combined_data: CombinedData): 
-    return True
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+
+    assert(len(xs) == 1)
+    assert(len(ys) == 1)
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
+    data = []
+
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        data.append(cat_data)
+    
+    return stats.pointbiserialr(data[0], data[1])
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html
 # Parameters: observed (contingency table) | correction (bool for Yates' correction) | lambda (change statistic computed)
 ChisquareResult = namedtuple('ChisquareResult', ('chi2', 'p', 'dof', 'expected'))
-
 
 def chi_square(dataset: Dataset, combined_data: CombinedData): 
     # Compute the contingency table
@@ -580,8 +596,27 @@ def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData):
     model = ols_formula.fit()
     return sm.stats.anova_lm(model, type=2)
 
-def rm_one_way_anova(dataset: Dataset, combined_data: CombinedData): 
-    return True
+def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData): 
+    data = dataset.data
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+
+    assert(len(ys) == 1)
+    y = ys[0]
+    between_subjs = []
+    within_subjs = []
+    for x in xs: 
+        if "between subjects" in design and design["between subjects"] == x.metadata[name]:
+            between_subjs.append(x.metadata[name])
+        if "within subjects" in design and design["within subjects"] == x.metadata[name]:
+            within_subjs.append(x.metadata[name])
+    
+    # import pdb; pdb.set_trace()
+    id = dataset.pid_col_name
+    aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=id, within=within_subjs)
+    # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
+    # import pdb; pdb.set_trace()
+    res2way = aovrm2way.fit()
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
 def kruskall_wallis(dataset: Dataset, combined_data: CombinedData): 
@@ -699,11 +734,13 @@ def lookup_function(test_name):
     else: 
         raise ValueError(f"Cannot find the test:{test_name}")
 
-def execute_test(dataset, combined_data: CombinedData, test):         
+def execute_test(dataset, design, combined_data: CombinedData, test):         
     # Get function handler
     test_func = lookup_function(test)
 
     # Execute the statistical test
+    if test_func is rm_one_way_anova: 
+        stat_result = test_func(dataset, design, combined_data)
     stat_result = test_func(dataset, combined_data)
 
     # Return results

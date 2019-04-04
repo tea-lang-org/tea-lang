@@ -284,7 +284,8 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
                 return Relationship(lhs_var).positive(Relationship(rhs_var))
 
  # def predict(factors: list, outcome: Variable, prediction: str=None):    
-def predict(vars: list, predictions: list=None):    
+def predict(vars: list, predictions: list=None):   
+    # import pdb; pdb.set_trace() 
     formulated_predictions = []
 
     # Validate well-formedness of predictions

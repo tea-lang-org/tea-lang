@@ -41,10 +41,10 @@ def log(expected, result):
     file.write(expected)
     file.write("\n")
     file.write("Result:")
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     file.write(str(result))
     file.write('\n--------') # divide tests
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
 
 # Example from Kabacoff
@@ -80,7 +80,7 @@ def test_pearson_corr():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
 
-    results = tea.hypothesize(['Illiteracy', 'Life Exp'])
+    results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
     print("\nfrom Kabacoff")
     print("Expected outcome: Pearson")
     log('Pearson', str(results))
@@ -356,7 +356,7 @@ def test_paired_t_test():
         'Type I (False Positive) Error Rate': 0.05
     }
 
-    tea.data(spider_path)
+    tea.data(spider_path, key="id")
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -530,7 +530,7 @@ def test_rm_one_way_anova():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(co2_path)
+    tea.data(co2_path, key="id")
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)

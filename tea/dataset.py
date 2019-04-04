@@ -63,9 +63,9 @@ class Dataset(object):
         if self.dfile: 
             self.data = pd.read_csv(self.dfile)
 
-        if self.pid_col_name:
-            # Reindex DataFrame indices to be pids
-            self.data.set_index(self.pid_col_name, inplace=True)
+        # if self.pid_col_name:
+        #     # Reindex DataFrame indices to be pids
+        #     self.data.set_index(self.pid_col_name, inplace=True)
         # else: 
             # Treat each row as a unique observation
 

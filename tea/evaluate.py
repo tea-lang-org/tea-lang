@@ -392,11 +392,25 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             tests.append('bootstrap') # Default to bootstrap
             
         for test in tests: 
-            test_result = execute_test(dataset, combined_data, test, )
+            test_result = execute_test(dataset, design, combined_data, test)
             results[test] = test_result
 
         # TODO: Calculate effect size for experiments!!
+        # calculate_effect_size()
+        # import pdb; pdb.set_trace()
+        
+        # TODO One-sided test?
+        if expr.predictions:
+            import pdb; pdb.set_trace()
+            
+            # T-tests: may greater-than test when p/2 < alpha and t > 0, and of a less-than test when p/2 < alpha and t < 0
+            # --> may want to divide p-value in t-test (before return)
 
+            # Add something to the results that they are one-sided vs two-sided tests? 
+
+            # TODO For f_test/... post hoc comparisons depending on predictions
+            pass
+            
         return ResultData(results)
 
     elif isinstance(expr, Mean):

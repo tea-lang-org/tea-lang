@@ -44,10 +44,11 @@ def download_data(url, name):
     return load_data_from_url(url, name)
 
 # @sets global dataset_path and dataaset_obj (of type Dataset)
-def data(file): 
-    global dataset_path, dataset_obj
+def data(file, key=None): 
+    global dataset_path, dataset_obj, dataset_id
 
     dataset_path = file
+    dataset_id = key
 
 def define_variables(vars: Dict[str, str]):
     global vars_objs
@@ -94,7 +95,7 @@ def define_study_design(design: Dict[str, str]):
                     
     study_design = design
 
-    dataset_id = design[uid] if uid in design else None
+    # dataset_id = design[uid] if uid in design else None
     
 
 def assume(user_assumptions: Dict[str, str]): 
