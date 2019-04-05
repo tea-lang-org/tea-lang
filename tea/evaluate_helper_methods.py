@@ -291,7 +291,9 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-def students_t(dataset, combined_data: BivariateData):
+StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p'))
+def students_t(dataset, predictions, combined_data: BivariateData):
+    # import pdb; pdb.set_trace()
     # assert(len(predictions) == 1)
 
     xs = combined_data.get_explanatory_variables()
@@ -301,17 +303,50 @@ def students_t(dataset, combined_data: BivariateData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
 
+    pred = None
+    if predictions:
+        pred = predictions[0][0]
+    
+    lhs = None
+    rhs = None
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if c == pred.lhs:
+            lhs = cat_data
+        if c == pred.rhs: 
+            rhs = cat_data
         data.append(cat_data)
-        
-    return stats.ttest_ind(data[0], data[1], equal_var=True)
+
+    t_stat, p_val = stats.ttest_ind(lhs, rhs, equal_var=True)
+
+    # Are there user predictions?
+    if predictions: 
+        one_sided = [(isinstance(*v, GreaterThan) or isinstance(*v, LessThan)) for v in predictions]
+
+        # import pdb; pdb.set_trace()
+        if any(one_sided):
+
+            adjusted_p = p_val/2
+        else: 
+            adjusted_p = p_val
+
+
+        # TODO: This should really go in a sanitizing step or something...
+        alpha = combined_data.alpha
+        if t_stat > 0 and adjusted_p < alpha:
+            if lhs.mean() > rhs.mean():
+                interp = 'There is a significant difference between '
+
+    
+        return StudentsTResult(t_stat, p_val, adjusted_p)
+    
+    
 
     # greater-than test when p/2 < alpha and t > 0, and of a less-than test when p/2 < alpha and t < 0
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html#scipy.stats.ttest_rel
 # Possible parameters: a, b : array | axis (without, over entire arrays) | nan_policy (optional) 
-def paired_students_t(dataset, combined_data: CombinedData): 
+def paired_students_t(dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
     x = xs[0]
@@ -327,7 +362,7 @@ def paired_students_t(dataset, combined_data: CombinedData):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-def welchs_t(dataset, combined_data: BivariateData):
+def welchs_t(dataset, predictions, combined_data: BivariateData):
     # assert(len(predictions) == 1)
 
     xs = combined_data.get_explanatory_variables()
@@ -346,7 +381,7 @@ def welchs_t(dataset, combined_data: BivariateData):
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
 # def utest(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-def mannwhitney_u(dataset, combined_data: BivariateData):
+def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     assert (len(combined_data.vars) == 2)
     assert (len(combined_data.get_explanatory_variables()) == 1)
     assert (len(combined_data.get_explained_variables()) == 1)
@@ -366,7 +401,7 @@ def mannwhitney_u(dataset, combined_data: BivariateData):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
-def wilcoxon_signed_rank(dataset: Dataset, combined_data: CombinedData):
+def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedData):
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
     x = xs[0]
@@ -382,7 +417,7 @@ def wilcoxon_signed_rank(dataset: Dataset, combined_data: CombinedData):
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
 # Parameters: x (array-like) | y (array-like)
-def pearson_corr(dataset: Dataset, combined_data: CombinedData):
+def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     assert(len(combined_data.vars) == 2)
     
     data = []
@@ -397,7 +432,7 @@ def pearson_corr(dataset: Dataset, combined_data: CombinedData):
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
 # Parameters: a, b (b is optional) | axis (optional) 
-def spearman_corr(dataset: Dataset, combined_data: CombinedData):
+def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     assert(len(combined_data.vars) == 2)
     
     data = []
@@ -417,7 +452,7 @@ def spearman_corr(dataset: Dataset, combined_data: CombinedData):
 
 # https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
 # Parameters: x (array-like) | y (array-like) : Arrays of rankings, of the same shape. If arrays are not 1-D, they will be flattened to 1-D.
-def kendalltau_corr(dataset: Dataset, combined_data: CombinedData): 
+def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData): 
     assert(len(combined_data.vars) == 2)
     
     data = []
@@ -429,7 +464,7 @@ def kendalltau_corr(dataset: Dataset, combined_data: CombinedData):
 
     return stats.kendalltau(data[0], data[1])
 
-def pointbiserial(dataset: Dataset, combined_data: CombinedData): 
+def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
 
@@ -450,7 +485,7 @@ def pointbiserial(dataset: Dataset, combined_data: CombinedData):
 # Parameters: observed (contingency table) | correction (bool for Yates' correction) | lambda (change statistic computed)
 ChisquareResult = namedtuple('ChisquareResult', ('chi2', 'p', 'dof', 'expected'))
 
-def chi_square(dataset: Dataset, combined_data: CombinedData): 
+def chi_square(dataset: Dataset, predictions, combined_data: CombinedData): 
     # Compute the contingency table
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -495,7 +530,7 @@ def chi_square(dataset: Dataset, combined_data: CombinedData):
 # Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
 FishersResult = namedtuple('FishersResult', ('oddsratio', 'p_value'))
 
-def fishers_exact(dataset: Dataset, combined_data: CombinedData): 
+def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData): 
     assert(len(combined_data.vars) == 2)
 
     # Compute the contingency table
@@ -532,7 +567,7 @@ def fishers_exact(dataset: Dataset, combined_data: CombinedData):
     odds_ratio, p_value = stats.fisher_exact(contingency_table, alternative='two-sided')
     return FishersResult(odds_ratio, p_value)
 
-def f_test(dataset: Dataset, combined_data: CombinedData):  
+def f_test(dataset: Dataset, predictions, combined_data: CombinedData):  
     # Construct formula
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -561,7 +596,7 @@ def _is_interaction_unique(interactions, inter):
         # the interaction is not unique!
         return not all(exists)
         
-def factorial_ANOVA(dataset: Dataset, combined_data: CombinedData): 
+def factorial_ANOVA(dataset: Dataset, predictions, combined_data: CombinedData): 
 
     # Construct formula
     xs = combined_data.get_explanatory_variables()
@@ -623,7 +658,7 @@ def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData):
     return res2way
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
-def kruskall_wallis(dataset: Dataset, combined_data: CombinedData): 
+def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
     assert (len(ys) == 1)
@@ -640,7 +675,7 @@ def kruskall_wallis(dataset: Dataset, combined_data: CombinedData):
     
     return stats.kruskal(*data)
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.friedmanchisquare.html#scipy.stats.friedmanchisquare
-def friedman(dataset: Dataset, combined_data: CombinedData): 
+def friedman(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
     assert (len(ys) == 1)
@@ -663,7 +698,7 @@ def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: Co
     return stats.linregress(iv.dataframe, dv.dataframe)
     
 # def bootstrap(data):
-def bootstrap(dataset: Dataset, combined_data: CombinedData):
+def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
     calculations = {}
 
     xs = combined_data.get_explanatory_variables()
@@ -739,7 +774,8 @@ def lookup_function(test_name):
     else: 
         raise ValueError(f"Cannot find the test:{test_name}")
 
-def execute_test(dataset, design, combined_data: CombinedData, test):         
+def execute_test(dataset, design, predictions, combined_data: CombinedData, test):     
+    # import pdb; pdb.set_trace()    
     # Get function handler
     test_func = lookup_function(test)
 
@@ -747,7 +783,7 @@ def execute_test(dataset, design, combined_data: CombinedData, test):
     if test_func is rm_one_way_anova: 
         stat_result = test_func(dataset, design, combined_data)
     else:
-        stat_result = test_func(dataset, combined_data)
+        stat_result = test_func(dataset, predictions, combined_data)
 
     # Return results
     return stat_result

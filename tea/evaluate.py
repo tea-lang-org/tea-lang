@@ -393,7 +393,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             tests.append('bootstrap') # Default to bootstrap
             
         for test in tests: 
-            test_result = execute_test(dataset, design, combined_data, test)
+            test_result = execute_test(dataset, design, expr.predictions, combined_data, test)
             results[test] = test_result
         
         if 'bootstrap' in tests: 
@@ -415,7 +415,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
 
             # TODO For f_test/... post hoc comparisons depending on predictions
             pass
-            
+        import pdb; pdb.set_trace()
         return ResultData(results)
 
     elif isinstance(expr, Mean):
