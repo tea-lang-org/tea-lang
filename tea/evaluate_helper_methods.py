@@ -683,6 +683,8 @@ def bootstrap(dataset: Dataset, combined_data: CombinedData):
                 # store all the medians & confidence intervals
                 # return all the medians & CIs
                 # data.append(cat_data)
+    
+    return calculations
 
         # Interaction effects
         # Add the interactions

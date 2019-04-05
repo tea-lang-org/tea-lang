@@ -302,8 +302,8 @@ def test_indep_t_test():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
-        'normal distribution': ['So'],
-        'groups normally distributed': [['So', 'Prob']]
+        # 'normal distribution': ['So'],
+        # 'groups normally distributed': [['So', 'Prob']]
 
     }
 

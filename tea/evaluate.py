@@ -395,6 +395,10 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         for test in tests: 
             test_result = execute_test(dataset, design, combined_data, test)
             results[test] = test_result
+        
+        if 'bootstrap' in tests: 
+            # import pdb; pdb.set_trace()
+            pass
 
         # TODO: Calculate effect size for experiments!!
         # calculate_effect_size()
@@ -402,7 +406,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         
         # TODO One-sided test?
         if expr.predictions:
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             
             # T-tests: may greater-than test when p/2 < alpha and t > 0, and of a less-than test when p/2 < alpha and t < 0
             # --> may want to divide p-value in t-test (before return)

@@ -59,6 +59,7 @@ rcorr(liarMatrix)
 cor(liarData$Position, liarData$Creativity, method = "kendall")
 cor(liarData$Position, liarData$Creativity, method = "spearman")
 cor.test(liarData$Position, liarData$Creativity, alternative = "less", method = "pearson")
+cor.test(liarData$Position, liarData$Creativity, alternative = "less", method = "kendall")
 
 ### Pointbiseral (p. 229 -233)
 # Field et al.
@@ -77,6 +78,7 @@ prop.table(catFrequencies)
 ### Independent T-Test 
 # Kabacoff (p. 164-165)
 library (MASS)
+t.test(Prob ~ So, data=UScrime)
 t.test(Prob ~ So, data=UScrime, var.equal=TRUE)
 # could also be written as 
 # t.test(y1, y2) # y1 and y2 dependent variables for the two groups
@@ -309,7 +311,7 @@ catData <- read.delim("/Users/emjun/Git/tea-lang/evaluation/discovering-statisti
 food <- c(10, 28)
 affection <- c(114, 48)
 catsTable <- cbind(food, affection) 
-CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
+CrossTable(catData$Training, catData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
 # Equivalent to the above
 #CrossTable(catsTable, fisher = TRUE, chisq = TRUE, expected = TRUE, sresid = TRUE, format = "SPSS")
 #CrossTable(catsData$Training, catsData$Dance, fisher = TRUE, chisq = TRUE, expected = TRUE, prop.c = FALSE, prop.t = FALSE, prop.chisq = FALSE,  sresid = TRUE, format = "SPSS")
