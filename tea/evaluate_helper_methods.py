@@ -8,6 +8,7 @@ import attr
 from typing import Any, Dict, List
 from types import SimpleNamespace # allows for dot notation access for dictionaries
 from collections import namedtuple
+from enum import Enum
 import copy
 
 from scipy import stats # Stats library used
@@ -291,7 +292,7 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p'))
+StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p', 'interpretation'))
 def students_t(dataset, predictions, combined_data: BivariateData):
 
     # predictions = [[GreaterThans]]
@@ -311,9 +312,9 @@ def students_t(dataset, predictions, combined_data: BivariateData):
     rhs = None
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-        if c == pred.lhs:
+        if c == pred.lhs.value:
             lhs = cat_data
-        if c == pred.rhs: 
+        if c == pred.rhs.value:
             rhs = cat_data
         data.append(cat_data)
 
@@ -332,12 +333,57 @@ def students_t(dataset, predictions, combined_data: BivariateData):
 
         # TODO: This should really go in a sanitizing step or something...
         alpha = combined_data.alpha
-        if t_stat > 0 and adjusted_p < alpha:
-            if lhs.mean() > rhs.mean():
-                interp = 'There is a significant difference between '
+        class TTestResult(Enum):
+            not_significant = 0
+            significantly_different = 1
+            significantly_greater = 2
+            significantly_less = 3
 
-    
-        return StudentsTResult(t_stat, p_val, adjusted_p, intterp)
+        ttest_result = TTestResult.not_significant
+        # Based on https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faq-what-are-the-differences-between-one-tailed-and-two-tailed-tests/
+        # From the example on this site:
+        # If t is negative and we are checking a less than relationship, use p/2 as the adjusted p-value.
+        # If t is negative and we are checking a greater than relationship, use 1 - p/2 as the adjusted p-value.
+        if t_stat > 0:
+            if isinstance(pred, GreaterThan) and adjusted_p < alpha:
+                ttest_result = TTestResult.significantly_greater
+            elif isinstance(pred, LessThan) and 1 - adjusted_p < alpha:
+                ttest_result = TTestResult.significantly_less
+            elif not one_sided and adjusted_p < alpha:
+                ttest_result = TTestResult.significantly_different
+            else:
+                ttest_result = TTestResult.not_significant
+        elif t_stat < 0:
+            if isinstance(pred, LessThan) and adjusted_p < alpha:
+                ttest_result = TTestResult.significantly_less
+            elif isinstance(pred, GreaterThan) and 1 - adjusted_p < alpha:
+                ttest_result = TTestResult.significantly_greater
+            elif not one_sided and adjusted_p < alpha:
+                ttest_result = TTestResult.significantly_different
+            else:
+                ttest_result = TTestResult.not_significant
+        elif not one_sided and adjusted_p < alpha:
+            ttest_result = ttest_result.significantly_different
+        else:
+            assert False, "t_stat = 0 and it's not a one-sided test. Not sure under what conditions this is possible."
+
+        interpretation = None
+        if ttest_result == ttest_result.not_significant:
+            interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} " \
+                f"and {x.metadata[name]} = {pred.rhs.value} is not significant."
+        elif ttest_result == ttest_result.significantly_different:
+            interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} " \
+                f"and {x.metadata[name]} = {pred.rhs.value} is significant."
+        elif ttest_result == ttest_result.significantly_greater:
+            interpretation = f"The mean of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} is significantly" \
+                f" greater than the mean for {x.metadata[name]} = {pred.rhs.value}"
+        elif ttest_result == ttest_result.significantly_less:
+            interpretation = f"The mean of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} is significantly" \
+                f" less than the mean for {x.metadata[name]} = {pred.rhs.value}"
+        else:
+            assert False, "ttest_result case without an associated interpretation."
+
+        return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
     
     
 
