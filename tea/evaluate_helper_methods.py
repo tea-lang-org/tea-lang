@@ -293,8 +293,8 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
 StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p'))
 def students_t(dataset, predictions, combined_data: BivariateData):
-    # import pdb; pdb.set_trace()
-    # assert(len(predictions) == 1)
+
+    # predictions = [[GreaterThans]]
 
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -325,7 +325,6 @@ def students_t(dataset, predictions, combined_data: BivariateData):
 
         # import pdb; pdb.set_trace()
         if any(one_sided):
-
             adjusted_p = p_val/2
         else: 
             adjusted_p = p_val
@@ -338,7 +337,7 @@ def students_t(dataset, predictions, combined_data: BivariateData):
                 interp = 'There is a significant difference between '
 
     
-        return StudentsTResult(t_stat, p_val, adjusted_p)
+        return StudentsTResult(t_stat, p_val, adjusted_p, intterp)
     
     
 
