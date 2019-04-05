@@ -392,7 +392,7 @@ def pearson_corr(dataset: Dataset, combined_data: CombinedData):
 
     assert(len(data) == 2)
 
-    return stats.pearsonr(data[0], data[1])
+    return s.pearsonr(data[0], data[1])
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
@@ -614,11 +614,13 @@ def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData):
             within_subjs.append(x.metadata[name])
     
     # import pdb; pdb.set_trace()
-    id = dataset.pid_col_name
-    aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=id, within=within_subjs)
-    # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
+    key = dataset.pid_col_name
     # import pdb; pdb.set_trace()
+    aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=key, within=within_subjs, aggregate_func='mean')
+    # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
+    import pdb; pdb.set_trace()
     res2way = aovrm2way.fit()
+    return res2way
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
 def kruskall_wallis(dataset: Dataset, combined_data: CombinedData): 
@@ -637,7 +639,6 @@ def kruskall_wallis(dataset: Dataset, combined_data: CombinedData):
             data.append(cat_data)
     
     return stats.kruskal(*data)
-
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.friedmanchisquare.html#scipy.stats.friedmanchisquare
 def friedman(dataset: Dataset, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -745,7 +746,8 @@ def execute_test(dataset, design, combined_data: CombinedData, test):
     # Execute the statistical test
     if test_func is rm_one_way_anova: 
         stat_result = test_func(dataset, design, combined_data)
-    stat_result = test_func(dataset, combined_data)
+    else:
+        stat_result = test_func(dataset, combined_data)
 
     # Return results
     return stat_result

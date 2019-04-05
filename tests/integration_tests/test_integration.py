@@ -18,7 +18,7 @@ ecstasy_path = None
 goggles_path = None
 goggles_dummy_path = None
 data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path, goggles_path, goggles_dummy_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong_within  .csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -332,7 +332,7 @@ def test_paired_t_test():
     print("Expected outcome: Paired/Dependent t-test")
 
     global spider_path
-    spider_path = "/Users/emjun/.tea/data/spiderLong.csv"
+    spider_path = "/Users/emjun/.tea/data/spiderLong_within.csv"
 
     # Declare and annotate the variables of interest
     variables = [
@@ -441,7 +441,9 @@ def test_f_test():
     experimental_design = {
                             'study type': 'experiment',
                             'independent variables': 'trt',
-                            'dependent variables': 'response'
+                            'dependent variables': 'response',
+                            'between subjects': 'trt'
+
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
@@ -480,6 +482,7 @@ def test_kruskall_wallis():
                             # 'study type': 'observational study', # shouldn't change anything
                             'independent variables': 'Soya',
                             'dependent variables': 'Sperm',
+                            'between subjects': 'Soya'
                             # 'within subjects': 'Soya' # Correctly does not choose Kruskall Wallis
                         }
     assumptions = {
@@ -531,7 +534,7 @@ def test_rm_one_way_anova():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(co2_path, key="id")
+    tea.data(co2_path, key="Plant")
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -581,6 +584,7 @@ def test_factorial_anova():
     tea.assume(assumptions)
 
     tea.hypothesize(['attractiveness', 'gender', 'alcohol']) 
+    # alcohol main effect?
     print("\nFrom Field et al.")
     print("Expected outcome: Factorial ANOVA")
     import pdb; pdb.set_trace()
@@ -672,6 +676,7 @@ def test_two_way_anova():
     tea.assume(assumptions)
 
     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
+    #Type main effect?
     print('Supposed to be 2 way ANOVA')
     import pdb; pdb.set_trace()
 

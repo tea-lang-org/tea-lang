@@ -4,6 +4,7 @@ import pandas as pd
 from scipy import stats # Stats library used
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
+from statsmodels.stats.anova import AnovaRM
 
 
 base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
@@ -103,8 +104,8 @@ def all_bivariate(group_0, group_1):
     try: 
         welchs_t = stats.ttest_ind(group_0, group_1, equal_var=False)
     except:
-        results["welchs_t"] = welchs_t
-
+        welchs_t = -1
+    results["welchs_t"] = welchs_t
     return results
 
 def test_all_bivariate(): 
@@ -142,6 +143,15 @@ def test_all_bivariate():
         print(results)
         print('\n---------')
 
+def _is_interaction_unique(interactions, inter):
+    for existing_inter in interactions: 
+        variables = inter.split('*')
+        # Check if the varibles in inter already exist in another interaction
+        exists = [(v in existing_inter) for v in variables]
+        # If all of the variables in inter already exist, this means 
+        # the interaction is not unique!
+        return not all(exists)
+
 def f_test(x_name, y_name, df): 
     # F-test, Factorial ANOVA
     formula = ols(f"{y_name} ~ C({x_name})", data=df)
@@ -149,48 +159,101 @@ def f_test(x_name, y_name, df):
     res = sm.stats.anova_lm(model, type=2)
     return res
 
-def kruskall_wallis(xs, y, df):
-    for x in xs: 
-        data = []
-        groups = df[x].unique()
-        for group in groups: 
-            d = df[y][df[x] == group]
-            data.append(d)
+def factorial(xs, y, df):
+    # assert(len(y) == 0)
+    formula = f"{y} ~ "
 
-    return stats.kruskal(*data)
+    for i in range(len(xs)): 
+        x = xs[i]
+        formula += f"C({x})"
+
+        if i < len(xs) - 1: 
+            formula += " + "
+    
+    
+    # Add the interactions
+    interactions = []
+    for i in range(len(xs)): 
+        x_i = xs[i]
+        inter = f"C({x_i})" 
+        for j in range(len(xs)):
+            if i != j: 
+                x_j = xs[j]
+                inter += " * " + f"C({x_j})"
+                interactions.append(inter)
+                
+                if _is_interaction_unique(interactions, inter):
+                    formula += " + " +  inter
+
+    ols_formula = ols(formula, data=df)
+    model = ols_formula.fit()
+    return sm.stats.anova_lm(model, type=2)
+
+def kruskall_wallis(xs, y, df):
+    results = {}
+    if len(xs) == 1:
+        for x in xs: 
+            data = []
+            groups = df[x].unique()
+            for group in groups: 
+                d = df[y][df[x] == group]
+                data.append(d)
+            results[x] = stats.kruskal(*data)
+
+    else: 
+        results = -1
+        
+    return results
 
 def friedman(xs, y, df):
     results = {}
-
-    for x in xs: 
-        data = []
-        groups = df[x].unique()
-        # import pdb; pdb.set_trace()
-        for group in groups: 
-            d = df[y][df[x] == group]
-            data.append(d)
-        if (len(groups) >= 3): 
-            res = stats.friedmanchisquare(*data)
-        else: 
-            res = -1
-        results[x] = res
+    if len(xs) == 1:
+        for x in xs: 
+            data = []
+            groups = df[x].unique()
+            # import pdb; pdb.set_trace()
+            for group in groups: 
+                d = df[y][df[x] == group]
+                data.append(d)
+            if (len(groups) >= 3): 
+                res = stats.friedmanchisquare(*data)
+            else: 
+                res = -1
+            results[x] = res
+    else: 
+        results = -1
 
     return results
 
-def all_multivariate(xs, y, df):
+def rm_one_way(xs, y, key, df):
+    between_subjs = []
+    within_subjs = []
+
+    aovrm2way = AnovaRM(df, depvar=y, subject=key, within=xs, aggregate_func='mean')
+    
+    res2way = aovrm2way.fit()
+    # import pdb; pdb.set_trace()
+    return str(res2way)
+
+def all_multivariate(xs, y, key, df):
 
     results = {}
 
     assert(len(y) == 1)
     y = y[0]
 
-    if len(xs) == 0: 
+    # F test
+    if len(xs) == 1: 
         x_name = xs[0]
         
-        results['f_test_and_factorial_ANOVA'] = f_test(x_name, y, df)
+        results['f_test'] = f_test(x_name, y, df)
+
+    # Factorial ANOVA
+    results['factorial_ANOVA'] = factorial(xs, y, df)
 
     # Repeated Measures
-    # TODO: Skip for now
+    if key:
+        results['rm_one_way_ANOVA'] = rm_one_way(xs, y, key, df)
     
     # Kruskall-Wallis 
     results['kruskall_wallis'] = kruskall_wallis(xs, y, df)
@@ -213,7 +276,7 @@ def test_all_multivariate():
     test_vars = {
         'f_test' : ['trt', 'response'],
         'kruskall_wallis' : ['Soya', 'Sperm'],
-        'rm_one_way' : ['conc','uptake'],
+        'rm_one_way' : ['conc','uptake', 'Plant'],
         'factorial_anova' : ['gender', 'alcohol', 'attractiveness'],
         'two_way_anova' : ['conc', 'Type', 'uptake']
     }
@@ -223,6 +286,12 @@ def test_all_multivariate():
 
         variables = test_vars[tutorial_test]
 
+        key = ''
+        if tutorial_test == 'rm_one_way':
+            key = variables[2]    
+            variables = [v for i,v in enumerate(variables) if i < 2]   
+        # import pdb; pdb.set_trace()
+
         xs = []
         y = []
         for i in range(len(variables)): 
@@ -231,9 +300,11 @@ def test_all_multivariate():
             if i == len(variables) - 1: 
                 y.append(variables[i])
     
+    
+    
         
         print(tutorial_test)
-        results = all_multivariate(xs, y, df)
+        results = all_multivariate(xs, y, key, df)
         print(results)
         print('\n---------')
 
