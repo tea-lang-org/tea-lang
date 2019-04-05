@@ -584,7 +584,7 @@ def test_factorial_anova():
     print("\nFrom Field et al.")
     print("Expected outcome: Factorial ANOVA")
     import pdb; pdb.set_trace()
-
+"""
 def test_factorial_anova_2():
     print("\nFrom Field et al.")
     print("Expected outcome: Factorial ANOVA")
@@ -633,7 +633,7 @@ def test_factorial_anova_2():
     print("\nFrom Field et al.")
     print("Expected outcome: Factorial ANOVA")
     import pdb; pdb.set_trace()
-
+"""
 
 def test_two_way_anova(): 
     co2_path = "/Users/emjun/.tea/data/co2.csv"
