@@ -292,7 +292,7 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p', 'interpretation'))
+StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p')) #, 'interpretation'))
 def students_t(dataset, predictions, combined_data: BivariateData):
 
     # predictions = [[GreaterThans]]
@@ -383,7 +383,8 @@ def students_t(dataset, predictions, combined_data: BivariateData):
         else:
             assert False, "ttest_result case without an associated interpretation."
 
-        return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
+        # return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
+        return StudentsTResult(t_stat, p_val, adjusted_p)
     
     
 

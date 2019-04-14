@@ -391,6 +391,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         results = {}
         if len(tests) == 0: 
             tests.append('bootstrap') # Default to bootstrap
+
             
         for test in tests: 
             test_result = execute_test(dataset, design, expr.predictions, combined_data, test)
@@ -415,7 +416,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
 
             # TODO For f_test/... post hoc comparisons depending on predictions
             pass
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         return ResultData(results)
 
     elif isinstance(expr, Mean):
