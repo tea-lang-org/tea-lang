@@ -132,7 +132,6 @@ def hypothesize(vars: list, prediction: str=None):
     # Interpret AST node, Returns ResData object (?)
     result = evaluate(dataset_obj, relationship, assumptions, study_design)
     # all_results[relationship] -- How to check for multiple comparison problem?
-    # import pdb; pdb.set_trace()
     print(f"\n{result}")
     return result
 
@@ -190,7 +189,6 @@ def divine_properties(vars:list, tests:list):
 
     # print("\nProperties for student's t test and Mann Whitney u test are complementary.")
     print("\nProperties:")
-    import pdb; pdb.set_trace()
     pp.pprint(test_to_properties)
     print("\nProperties that could not be satisfied:")
     pp.pprint(test_to_broken_properties)

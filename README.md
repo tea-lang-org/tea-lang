@@ -3,31 +3,68 @@
 # [WIP] Tea: A High-level Language and Runtime System for Automating Statistical Analyses
 
 ## What is Tea?
-Tea is a domain specific language for expressing the assertions and intentions/goals for statistical analyses (e.g., to compare two groups on an outcome). The user provides a dataset (currently only CSV) and a experimental design specification. The Tea runtime system then translates these high-level expressions, calculates properties about the data, and translates these properties into constarints to find a set of valid statistical tests. Tea uses Z3 as its constraint solver.
+Tea is a domain specific programming language that automates statistical test
+selection and execution. Tea is currently written in/for Python. 
 
-## How do I use Tea?
-Make sure that you have Python 3.7, pip (for Python 3.7), and pipenv (for Python 3.7) installed. 
-Start a pipenv: `pipenv shell`
-From inside your environment, download all dependencies from Pipfile (`pipenv update`). This will take awhile because it builds Z3.
-Add Tea to your Python path by creating `.env` file that has the following one-liner in it: `PYTHONPATH=${PYTHONPATH}:${PWD}`
-To run tests and see output, run: `pytest tests/integration_tests/test_integration.py -s`
+Users provide 5 pieces of information: 
+* the *dataset* of interest, 
+* the *variables* in the dataset they want to analyze, 
+* the *study design* (e.g., independent, dependent variables),
+* the *assumptions* they make about the data based on domain knowledge(e.g.,
+a variable is normally distributed), and
+* a *hypothesis*.
 
-The main code base is written in Python and lives in the `tea` directory. The `tests` directory is used for developing and debugging and uses datasets in the `datasets` directory. Not all the datasets used in `tests/test_tea.py` are included in the `datasets` repository. 
-`tea/solver.py` contains the constraint solving module for both tests -> properties and properties -> tests.
-`tea/ast.py` implements Tea's Abstract Syntax Tree (AST). 
-`tea/build.py` builds up Tea's AST for programs.
-`tea/dataset.py` contains a runtime data structure that represents and contains the data the user provides. 
-`tea/evaluate.py` is the main interpreter file.
-`tea/evaluate_helper_methods.py` contains the helper methods for `evaluate.py`.
-`tea/evaluate_data_structures.py` contains the data structuers used in `evaluate.py` and `evaluate_helper_methods.py`.
-`tea/errors.py` is empty. It will contain some code for providing helpful error messages.
+Tea then "compiles" these into logical constraints to select valid
+statistical tests. Tests are considered valid if and only if *all* the
+assumptions they make about the data (e.g., normal distribution, equal
+variance between groups, etc.) hold. Tea then finally executes the valid tests.
 
-**All of the above are still changing!**
+## What kinds of statistical analyses are possible with Tea?
+Tea currently provides a module to conduct Null Hypothesis Significance
+Testing (NHST). 
 
-## Why Python?
-Many comparable data science tools are implemented as Python. People seem to like and use Python a lot for data stuff!
+*We are actively working on expanding the kinds of analyses Tea can support. Some ideas we have: Bayesian inference and linear modeling.*
 
-## How can I contribute?
-You want to contribute? That's so great! Thank you so much!
+## How can I use Tea?
+Tea will **very soon** be available on pip! Check back for updates :)
 
-It would be best to create a separate branch that we can merge when Tea is slightly more stable. :)
+## How can I cite Tea?
+For now, please cite our Arxiv paper: 
+```  
+article{JunEtAl2019:Tea,
+  title={Tea: A High-level Language and Runtime System for Automating Statistical Analysis},
+  author={Jun, Eunice and Daum, Maureen and Roesch, Jared and Chasins, Sarah E. and Berger, Emery D. and Just, Rene and Reinecke, Katharina},
+  journal={Arxiv},
+  year={2019},
+  publisher={Cornell University}
+}
+```
+
+## How reliable is Tea?
+Tea is currently a research prototype. Our constraint solver is based on
+statistical texts (see <a href='https://arxiv.org/pdf/1904.05387.pdf'>our paper</a> for more info). 
+
+If you find any bugs, please let us know (email Eunice at emjun [at] cs.washington.edu)!
+
+## I want to collaborate! Where do I begin?
+This is great! We're excited to have new collaborators. :) 
+
+To contribute *code*, please see <a href='./CONTRIBUTING.md'> docs and
+gudielines</a> and open an issue or pull request. 
+
+If you want to use Tea for a
+project, talk about Tea's design, or anything else, please get in touch: emjun at
+cs.washington.edu.
+
+## Where can I learn more about Tea?
+Please find more information at <a href='www.tea-lang.org'>our website</a>. 
+
+## I have ideas. I want to chat. 
+Please reach out! We are nice :): emjun at cs.washington.edu
+
+
+### By the way, why Python?
+Python is a common language for data science. We hope Tea can easily integrate
+into user workflows. 
+
+*We are working on compiling Tea programs to different target languages, including R.*

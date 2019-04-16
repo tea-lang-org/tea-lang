@@ -699,7 +699,6 @@ def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData):
     # import pdb; pdb.set_trace()
     aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=key, within=within_subjs, aggregate_func='mean')
     # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
-    import pdb; pdb.set_trace()
     res2way = aovrm2way.fit()
     return res2way
 
@@ -713,7 +712,7 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
     data = []
     for x in xs: 
         if x.metadata[categories] is None: 
-            import pdb; pdb.set_trace()
+            raise ValueError('')
         cat = [k for k,v in x.metadata[categories].items()]
         for c in cat: 
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
@@ -740,7 +739,7 @@ def friedman(dataset: Dataset, predictions, combined_data: CombinedData):
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
 # Parameters: x (array-like) | y (array-like)
 def linear_regression(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     return stats.linregress(iv.dataframe, dv.dataframe)
     
 # def bootstrap(data):

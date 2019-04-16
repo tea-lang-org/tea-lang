@@ -246,7 +246,6 @@ dataset = 'file.csv'
 url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/mtcars.csv'
 url_mini = '/Users/emjun/Git/tea-lang/datasets/mini_test.csv'
 ds = load_data_from_url(url_mini, 'mini_test')
-import pdb; pdb.set_trace()
 ds = load_data(file_path, variables, 'participant_id')
 
 # Bivariate test, between subjects

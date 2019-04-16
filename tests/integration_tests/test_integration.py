@@ -227,7 +227,7 @@ def test_kendall_tau_corr():
     print("\nfrom Field et al.")
     print("Expected outcome: Kendall Tau")
     log("Kendall Tau", results)
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     # Returns: Kendall Tau and Pearson 
 
 def test_pointbiserial_corr(): 
@@ -270,7 +270,6 @@ def test_pointbiserial_corr():
     tea.hypothesize(['time', 'gender'], ['gender:1 > 0']) # I think this works!?
     print("\nfrom Field et al.")
     print("Expected outcome: Pointbiserial")
-    import pdb; pdb.set_trace()
     #  Results: {'mannwhitney_u': MannwhitneyuResult(statistic=262.0,
     #  pvalue=0.0058742825311290285), 'kruskall_wallis':
     #  KruskalResult(statistic=7.629432016171138, pvalue=0.00574233835210006)}
@@ -316,7 +315,6 @@ def test_indep_t_test():
     tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])  ## Southern is greater
     print("\nfrom Kabacoff")
     print("Expected outcome: Student's t-test")
-    import pdb; pdb.set_trace()
     # Results: {'students_t': Ttest_indResult(statistic=-4.202130736875173, pvalue=0.00012364897266532775), 'welchs_t': Ttest_indResult(statistic=-3.8953717090736655, pvalue=0.0006505783178002014), 'mannwhitney_u': MannwhitneyuResult(statistic=81.0, pvalue=0.00018546387565891538), 'f_test':             df    sum_sq   mean_sq          F    PR(>F)
 # C(So)      1.0  0.006702  0.006702  17.657903  0.000124
 # Residual  45.0  0.017079  0.000380        NaN       NaN, 'kruskall_wallis': KruskalResult(statistic=14.056955645161281, pvalue=0.00017735665596242664), 'factorial_ANOVA':             df    sum_sq   mean_sq          F    PR(>F)
@@ -366,7 +364,6 @@ def test_paired_t_test():
 
     print("\nfrom Field et al.")
     print("Expected outcome: Paired/Dependent t-test")
-    import pdb; pdb.set_trace()
     # Results: {'pointbiserial_corr_a': True, 'paired_students_t': Ttest_relResult(statistic=-2.472533427497901, pvalue=0.030981783136040896), 'wilcoxon_signed_rank': WilcoxonResult(statistic=8.0, pvalue=0.045855524379089546), 'rm_one_way_anova': True, 'factorial_ANOVA':             df  sum_sq  mean_sq         F    PR(>F)
 # C(Group)   1.0   294.0    294.0  2.826923  0.106839
 # Residual  22.0  2288.0    104.0       NaN       NaN}
@@ -416,8 +413,6 @@ def test_wilcoxon_signed_rank():
 
     print("\nfrom Field et al.")
     print("Expected outcome: Wilcoxon signed rank test")
-    import pdb; pdb.set_trace()
-    # Results: {'pointbiserial_corr_a': True, 'wilcoxon_signed_rank': WilcoxonResult(statistic=8.0, pvalue=0.04656776138686537)}
 
 def test_f_test(): 
     print("\nFrom Field et al.")
@@ -457,7 +452,6 @@ def test_f_test():
     tea.hypothesize(['trt', 'response'])
     print("\nFrom Field et al.")
     print("Expected outcome: Oneway ANOVA (F) test")
-    import pdb; pdb.set_trace()
         
 def test_kruskall_wallis(): 
     print("\nFrom Field et al.")
@@ -498,7 +492,6 @@ def test_kruskall_wallis():
 
     print("\nFrom Field et al.")
     print("Expected outcome: Kruskall Wallis")
-    import pdb; pdb.set_trace()
 
 def test_rm_one_way_anova(): 
     print("\nFrom Field et al.")
@@ -543,7 +536,6 @@ def test_rm_one_way_anova():
 
     print("\nFrom Field et al.")
     print("Expected outcome: Repeated Measures One Way ANOVA")
-    import pdb; pdb.set_trace()
 
 def test_factorial_anova():
     print("\nFrom Field et al.")
@@ -587,7 +579,6 @@ def test_factorial_anova():
     # alcohol main effect?
     print("\nFrom Field et al.")
     print("Expected outcome: Factorial ANOVA")
-    import pdb; pdb.set_trace()
 """
 def test_factorial_anova_2():
     print("\nFrom Field et al.")
@@ -678,7 +669,6 @@ def test_two_way_anova():
     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
     #Type main effect?
     print('Supposed to be 2 way ANOVA')
-    import pdb; pdb.set_trace()
 
 
 
@@ -714,4 +704,3 @@ def test_chi_square():
 
     tea.hypothesize(['Training', 'Dance'])
     print('Chi square')
-    import pdb; pdb.set_trace()
