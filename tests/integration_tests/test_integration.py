@@ -50,6 +50,7 @@ def log(expected, result):
 # Example from Kabacoff
 # Expected outcome: Pearson correlation 
 def test_pearson_corr(): 
+    os.path
     states_path = "/Users/emjun/.tea/data/statex77.csv"
 
     # Declare and annotate the variables of interest
