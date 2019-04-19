@@ -13,3 +13,7 @@ install: "make"
 
 script: 
   - make test
+
+before_install:
+  - "pip install -U pip"
+  - "python setup.py install"
