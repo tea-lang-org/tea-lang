@@ -2,25 +2,26 @@ import tea
 import os
 
 base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
-uscrime_data_path = None
-states_path = None
-cats_path = None
-cholesterol_path = None
-soya_path = None
-co2_path = None
-exam_path = None
-liar_path = None 
-pbcorr_path = None
-spider_path = None
-drug_path = None
-alcohol_path = None
-ecstasy_path = None
-goggles_path = None
-goggles_dummy_path = None
-data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path, goggles_path, goggles_dummy_path]
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong_within  .csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
+# uscrime_data_path = None
+# states_path = None
+# cats_path = None
+# cholesterol_path = None
+# soya_path = None
+# co2_path = None
+# exam_path = None
+# liar_path = None 
+# pbcorr_path = None
+# spider_path = None
+# drug_path = None
+# alcohol_path = None
+# ecstasy_path = None
+# goggles_path = None
+# goggles_dummy_path = None
+# data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_path, co2_path, exam_path, liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path, goggles_path, goggles_dummy_path]
+file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv', 'pbcorr.csv','spiderLong_within.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
+data_paths = [None] * len(file_names)
 
-def test_load_data():
+def load_data():
     global base_url, data_paths, file_names
     global drug_path 
 
@@ -28,30 +29,23 @@ def test_load_data():
         csv_name = file_names[i]
 
         csv_url = os.path.join(base_url, csv_name)
+        # import pdb; pdb.set_trace()
         data_paths[i] = tea.download_data(csv_url, csv_name)
 
-eval_file = 'eval.txt'
-
-def log(expected, result): 
-    global eval_file
-
-    file = open(eval_file, "a")
-
-    file.write("\nExpected:")
-    file.write(expected)
-    file.write("\n")
-    file.write("Result:")
-    # import pdb; pdb.set_trace()
-    file.write(str(result))
-    file.write('\n--------') # divide tests
-    # import pdb; pdb.set_trace()
-
+def get_data_path(filename):
+    load_data()
+    try: 
+        data_idx = file_names.index(filename)
+    except: 
+        raise ValueError(f"File is not found!:{filename}")
+    data_path = data_paths[data_idx]
+    
+    return data_path
 
 # Example from Kabacoff
 # Expected outcome: Pearson correlation 
 def test_pearson_corr(): 
-    os.path
-    states_path = "/Users/emjun/.tea/data/statex77.csv"
+    data_path = get_data_path('statex77.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -63,7 +57,6 @@ def test_pearson_corr():
         {
             'name' : 'Life Exp',
             'data type' : 'ratio',
-            # 'range' : [0,1]
         }
     ]
     experimental_design = {
@@ -73,10 +66,9 @@ def test_pearson_corr():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
-        # 'normal distribution': ['Illiteracy', 'Life Exp']
     }
 
-    tea.data(states_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -84,15 +76,9 @@ def test_pearson_corr():
     results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
     print("\nfrom Kabacoff")
     print("Expected outcome: Pearson")
-    log('Pearson', str(results))
     
-
-    # Suggests non-parametric 
-
 def test_pearson_corr_2(): 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Pearson")
-    exam_path = "/Users/emjun/.tea/data/exam.csv"
+    data_path = get_data_path('exam.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -125,28 +111,19 @@ def test_pearson_corr_2():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(exam_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
     results = tea.hypothesize(['Anxiety', 'Exam'])
-    log('Pearson', results)
     results = tea.hypothesize(['Revise', 'Exam'])
-    log('Pearson', results)
     results = tea.hypothesize(['Anxiety', 'Revise'])
-    log('Pearson', results)
     print("\nfrom Field et al.")
     print("Expected outcome: Pearson")
 
-    # suggests non parametric
-
-    # Anxiety, Exam, and Revise are all not normally distributed. Therefore, Tea picks spearman and kendall
-
-
 def test_spearman_corr(): 
-
-    liar_path = "/Users/emjun/.tea/data/liar.csv"
+    data_path = get_data_path('liar.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -174,7 +151,7 @@ def test_spearman_corr():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(liar_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
@@ -182,16 +159,11 @@ def test_spearman_corr():
     results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
     print("\nfrom Field et al.")
     print("Expected outcome: Spearman")
-    log('Spearman', results)
-    
-    # Returns Spearman
+
 
 # Same as test for Spearman rho
 def test_kendall_tau_corr(): 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Kendall Tau")
-
-    liar_path = "/Users/emjun/.tea/data/liar.csv"
+    data_path = get_data_path('liar.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -219,7 +191,7 @@ def test_kendall_tau_corr():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(liar_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
@@ -227,15 +199,10 @@ def test_kendall_tau_corr():
     results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
     print("\nfrom Field et al.")
     print("Expected outcome: Kendall Tau")
-    log("Kendall Tau", results)
-    # import pdb; pdb.set_trace()
-    # Returns: Kendall Tau and Pearson 
+    
 
 def test_pointbiserial_corr(): 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Pointbiserial")
-
-    pbcorr_path = "/Users/emjun/.tea/data/pbcorr.csv"
+    data_path = get_data_path('pbcorr.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -263,7 +230,7 @@ def test_pointbiserial_corr():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(pbcorr_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
@@ -271,17 +238,10 @@ def test_pointbiserial_corr():
     tea.hypothesize(['time', 'gender'], ['gender:1 > 0']) # I think this works!?
     print("\nfrom Field et al.")
     print("Expected outcome: Pointbiserial")
-    #  Results: {'mannwhitney_u': MannwhitneyuResult(statistic=262.0,
-    #  pvalue=0.0058742825311290285), 'kruskall_wallis':
-    #  KruskalResult(statistic=7.629432016171138, pvalue=0.00574233835210006)}
 
 
 def test_indep_t_test():
-    print("\nfrom Kabacoff")
-    print("Expected outcome: Student's t-test")
-
-    global uscrime_data_path
-    uscrime_data_path = "/Users/emjun/.tea/data/UScrime.csv"
+    data_path = get_data_path('UScrime.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -303,12 +263,9 @@ def test_indep_t_test():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
-        # 'normal distribution': ['So'],
-        # 'groups normally distributed': [['So', 'Prob']]
-
     }
 
-    tea.data(uscrime_data_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -316,22 +273,10 @@ def test_indep_t_test():
     tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])  ## Southern is greater
     print("\nfrom Kabacoff")
     print("Expected outcome: Student's t-test")
-    # Results: {'students_t': Ttest_indResult(statistic=-4.202130736875173, pvalue=0.00012364897266532775), 'welchs_t': Ttest_indResult(statistic=-3.8953717090736655, pvalue=0.0006505783178002014), 'mannwhitney_u': MannwhitneyuResult(statistic=81.0, pvalue=0.00018546387565891538), 'f_test':             df    sum_sq   mean_sq          F    PR(>F)
-# C(So)      1.0  0.006702  0.006702  17.657903  0.000124
-# Residual  45.0  0.017079  0.000380        NaN       NaN, 'kruskall_wallis': KruskalResult(statistic=14.056955645161281, pvalue=0.00017735665596242664), 'factorial_ANOVA':             df    sum_sq   mean_sq          F    PR(>F)
-# C(So)      1.0  0.006702  0.006702  17.657903  0.000124
-# Residual  45.0  0.017079  0.000380        NaN       NaN}
-
-    # tea.hypothesize(['So', 'Prob'], null='So:1 <= So:0', alternative='So:1 > So:0')
-    # import pdb; pdb.set_trace()
 
 
 def test_paired_t_test(): 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Paired/Dependent t-test")
-
-    global spider_path
-    spider_path = "/Users/emjun/.tea/data/spiderLong_within.csv"
+    data_path = get_data_path('spiderLong_within.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -356,7 +301,7 @@ def test_paired_t_test():
         'Type I (False Positive) Error Rate': 0.05
     }
 
-    tea.data(spider_path, key="id")
+    tea.data(data_path, key="id")
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -365,17 +310,10 @@ def test_paired_t_test():
 
     print("\nfrom Field et al.")
     print("Expected outcome: Paired/Dependent t-test")
-    # Results: {'pointbiserial_corr_a': True, 'paired_students_t': Ttest_relResult(statistic=-2.472533427497901, pvalue=0.030981783136040896), 'wilcoxon_signed_rank': WilcoxonResult(statistic=8.0, pvalue=0.045855524379089546), 'rm_one_way_anova': True, 'factorial_ANOVA':             df  sum_sq  mean_sq         F    PR(>F)
-# C(Group)   1.0   294.0    294.0  2.826923  0.106839
-# Residual  22.0  2288.0    104.0       NaN       NaN}
     
 
 def test_wilcoxon_signed_rank(): 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Wilcoxon signed rank test")
-
-    # global alcohol_path
-    alcohol_path = "/Users/emjun/.tea/data/alcohol.csv"
+    data_path = get_data_path('alcohol.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -405,7 +343,7 @@ def test_wilcoxon_signed_rank():
         'Type I (False Positive) Error Rate': 0.05
     }
 
-    tea.data(alcohol_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -416,10 +354,7 @@ def test_wilcoxon_signed_rank():
     print("Expected outcome: Wilcoxon signed rank test")
 
 def test_f_test(): 
-    print("\nFrom Field et al.")
-    print("Expected outcome: Oneway ANOVA (F) test")
-
-    cholesterol_path = "/Users/emjun/.tea/data/cholesterol.csv"
+    data_path = get_data_path('cholesterol.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -430,8 +365,7 @@ def test_f_test():
         },
         {
             'name' : 'response',
-            'data type' : 'ratio',
-            # 'categories' : ['Yes', 'No']
+            'data type' : 'ratio'
         }
     ]
     experimental_design = {
@@ -445,7 +379,7 @@ def test_f_test():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(cholesterol_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -455,10 +389,7 @@ def test_f_test():
     print("Expected outcome: Oneway ANOVA (F) test")
         
 def test_kruskall_wallis(): 
-    print("\nFrom Field et al.")
-    print("Expected outcome: Kruskall Wallis")
-
-    soya_path = "/Users/emjun/.tea/data/soya.csv"
+    data_path = get_data_path('soya.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -474,17 +405,15 @@ def test_kruskall_wallis():
     ]
     experimental_design = {
                             'study type': 'experiment',
-                            # 'study type': 'observational study', # shouldn't change anything
                             'independent variables': 'Soya',
                             'dependent variables': 'Sperm',
                             'between subjects': 'Soya'
-                            # 'within subjects': 'Soya' # Correctly does not choose Kruskall Wallis
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(soya_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -495,10 +424,7 @@ def test_kruskall_wallis():
     print("Expected outcome: Kruskall Wallis")
 
 def test_rm_one_way_anova(): 
-    print("\nFrom Field et al.")
-    print("Expected outcome: Repeated Measures One Way ANOVA")
-
-    co2_path = "/Users/emjun/.tea/data/co2.csv"
+    data_path = get_data_path('co2.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -528,21 +454,18 @@ def test_rm_one_way_anova():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(co2_path, key="Plant")
+    tea.data(data_path, key="Plant")
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
 
-    tea.hypothesize(['uptake', 'conc']) # Picks friedman!
+    tea.hypothesize(['uptake', 'conc'])
 
     print("\nFrom Field et al.")
     print("Expected outcome: Repeated Measures One Way ANOVA")
 
 def test_factorial_anova():
-    print("\nFrom Field et al.")
-    print("Expected outcome: Factorial ANOVA")
-
-    goggles_path = "/Users/emjun/.tea/data/gogglesData.csv"
+    data_path = get_data_path('gogglesData.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -571,7 +494,7 @@ def test_factorial_anova():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(goggles_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -580,59 +503,9 @@ def test_factorial_anova():
     # alcohol main effect?
     print("\nFrom Field et al.")
     print("Expected outcome: Factorial ANOVA")
-"""
-def test_factorial_anova_2():
-    print("\nFrom Field et al.")
-    print("Expected outcome: Factorial ANOVA")
-
-    goggles_dummy_path = "/Users/emjun/.tea/data/gogglesData_dummy.csv"
-
-    # Declare and annotate the variables of interest
-    variables = [
-        {
-            'name' : 'gender',
-            'data type' : 'nominal',
-            'categories' : ['Female', 'Male']
-        },
-        {
-            'name' : 'alcohol',
-            'data type' : 'nominal',
-            'categories': ['None', '2 Pints', '4 Pints']
-        },
-        {
-            'name' : 'attractiveness',
-            'data type' : 'interval'
-        },
-        {
-            'name' : 'dummy',
-            'data type' : 'nominal',
-            'categories': [1, 2]
-        }
-    ]
-    experimental_design = {
-                            'study type': 'experiment',
-                            'independent variables': ['gender', 'alcohol', 'dummy'],
-                            'dependent variables': 'attractiveness',
-                            # 'within subjects': 'conc',
-                            'between subjects': ['gender', 'alcohol', 'dummy']
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05,
-    }
-
-    tea.data(goggles_dummy_path)
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
-
-    tea.hypothesize(['attractiveness', 'gender', 'alcohol', 'dummy']) 
-    print("\nFrom Field et al.")
-    print("Expected outcome: Factorial ANOVA")
-    import pdb; pdb.set_trace()
-"""
 
 def test_two_way_anova(): 
-    co2_path = "/Users/emjun/.tea/data/co2.csv"
+    data_path = get_data_path('co2.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -662,7 +535,7 @@ def test_two_way_anova():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(co2_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
@@ -671,10 +544,8 @@ def test_two_way_anova():
     #Type main effect?
     print('Supposed to be 2 way ANOVA')
 
-
-
 def test_chi_square(): 
-    cats_path = "/Users/emjun/.tea/data/catsData.csv"
+    data_path = get_data_path('catsData.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -698,7 +569,7 @@ def test_chi_square():
         'Type I (False Positive) Error Rate': 0.05,
     }
 
-    tea.data(cats_path)
+    tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)
