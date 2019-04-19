@@ -4,6 +4,7 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
 
 [packages]
 attrs = "*"
@@ -13,7 +14,6 @@ sklearn = "*"
 statsmodels = "*"
 bootstrapped = "*"
 pipfile = "*"
-pytest = "*"
 requests = "*"
 z3-solver = "*"
 
