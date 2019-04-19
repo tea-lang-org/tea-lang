@@ -29,14 +29,15 @@ Testing (NHST).
 Tea will **very soon** be available on pip! Check back for updates :)
 
 ## How can I cite Tea?
-For now, please cite our Arxiv paper: 
+We have an <a href='https://arxiv.org/pdf/1904.05387.pdf'>Arxiv paper</a>. 
+
+For now, please cite it!: 
 ```  
 article{JunEtAl2019:Tea,
   title={Tea: A High-level Language and Runtime System for Automating Statistical Analysis},
   author={Jun, Eunice and Daum, Maureen and Roesch, Jared and Chasins, Sarah E. and Berger, Emery D. and Just, Rene and Reinecke, Katharina},
   journal={Arxiv},
-  year={2019},
-  publisher={Cornell University}
+  year={2019}
 }
 ```
 
