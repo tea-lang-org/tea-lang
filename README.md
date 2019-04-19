@@ -6,6 +6,8 @@
 Tea is a domain specific programming language that automates statistical test
 selection and execution. Tea is currently written in/for Python. 
 
+Tea has an <a href='https://arxiv.org/pdf/1904.05387.pdf'>academic Arxiv paper</a>. 
+
 Users provide 5 pieces of information: 
 * the *dataset* of interest, 
 * the *variables* in the dataset they want to analyze, 
@@ -29,8 +31,6 @@ Testing (NHST).
 Tea will **very soon** be available on pip! Check back for updates :)
 
 ## How can I cite Tea?
-We have an <a href='https://arxiv.org/pdf/1904.05387.pdf'>Arxiv paper</a>. 
-
 For now, please cite it!: 
 ```  
 article{JunEtAl2019:Tea,
