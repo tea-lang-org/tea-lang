@@ -1,4 +1,4 @@
-# tea-lang [![Build Status](https://travis-ci.com/emjun/tea-lang.svg?token=xtmHu9y9pvfxkHzbdxsu&branch=master)](https://travis-ci.com/emjun/tea-lang)
+# tea-lang [![Build Status](https://travis-ci.com/emjun/tea-lang.svg?branch=master)](https://travis-ci.com/emjun/tea-lang)
 
 # [WIP] Tea: A High-level Language and Runtime System for Automating Statistical Analyses
 
