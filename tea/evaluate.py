@@ -400,10 +400,6 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         if 'bootstrap' in tests: 
             # import pdb; pdb.set_trace()
             pass
-
-        # TODO: Calculate effect size for experiments!!
-        # calculate_effect_size()
-        # import pdb; pdb.set_trace()
         
         # TODO One-sided test?
         if expr.predictions:
