@@ -232,6 +232,7 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
                     return [const(lhs) != const(rhs)]
     else:
         assert(continuous_prediction == prediction_type)
+        import pdb; pdb.set_trace()
 
         # Prediction includes categorical variable value
         if (categorical_prediction_delimiter in prediction): 
@@ -285,7 +286,6 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
 
  # def predict(factors: list, outcome: Variable, prediction: str=None):    
 def predict(vars: list, predictions: list=None):   
-    # import pdb; pdb.set_trace() 
     formulated_predictions = []
 
     # Validate well-formedness of predictions
@@ -301,7 +301,8 @@ def predict(vars: list, predictions: list=None):
             # Does the prediction pertain to numerical data?
             elif continuous_prediction_delimiter in p: 
                 assert(is_well_formed_prediction(continuous_prediction, vars, p))
-                pred = create_prediction(categorical_prediction, vars, p)
+                # import pdb; pdb.set_trace()
+                pred = create_prediction(continuous_prediction, vars, p)
     
             # Prediction pertains to neither categorical nor numerical data                 
             else: 
@@ -313,10 +314,7 @@ def predict(vars: list, predictions: list=None):
 
 # Generic interface for observing relationships among variables (observational studies and experiments)
 # @params: vars should be a list of Variables
-def relate(vars: list, prediction: str=None) : 
-    # ivs = vars['iv']
-    # dv = vars['dv']
-    # assert (len(dv) == 1)
+def relate(vars: list, prediction: list=None) : 
     return Relate(vars, predict(vars, prediction))
 
 # @params: iv could be the list of variables/groups want to compare on dv - may only want to compare 2 groups, not all conditions

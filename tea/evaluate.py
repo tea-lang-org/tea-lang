@@ -344,9 +344,6 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
 
         # Assign roles to variables we are analyzing
         vars = assign_roles(vars, study_type, design)
-
-        # Compute individual variable properties
-        # vars = compute_data_properties(dap1ataset, vars) 
         
         combined_data = None
         # Do we have a Bivariate analysis?
@@ -357,14 +354,10 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         
         # Add paired property
         add_paired_property(dataset, combined_data, study_type, design) # check sample sizes are identical
-        # Compute between variable level properties
-        # combined_data = compute_combined_data_properties(dataset, combined_data, study_type, design)
 
-        # CEGIS-style synthesis
-        # Synthesize tests
         tests = synthesize_tests(dataset, assumptions, combined_data)
         
-        # import pdb; pdb.set_trace()
+    
         """"
         # verify_properties(properties_and_tests)
         # get_tests
@@ -401,18 +394,11 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             # import pdb; pdb.set_trace()
             pass
         
-        # TODO One-sided test?
+        # TODO: use a handle here to more generally/modularly support corrections, need a more generic data structure for this!
         if expr.predictions:
-            # import pdb; pdb.set_trace()
-            
-            # T-tests: may greater-than test when p/2 < alpha and t > 0, and of a less-than test when p/2 < alpha and t < 0
-            # --> may want to divide p-value in t-test (before return)
+            import pdb; pdb.set_trace()
+    
 
-            # Add something to the results that they are one-sided vs two-sided tests? 
-
-            # TODO For f_test/... post hoc comparisons depending on predictions
-            pass
-        # import pdb; pdb.set_trace()
         return ResultData(results)
 
     elif isinstance(expr, Mean):
