@@ -170,10 +170,12 @@ class Relationship(Node):
     def negative(self, other):
         return NegativeRelationship(self, other)
 
+@attr.s(hash=True, cmp=False)
 class PositiveRelationship(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
 
+@attr.s(hash=True, cmp=False)
 class NegativeRelationship(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)

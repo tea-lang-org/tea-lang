@@ -207,13 +207,10 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
                 var = get_var_from_list(var_name, vars)
                 lhs = prediction[delimiter_ind+1:comparator_ind].strip()
                 rhs = prediction[comparator_ind+1:].strip()
-                # rhs = rhs[deli]
                 
                 types = set(type(k) for k in var.categories.keys())
                 assert(len(types) == 1) # Assert all keys have the same type
                 cat_type = next(iter(types))
-
-                # import pdb; pdb.set_trace()
 
                 if isinstance(lhs, str) and cat_type == int: 
                     lhs = int(lhs)
@@ -232,7 +229,6 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
                     return [const(lhs) != const(rhs)]
     else:
         assert(continuous_prediction == prediction_type)
-        import pdb; pdb.set_trace()
 
         # Prediction includes categorical variable value
         if (categorical_prediction_delimiter in prediction): 
@@ -257,32 +253,31 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
             lhs = prediction[:delimiter_ind].strip()
             rhs = prediction[delimiter_ind+1:].strip()
 
-        if (continuous_negative_relationship in lhs): # "as LHS decreases,..."
-            lhs = lhs[lhs.index(continuous_negative_relationship)+1:]
-            lhs_var = get_var_from_list(lhs, vars)
-            if (continuous_negative_relationship in rhs): # "...RHS decreases"
-                rhs = rhs[rhs.index(continuous_negative_relationship)+1:]
-                rhs_var = get_var_from_list(rhs, vars)
-                return Relationship(lhs_var).positive(Relationship(rhs_var))
-            else: # "...RHS increases"
-                if (continuous_positive_relationship in rhs): 
-                    rhs = rhs[rhs.index(continuous_positive_relationship)+1:]
-                rhs_var = get_var_from_list(rhs, vars)
-                return Relationship(lhs_var).negative(Relationship(rhs_var))
+            lhs_dir = '+' # Positive relationship/change in variable is the default
+            rhs_dir = '+' # Positive relationship/change in variable is the default
+            lhs_var = None
+            rhs_var = None
 
-        else: # "as LHS increases,..."
-            if (continuous_positive_relationship in lhs): # If no explicit +, implied +
-                lhs = lhs[lhs.index(continuous_positive_relationship)+1:]
+            if (lhs.startswith(continuous_negative_relationship)): # "as LHS decreases,..."
+                lhs = lhs[1:]
+                lhs_dir = '-'
                 lhs_var = get_var_from_list(lhs, vars)
-            if (continuous_negative_relationship in rhs): # "...RHS decreases"
-                rhs = rhs[rhs.index(continuous_negative_relationship)+1:]
+            else: 
+                # do nothing to lhs, lhs_dir
+                lhs_var = get_var_from_list(lhs, vars)
+
+            if rhs.startswith(continuous_negative_relationship): 
+                rhs = rhs[1:]
+                rhs_dir = '-'
                 rhs_var = get_var_from_list(rhs, vars)
-                return Relationship(lhs_var).negative(Relationship(rhs_var))
-            else: #"...RHS increases"
-                if (continuous_positive_relationship in rhs):
-                    rhs = rhs[rhs.index(continuous_positive_relationship)+1:]
+            else: 
+                # do nothing to rhs, rhs_dir
                 rhs_var = get_var_from_list(rhs, vars)
+
+            if lhs_dir == rhs_dir: # handles +lhs, +rhs and -lhs, 
                 return Relationship(lhs_var).positive(Relationship(rhs_var))
+            else: # handles +lhs, -rhs and -lhs, +rhs
+                return Relationship(lhs_var).negative(Relationship(rhs_var))
 
  # def predict(factors: list, outcome: Variable, prediction: str=None):    
 def predict(vars: list, predictions: list=None):   

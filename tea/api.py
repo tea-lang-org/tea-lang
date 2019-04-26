@@ -129,7 +129,6 @@ def hypothesize(vars: list, prediction: list=None):
     
     # Create and get back handle to AST node
     relationship = relate(v_objs, prediction)
-    import pdb; pdb.set_trace()
     # Interpret AST node, Returns ResData object <-- this may need to change
     result = evaluate(dataset_obj, relationship, assumptions, study_design)
     
