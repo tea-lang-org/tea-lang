@@ -1,8 +1,5 @@
-from tea.evaluate_data_structures import Value
-from tea.solver import __ALL_TESTS__
-
 import attr
-
+from .solver import __ALL_TESTS__
 
 @attr.s(init=False, repr=False, str=False)
 class ResultData(Value):
