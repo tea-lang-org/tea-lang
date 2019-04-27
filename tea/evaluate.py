@@ -1,8 +1,8 @@
 from tea.ast import *
 from tea.dataset import Dataset
-from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData # runtime data structures
-from tea.evaluate_result_data_structures import ResultData
-from tea.evaluate_helper_methods import determine_study_type, assign_roles, add_paired_property, compute_data_properties, compute_combined_data_properties, execute_test
+from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData, ResultData # runtime data structures
+# from tea.evaluate_result_data_structures import ResultData
+from tea.evaluate_helper_methods import determine_study_type, assign_roles, add_paired_property, compute_data_properties, compute_combined_data_properties, execute_test, correct_multiple_comparison
 from .solver import synthesize_tests
 # from tea.solver import find_applicable_bivariate_tests
 
@@ -390,18 +390,20 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             test_result = execute_test(dataset, design, expr.predictions, combined_data, test)
             results[test] = test_result
         
-        if 'bootstrap' in tests: 
-            # import pdb; pdb.set_trace()
-            pass
         
+        res_data = ResultData(results)
+
         # TODO: use a handle here to more generally/modularly support corrections, need a more generic data structure for this!
         if expr.predictions:
-            import pdb; pdb.set_trace()
-            
-                
-    
+            preds = expr.predictions
 
-        return ResultData(results)
+            # There are multiple comparisons
+            # if len(preds > 1): 
+            # FOR DEBUGGING: 
+            if len(preds >= 1): 
+                correct_multiple_comparison(res_data)
+
+        return res_data
 
     elif isinstance(expr, Mean):
         var = evaluate(dataset, expr.var)

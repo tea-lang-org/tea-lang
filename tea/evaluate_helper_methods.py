@@ -1,7 +1,8 @@
 from tea.global_vals import *
 from tea.ast import *
 from tea.dataset import Dataset
-from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResData
+from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData, ResultData
+# from tea.evaluate_result_data_structures import ResultData
 # from tea.solver import Tests, Assumptions
 
 import attr
@@ -832,7 +833,11 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
 
     # Return results
     return stat_result
-    
+
+# Correct for multiple comparisons
+def correct_multiple_comparison(res_data: ResultData): 
+    # TODO: refactor ResultData first. 
+    pass    
 
 """
 def explanatory_strings_for_assumptions(assumptions: Assumptions) -> List[str]:
