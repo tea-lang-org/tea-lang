@@ -1,5 +1,8 @@
+from tea.global_vals import *
+from .value import Value
+from tea.ast import DataType
+
 import attr
-import value
 
 @attr.s(init=True)
 class VarData(Value):

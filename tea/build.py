@@ -1,9 +1,11 @@
-from typing import Dict, Union
-from collections import OrderedDict
+from tea.runtimeDataStructures.dataset import Dataset
 from tea.ast import (  Variable, DataType, Literal,
                     Relate, Relationship
                 )
-from tea.dataset import Dataset
+
+
+from typing import Dict, Union
+from collections import OrderedDict
 
 iv_identifier = 'independent variable'
 dv_identifier = 'dependent variable'

@@ -1,21 +1,27 @@
-from tea.ast import *
-from tea.dataset import Dataset
-from tea.evaluate_data_structures import VarData, BivariateData, MultivariateData, ResultData # runtime data structures
-# from tea.evaluate_result_data_structures import ResultData
-from tea.evaluate_helper_methods import determine_study_type, assign_roles, add_paired_property, compute_data_properties, compute_combined_data_properties, execute_test, correct_multiple_comparison
-from .solver import synthesize_tests
-# from tea.solver import find_applicable_bivariate_tests
+from tea.ast import (   Node, Variable, Literal, 
+                        Equal, NotEqual, LessThan, 
+                        LessThanEqual, GreaterThan, GreaterThanEqual,
+                        Relate
+                    )
+from tea.runtimeDataStructures.dataset import Dataset
+from tea.runtimeDataStructures.varData import VarData
+from tea.runtimeDataStructures.bivariateData import BivariateData
+from tea.runtimeDataStructures.multivariateData import MultivariateData
+from tea.runtimeDataStructures.resultData import ResultData
+from tea.helpers.evaluateHelperMethods import determine_study_type, assign_roles, add_paired_property, execute_test, correct_multiple_comparison
+from tea.z3_solver.solver import synthesize_tests
 
 import attr
 from typing import Any
 from types import SimpleNamespace # allows for dot notation access for dictionaries
+from typing import Dict
 
 from scipy import stats # Stats library used
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np # Use some stats from numpy instead
 import pandas as pd
-# import bootstrapped as bs
+
 
 # TODO: Pass participant_id as part of experimental design, not load_data
 def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: Dict[str, str]=None):
@@ -385,7 +391,6 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         if len(tests) == 0: 
             tests.append('bootstrap') # Default to bootstrap
 
-            
         for test in tests: 
             test_result = execute_test(dataset, design, expr.predictions, combined_data, test)
             results[test] = test_result
@@ -400,7 +405,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             # There are multiple comparisons
             # if len(preds > 1): 
             # FOR DEBUGGING: 
-            if len(preds >= 1): 
+            if len(preds) >= 1: 
                 correct_multiple_comparison(res_data)
 
         return res_data

@@ -1,12 +1,12 @@
-import attr
-# from z3 import *
-import z3
-# from z3 import BoolSort
-# from z3 import z3.is_true 
-from tea.dataset import Dataset
-from tea.evaluate_data_structures import VarData, CombinedData, BivariateData, MultivariateData
-from tea.evaluate_helper_methods import get_data, compute_normal_distribution, compute_eq_variance
 from tea.global_vals import *
+from tea.runtimeDataStructures.dataset import Dataset
+from tea.runtimeDataStructures.varData import VarData
+from tea.runtimeDataStructures.combinedData import CombinedData
+from tea.runtimeDataStructures.bivariateData import BivariateData
+from tea.helpers.evaluateHelperMethods import get_data, compute_normal_distribution, compute_eq_variance
+
+import attr
+import z3
 from typing import Dict, List
 
 # Prog -> List[StatisticalTest] -> Query

@@ -1,5 +1,7 @@
+from tea.global_vals import *
+from tea.ast import *
 import attr
-import value
+from .value import Value
 
 # CombinedData is the runtime data structure used to unify experimental design and variable declarations
 @attr.s(init=True)
