@@ -7,6 +7,7 @@ from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
+from tea.runtimeDataStructures.testResult import TestResult
 
 # Stats
 from scipy import stats # Stats library used
@@ -499,7 +500,9 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
     
     assert(len(data) == 2)
-    return stats.spearmanr(data[0], data[1])
+    results =  stats.spearmanr(data[0], data[1])
+
+    return TestResult('Spearman R Correlation', results[0], results[1])
 
 # https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
 # Parameters: x (array-like) | y (array-like) : Arrays of rankings, of the same shape. If arrays are not 1-D, they will be flattened to 1-D.
@@ -512,8 +515,9 @@ def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
 
     assert(len(data) == 2)
+    results = stats.kendalltau(data[0], data[1])
 
-    return stats.kendalltau(data[0], data[1])
+    return TestResult('Kendall Tau Correlation', results[0], results[1])
 
 def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -839,6 +843,8 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
     return stat_result
 
 # Correct for multiple comparisons
-def correct_multiple_comparison(res_data: ResultData): 
+def correct_multiple_comparison(res_data: ResultData, num_comparisons: int): 
     # TODO: refactor ResultData first. 
-    pass
+    res_data.adjust_p_values(num_comparisons) 
+
+    import pdb; pdb.set_trace()

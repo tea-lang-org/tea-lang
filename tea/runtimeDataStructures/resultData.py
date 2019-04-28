@@ -28,6 +28,19 @@ class ResultData(Value):
 
         #         self.test_to_assumptions[test.name] = test_assumptions
 
+    def get_all_test_results(self): 
+        results = [v for k,v in self.test_to_results.items()]
+        return results
+
+    def adjust_p_values(self, correction): 
+        test_results = self.get_all_test_results()
+
+        for result in test_results:
+            result.adjust_p_val(correction)
+            import pdb; pdb.set_trace()
+        
+        import pdb; pdb.set_trace()
+
     def _pretty_print(self):
         output = "\nResults:\n--------------"
         for test_name, results in self.test_to_results.items():

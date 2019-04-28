@@ -406,7 +406,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             # if len(preds > 1): 
             # FOR DEBUGGING: 
             if len(preds) >= 1: 
-                correct_multiple_comparison(res_data)
+                correct_multiple_comparison(res_data,  len(preds))
 
         return res_data
 
