@@ -392,7 +392,11 @@ def students_t(dataset, predictions, combined_data: BivariateData):
             assert False, "ttest_result case without an associated interpretation."
 
         # return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
-        return StudentsTResult(t_stat, p_val, adjusted_p)
+        # return StudentsTResult(t_stat, p_val, adjusted_p)
+        test_result = TestResult('Student\'s T test', t_stat, p_val)
+        test_result.set_adjusted_p_val(adjusted_p)
+        
+        return test_result
     
     
 
@@ -412,7 +416,9 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.ttest_rel(data[0], data[1])
+    result = stats.ttest_rel(data[0], data[1])
+
+    return TestResult('Paired Student\'s T test', result.statistic, result.pvalue)
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
@@ -430,7 +436,10 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.ttest_ind(data[0], data[1], equal_var=False)
+    result = stats.ttest_ind(data[0], data[1], equal_var=False)
+    
+    return TestResult('Welch\'s Test', result.statistic, result.pvalue)
+
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
@@ -451,7 +460,9 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+    result = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+    return TestResult('Mann Whitney U', result.statistic, result.pvalue)
+
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
@@ -467,7 +478,8 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.wilcoxon(data[0], data[1])
+    result = stats.wilcoxon(data[0], data[1])
+    return TestResult('Wilcoxon Signed Rank Test', result.statistic, result.pvalue)
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
 # Parameters: x (array-like) | y (array-like)
@@ -729,7 +741,9 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
             data.append(cat_data)
     
-    return stats.kruskal(*data)
+    result = stats.kruskal(*data)
+    return TestResult('Kruskal Wallis', result.statistic, result.pvalue)
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.friedmanchisquare.html#scipy.stats.friedmanchisquare
 def friedman(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -769,7 +783,6 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
             cat = [k for k,v in x.metadata[categories].items()]
             for c in cat: 
                 cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-                #TODO Check type of cat_data // may need to branch
                 stat = bs.bootstrap(cat_data.to_numpy(), stat_func=bs_stats.median)
                 calculations[c] = stat
                 # import pdb; pdb.set_trace()
@@ -855,6 +868,7 @@ def vda(dataset, predictions, combined_data: CombinedData):
     # Compute the measure
     # A = (r1/m - (m+1)/2)/n # formula (14) in Vargha and Delaney, 2000
     A = (2*r1 - m*(m+1)) / (2*n*m) # equivalent formula to avoid accuracy errors
+    return A
 
 __stat_test_to_function__ = {
     'pearson_corr' : pearson_corr,
@@ -899,7 +913,6 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
         stat_result = test_func(dataset, predictions, combined_data)
 
     # Calculate the effect size
-    effect_size = None
     parametric_tests =[students_t, paired_students_t]
     nonparametric_tests = [welchs_t, mannwhitney_u, wilcoxon_signed_rank]
 
@@ -907,12 +920,10 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
         # Calculate Cohen's d
         d = cohens(dataset, predictions, combined_data)
         stat_result.add_effect_size('Cohen\'s d', d)
-        import pdb; pdb.set_trace()
     if test_func in parametric_tests or test_func in nonparametric_tests: 
         # Calculate A12
         a12 = vda(dataset, predictions, combined_data)
         stat_result.add_effect_size('A12', a12)
-        import pdb; pdb.set_trace()
     
     # Combine the effect size with the statistical result in some way...
 
@@ -923,5 +934,3 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
 def correct_multiple_comparison(res_data: ResultData, num_comparisons: int): 
     # TODO: refactor ResultData first. 
     res_data.adjust_p_values(num_comparisons) 
-
-    import pdb; pdb.set_trace()

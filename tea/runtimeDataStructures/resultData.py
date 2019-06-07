@@ -37,9 +37,9 @@ class ResultData(Value):
 
         for result in test_results:
             result.adjust_p_val(correction)
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
         
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
     def _pretty_print(self):
         output = "\nResults:\n--------------"
@@ -56,6 +56,7 @@ class ResultData(Value):
             else:
                 output += f"{str(results)}\n"
 
+            import pdb; pdb.set_trace()
         return output
 
     def __repr__(self):
