@@ -10,6 +10,8 @@ from tea.runtimeDataStructures.resultData import ResultData
 from tea.runtimeDataStructures.testResult import TestResult
 
 # Stats
+from statistics import mean, stdev
+from math import sqrt
 from scipy import stats # Stats library used
 from sklearn import preprocessing # for creating interaction effects
 import statsmodels.api as sm
@@ -255,7 +257,7 @@ def compute_normal_distribution(data):
 def compute_variance(data): 
     return -1
 
-# Levene test to test for equal variances - Leven is more robust to nonnormal data than Bartlett's test
+# Levene test to test for equal variances - Levene is more robust to nonnormal data than Bartlett's test
 # Null Hypothesis is that samples have the same variances
 # Rejecting null means that samples have different variances
 # TODO: ??? Default/currently using .05 alpha level
@@ -767,6 +769,7 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
             cat = [k for k,v in x.metadata[categories].items()]
             for c in cat: 
                 cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                #TODO Check type of cat_data // may need to branch
                 stat = bs.bootstrap(cat_data.to_numpy(), stat_func=bs_stats.median)
                 calculations[c] = stat
                 # import pdb; pdb.set_trace()
@@ -795,6 +798,63 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
     # import pdb; pdb.set_trace()
     # Start with the case where there are only 2 groups to compare (like t-test)
 
+def cohens(dataset, predictions, combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
+    data = []
+
+    pred = None
+    if predictions:
+        pred = predictions[0][0]
+    
+    lhs = None
+    rhs = None
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if c == pred.lhs.value:
+            lhs = cat_data
+        if c == pred.rhs.value:
+            rhs = cat_data
+        data.append(cat_data)
+    
+    cohens_d = (mean(lhs) - mean(rhs)) / (sqrt((stdev(lhs) ** 2 + stdev(rhs) ** 2) / 2))
+    return cohens_d
+
+def vda(dataset, predictions, combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
+    data = []
+
+    pred = None
+    if predictions:
+        pred = predictions[0][0]
+    
+    lhs = None
+    rhs = None
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if c == pred.lhs.value:
+            lhs = cat_data
+        if c == pred.rhs.value:
+            rhs = cat_data
+        data.append(cat_data)
+
+    
+    m = len(lhs)
+    n = len(rhs)
+    concat = lhs.append(rhs)
+    r = stats.rankdata(concat)
+    r1 = sum(r[range(0,m)])
+  
+    # Compute the measure
+    # A = (r1/m - (m+1)/2)/n # formula (14) in Vargha and Delaney, 2000
+    A = (2*r1 - m*(m+1)) / (2*n*m) # equivalent formula to avoid accuracy errors
 
 __stat_test_to_function__ = {
     'pearson_corr' : pearson_corr,
@@ -803,11 +863,11 @@ __stat_test_to_function__ = {
     'pointbiserial_corr_a': pointbiserial,
     'pointbiserial_corr_b': pointbiserial,
     
-    'students_t': students_t,
-    'welchs_t': welchs_t,
-    'mannwhitney_u' : mannwhitney_u,
-    'paired_students_t' : paired_students_t,
-    'wilcoxon_signed_rank' : wilcoxon_signed_rank,
+    'students_t': students_t, # cohen's d, A12
+    'welchs_t': welchs_t, # A12
+    'mannwhitney_u' : mannwhitney_u, # A12
+    'paired_students_t' : paired_students_t, # cohen's d, A12
+    'wilcoxon_signed_rank' : wilcoxon_signed_rank, # A12
 
     'chi_square' : chi_square,
     'fishers_exact' : fishers_exact,
@@ -828,8 +888,7 @@ def lookup_function(test_name):
     else: 
         raise ValueError(f"Cannot find the test:{test_name}")
 
-def execute_test(dataset, design, predictions, combined_data: CombinedData, test):     
-    # import pdb; pdb.set_trace()    
+def execute_test(dataset, design, predictions, combined_data: CombinedData, test):         
     # Get function handler
     test_func = lookup_function(test)
 
@@ -838,6 +897,24 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
         stat_result = test_func(dataset, design, combined_data)
     else:
         stat_result = test_func(dataset, predictions, combined_data)
+
+    # Calculate the effect size
+    effect_size = None
+    parametric_tests =[students_t, paired_students_t]
+    nonparametric_tests = [welchs_t, mannwhitney_u, wilcoxon_signed_rank]
+
+    if test_func in parametric_tests: 
+        # Calculate Cohen's d
+        d = cohens(dataset, predictions, combined_data)
+        stat_result.add_effect_size('Cohen\'s d', d)
+        import pdb; pdb.set_trace()
+    if test_func in parametric_tests or test_func in nonparametric_tests: 
+        # Calculate A12
+        a12 = vda(dataset, predictions, combined_data)
+        stat_result.add_effect_size('A12', a12)
+        import pdb; pdb.set_trace()
+    
+    # Combine the effect size with the statistical result in some way...
 
     # Return results
     return stat_result

@@ -46,6 +46,7 @@ def get_data_path(filename):
 # Expected outcome: Pearson correlation 
 def test_pearson_corr(): 
     data_path = get_data_path('statex77.csv')
+    # data_path2 = get_data_path('statex87.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -69,6 +70,7 @@ def test_pearson_corr():
     }
 
     tea.data(data_path)
+    # tea.data(data_path2)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)

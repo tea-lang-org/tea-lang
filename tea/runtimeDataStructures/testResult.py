@@ -12,3 +12,6 @@ class TestResult(Value):
         self.adjusted_p_val = attr.ib()
         self.adjusted_p_val = self.p_value/correction
         import pdb; pdb.set_trace()
+    
+    def add_effect_size(self, name, effect_size): 
+        self.effect_size = {'name': name, 'effect size': effect_size}
