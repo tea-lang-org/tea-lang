@@ -50,13 +50,23 @@ class ResultData(Value):
                 test_assumptions = ('\n').join(self.test_to_assumptions[test_name])
             output += f"***Test assumptions:\n{test_assumptions}\n\n"
             output += "***Test results:\n"
-            if hasattr(results, '_fields'):
-                for field in results._fields:
-                    output += f"{field}: {getattr(results, field)}\n"
-            else:
+            # if hasattr(results, '_fields'):
+            #     for field in results._fields:
+            #         output += f"{field}: {getattr(results, field)}\n"
+            # else:
+            #     output += f"{str(results)}\n"
+            if hasattr(results, '__dict__'):
+                for prop, value in results.__dict__.items(): 
+                    if "effect_size" in prop: 
+                        effect_sizes = value.items()
+                        output += f"Effect size:\n"
+                        for effect_size_name, effect_size_value in effect_sizes: 
+                            output += f"{effect_size_name} = {effect_size_value}\n"    
+                    else: 
+                        output += f"{prop} = {value}\n"
+            else: 
                 output += f"{str(results)}\n"
-
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
         return output
 
     def __repr__(self):

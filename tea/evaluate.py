@@ -398,6 +398,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         
         res_data = ResultData(results)
 
+        """
         # TODO: use a handle here to more generally/modularly support corrections, need a more generic data structure for this!
         if expr.predictions:
             preds = expr.predictions
@@ -407,9 +408,10 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             # FOR DEBUGGING: 
             if len(preds) >= 1: 
                 correct_multiple_comparison(res_data,  len(preds))
+        """
 
         return res_data
-
+        
     elif isinstance(expr, Mean):
         var = evaluate(dataset, expr.var)
         assert isinstance(var, VarData)

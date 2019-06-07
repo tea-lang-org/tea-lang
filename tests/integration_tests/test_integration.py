@@ -76,8 +76,9 @@ def test_pearson_corr():
     tea.assume(assumptions)
 
     results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
-    print("\nfrom Kabacoff")
-    print("Expected outcome: Pearson")
+    # print("\nfrom Kabacoff")
+    # print("Expected outcome: Pearson")
+    print('++++++++++++')
     
 def test_pearson_corr_2(): 
     data_path = get_data_path('exam.csv')
@@ -121,8 +122,9 @@ def test_pearson_corr_2():
     results = tea.hypothesize(['Anxiety', 'Exam'])
     results = tea.hypothesize(['Revise', 'Exam'])
     results = tea.hypothesize(['Anxiety', 'Revise'])
-    print("\nfrom Field et al.")
-    print("Expected outcome: Pearson")
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Pearson")
+    print('++++++++++++')
 
 def test_spearman_corr(): 
     data_path = get_data_path('liar.csv')
@@ -159,9 +161,9 @@ def test_spearman_corr():
     tea.assume(assumptions)
 
     results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
-    print("\nfrom Field et al.")
-    print("Expected outcome: Spearman")
-
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Spearman")
+    print('++++++++++++')
 
 # Same as test for Spearman rho
 def test_kendall_tau_corr(): 
@@ -199,8 +201,9 @@ def test_kendall_tau_corr():
     tea.assume(assumptions)
 
     results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
-    print("\nfrom Field et al.")
-    print("Expected outcome: Kendall Tau")
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Kendall Tau")
+    print('++++++++++++')
     
 
 def test_pointbiserial_corr(): 
@@ -238,9 +241,9 @@ def test_pointbiserial_corr():
     tea.assume(assumptions)
 
     tea.hypothesize(['time', 'gender'], ['gender:1 > 0']) # I think this works!?
-    print("\nfrom Field et al.")
-    print("Expected outcome: Pointbiserial")
-
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Pointbiserial")
+    print('++++++++++++')
 
 def test_indep_t_test():
     data_path = get_data_path('UScrime.csv')
@@ -273,9 +276,9 @@ def test_indep_t_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])  ## Southern is greater
-    print("\nfrom Kabacoff")
-    print("Expected outcome: Student's t-test")
-
+    # print("\nfrom Kabacoff")
+    # print("Expected outcome: Student's t-test")
+    print('++++++++++++')
 
 def test_paired_t_test(): 
     data_path = get_data_path('spiderLong_within.csv')
@@ -310,9 +313,9 @@ def test_paired_t_test():
 
     tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Paired/Dependent t-test")
-    
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Paired/Dependent t-test")
+    print('++++++++++++')
 
 def test_wilcoxon_signed_rank(): 
     data_path = get_data_path('alcohol.csv')
@@ -352,8 +355,9 @@ def test_wilcoxon_signed_rank():
 
     tea.hypothesize(['day', 'value'], ['day:sundayBDI > wedsBDI'])
 
-    print("\nfrom Field et al.")
-    print("Expected outcome: Wilcoxon signed rank test")
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Wilcoxon signed rank test")
+    print('++++++++++++')
 
 def test_f_test(): 
     data_path = get_data_path('cholesterol.csv')
@@ -387,8 +391,9 @@ def test_f_test():
     tea.assume(assumptions)
 
     tea.hypothesize(['trt', 'response'])
-    print("\nFrom Field et al.")
-    print("Expected outcome: Oneway ANOVA (F) test")
+    # print("\nFrom Field et al.")
+    # print("Expected outcome: Oneway ANOVA (F) test")
+    print('++++++++++++')
         
 def test_kruskall_wallis(): 
     data_path = get_data_path('soya.csv')
@@ -422,8 +427,9 @@ def test_kruskall_wallis():
 
     tea.hypothesize(['Soya', 'Sperm'])
 
-    print("\nFrom Field et al.")
-    print("Expected outcome: Kruskall Wallis")
+    # print("\nFrom Field et al.")
+    # print("Expected outcome: Kruskall Wallis")
+    print('++++++++++++')
 
 def test_rm_one_way_anova(): 
     data_path = get_data_path('co2.csv')
@@ -463,8 +469,9 @@ def test_rm_one_way_anova():
 
     tea.hypothesize(['uptake', 'conc'])
 
-    print("\nFrom Field et al.")
-    print("Expected outcome: Repeated Measures One Way ANOVA")
+    # print("\nFrom Field et al.")
+    # print("Expected outcome: Repeated Measures One Way ANOVA")
+    print('++++++++++++')
 
 def test_factorial_anova():
     data_path = get_data_path('gogglesData.csv')
@@ -503,8 +510,9 @@ def test_factorial_anova():
 
     tea.hypothesize(['attractiveness', 'gender', 'alcohol']) 
     # alcohol main effect?
-    print("\nFrom Field et al.")
-    print("Expected outcome: Factorial ANOVA")
+    # print("\nFrom Field et al.")
+    # print("Expected outcome: Factorial ANOVA")
+    print('++++++++++++')
 
 def test_two_way_anova(): 
     data_path = get_data_path('co2.csv')
@@ -544,7 +552,8 @@ def test_two_way_anova():
 
     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
     #Type main effect?
-    print('Supposed to be 2 way ANOVA')
+    # print('Supposed to be 2 way ANOVA')
+    print('++++++++++++')
 
 def test_chi_square(): 
     data_path = get_data_path('catsData.csv')
@@ -577,4 +586,5 @@ def test_chi_square():
     tea.assume(assumptions)
 
     tea.hypothesize(['Training', 'Dance'])
-    print('Chi square')
+    # print('Chi square')
+    print('++++++++++++')
