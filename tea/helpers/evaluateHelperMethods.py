@@ -493,7 +493,7 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
 
     assert(len(data) == 2)
 
-    return s.pearsonr(data[0], data[1])
+    return stats.pearsonr(data[0], data[1])
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
@@ -923,6 +923,7 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
     if test_func in parametric_tests or test_func in nonparametric_tests: 
         # Calculate A12
         a12 = vda(dataset, predictions, combined_data)
+        # import pdb; pdb.set_trace()
         stat_result.add_effect_size('A12', a12)
     
     # Combine the effect size with the statistical result in some way...

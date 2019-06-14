@@ -1029,8 +1029,14 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     # If the prop was assumed by the user, skip verification.
                     for ap in assumed_props:
                         if prop == ap: 
-                            log(f"Property was a user assumption. ")
-                            prop.property_test_results = "Assumed true."
+                            # log(f"Property was a user assumption. ")
+                            # prop.property_test_results = "Assumed true."
+
+                            val = verify_prop(dataset, combined_data, prop)
+                            if val: 
+                                log(f"Assumed property ({prop._name}) holds.")
+                            else: 
+                                log(f"Assumed property ({prop._name}) fails. Proceeding to check other assumptions anyway.")
                             need_to_verify = False
                     if need_to_verify: 
                         # Does this property need to hold for the test to be valid?
