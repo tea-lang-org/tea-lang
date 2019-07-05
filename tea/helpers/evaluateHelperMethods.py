@@ -7,7 +7,7 @@ from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
-from tea.runtimeDataStructures.testResult import TestResult, StudentsTResult, PairedStudentsTResult
+from tea.runtimeDataStructures.testResult import TestResult
 
 # Stats
 from statistics import mean, stdev
@@ -310,28 +310,29 @@ def students_t(dataset, predictions, combined_data: BivariateData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
 
-    pred = None
+    prediction = None
     if predictions:
-        pred = predictions[0][0]
+        prediction = predictions[0][0]
     
     lhs = None
     rhs = None
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-        if c == pred.lhs.value:
+        if c == prediction.lhs.value:
             lhs = cat_data
-        if c == pred.rhs.value:
+        if c == prediction.rhs.value:
             rhs = cat_data
         data.append(cat_data)
 
     t_stat, p_val = stats.ttest_ind(lhs, rhs, equal_var=True)
     
     dof = len(lhs) + len(rhs) - 2 # Group1 + Group2 - 2
-    test_result = StudentsTResult( 
+    test_result = TestResult( 
+                        name = "Student\'s T Test",
                         test_statistic = t_stat,
                         p_value = p_val,
-                        dof = dof,
-                        prediction = pred)
+                        prediction = prediction,
+                        dof = dof)
     test_result.adjust_p_val() # adjust p value
     test_result.set_interpretation(alpha=combined_data.alpha, x=x, y=y)
 
@@ -356,21 +357,21 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
     
     t_stat, p_val = stats.ttest_rel(data[0], data[1])
     dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
-    test_result = PairedStudentsTResult( 
+    test_result = TestResult( 
+                        name = "Paired Student\'s T Test",
                         test_statistic = t_stat,
                         p_value = p_val,
-                        dof = dof,
-                        prediction = prediction)
+                        prediction = prediction,
+                        dof = dof)
     test_result.adjust_p_val() # adjust p value
     test_result.set_interpretation(alpha=combined_data.alpha, x=x, y=y)
 
     return test_result
 
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
 def welchs_t(dataset, predictions, combined_data: BivariateData):
-    # assert(len(predictions) == 1)
-
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
     x = xs[0]
@@ -382,9 +383,24 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    result = stats.ttest_ind(data[0], data[1], equal_var=False)
+
+    prediction = predictions[0][0]
+    t_stat, p_val = stats.ttest_ind(data[0], data[1], equal_var=False)
+    # dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
     
-    return TestResult('Welch\'s Test', result.statistic, result.pvalue)
+    # TODO Maybe use Satterthaite-Welch adjustment 
+    if len(data[0]) < len(data[1]): 
+        dof = len(data[0]) - 1
+    else: 
+        dof = len(data[1]) - 1
+    test_result = TestResult( 
+                        name = "Welch\'s T Test",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+
+    return test_result
 
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
@@ -406,8 +422,17 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    result = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
-    return TestResult('Mann Whitney U', result.statistic, result.pvalue)
+    prediction = predictions[0][0]
+    t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = "Mann Whitney U Test",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+
+    return test_result
 
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
@@ -424,8 +449,18 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    result = stats.wilcoxon(data[0], data[1])
-    return TestResult('Wilcoxon Signed Rank Test', result.statistic, result.pvalue)
+    prediction = predictions[0][0]
+    t_stat, p_val = stats.wilcoxon(data[0], data[1])
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = "Wilcoxon Signed Rank Test",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+
+    return test_result
+
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
 # Parameters: x (array-like) | y (array-like)
@@ -687,8 +722,19 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
             data.append(cat_data)
     
-    result = stats.kruskal(*data)
-    return TestResult('Kruskal Wallis', result.statistic, result.pvalue)
+    prediction = predictions[0][0]
+    t_stat, p_val = stats.kruskal(*data)
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = "Kruskall Wallis Test",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+    
+    return test_result
+    # return TestResult('Kruskal Wallis', result.statistic, result.pvalue)
+
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.friedmanchisquare.html#scipy.stats.friedmanchisquare
 def friedman(dataset: Dataset, predictions, combined_data: CombinedData): 
