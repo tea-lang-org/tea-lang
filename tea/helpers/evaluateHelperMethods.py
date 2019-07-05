@@ -1,13 +1,13 @@
 # Tea
 from tea.global_vals import *
-from tea.ast import DataType, GreaterThan
+from tea.ast import DataType, LessThan, GreaterThan
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
-from tea.runtimeDataStructures.testResult import TestResult
+from tea.runtimeDataStructures.testResult import TestResult, StudentsTResult
 
 # Stats
 from statistics import mean, stdev
@@ -300,10 +300,8 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p')) #, 'interpretation'))
+# StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p')) #, 'interpretation'))
 def students_t(dataset, predictions, combined_data: BivariateData):
-
-    # predictions = [[GreaterThans]]
 
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -327,76 +325,23 @@ def students_t(dataset, predictions, combined_data: BivariateData):
         data.append(cat_data)
 
     t_stat, p_val = stats.ttest_ind(lhs, rhs, equal_var=True)
+    
+    dof = len(lhs) + len(rhs) - 2 # Group1 + Group2 - 2
+    test_result = StudentsTResult( 
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        dof = dof,
+                        prediction = pred)
+    test_result.adjust_p_val() # adjust p value
+    test_result.set_interpretation(alpha=combined_data.alpha, x=x, y=y)
 
-    # Are there user predictions?
-    if predictions: 
-        one_sided = [(isinstance(*v, GreaterThan) or isinstance(*v, LessThan)) for v in predictions]
 
-        # import pdb; pdb.set_trace()
-        if any(one_sided):
-            adjusted_p = p_val/2
-        else: 
-            adjusted_p = p_val
-
-
-        # TODO: This should really go in a sanitizing step or something...
-        alpha = combined_data.alpha
-        class TTestResult(Enum):
-            not_significant = 0
-            significantly_different = 1
-            significantly_greater = 2
-            significantly_less = 3
-
-        ttest_result = TTestResult.not_significant
-        # Based on https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faq-what-are-the-differences-between-one-tailed-and-two-tailed-tests/
-        # From the example on this site:
-        # If t is negative and we are checking a less than relationship, use p/2 as the adjusted p-value.
-        # If t is negative and we are checking a greater than relationship, use 1 - p/2 as the adjusted p-value.
-        if t_stat > 0:
-            if isinstance(pred, GreaterThan) and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_greater
-            elif isinstance(pred, LessThan) and 1 - adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_less
-            elif not one_sided and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_different
-            else:
-                ttest_result = TTestResult.not_significant
-        elif t_stat < 0:
-            if isinstance(pred, LessThan) and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_less
-            elif isinstance(pred, GreaterThan) and 1 - adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_greater
-            elif not one_sided and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_different
-            else:
-                ttest_result = TTestResult.not_significant
-        elif not one_sided and adjusted_p < alpha:
-            ttest_result = ttest_result.significantly_different
-        else:
-            assert False, "t_stat = 0 and it's not a one-sided test. Not sure under what conditions this is possible."
-
-        interpretation = None
-        if ttest_result == ttest_result.not_significant:
-            interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} " \
-                f"and {x.metadata[name]} = {pred.rhs.value} is not significant."
-        elif ttest_result == ttest_result.significantly_different:
-            interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} " \
-                f"and {x.metadata[name]} = {pred.rhs.value} is significant."
-        elif ttest_result == ttest_result.significantly_greater:
-            interpretation = f"The mean of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} is significantly" \
-                f" greater than the mean for {x.metadata[name]} = {pred.rhs.value}"
-        elif ttest_result == ttest_result.significantly_less:
-            interpretation = f"The mean of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} is significantly" \
-                f" less than the mean for {x.metadata[name]} = {pred.rhs.value}"
-        else:
-            assert False, "ttest_result case without an associated interpretation."
-
-        # return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
-        # return StudentsTResult(t_stat, p_val, adjusted_p)
-        test_result = TestResult('Student\'s T test', t_stat, p_val)
-        test_result.set_adjusted_p_val(adjusted_p)
-        
-        return test_result
+    # return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
+    # return StudentsTResult(t_stat, p_val, adjusted_p)
+    # test_result = TestResult('Student\'s T test', t_stat, p_val, dof)
+    # test_result.set_adjusted_p_val(adjusted_p)
+    
+    return test_result
     
     
 
@@ -902,6 +847,22 @@ def lookup_function(test_name):
     else: 
         raise ValueError(f"Cannot find the test:{test_name}")
 
+def add_effect_size(dataset, predictions, combined_data, test_func, stat_result):   
+    parametric_tests =[students_t, paired_students_t]
+    nonparametric_tests = [welchs_t, mannwhitney_u, wilcoxon_signed_rank]
+
+    if test_func in parametric_tests: 
+        # Calculate Cohen's d
+        d = cohens(dataset, predictions, combined_data)
+        stat_result.add_effect_size('Cohen\'s d', d)
+    if test_func in parametric_tests or test_func in nonparametric_tests: 
+        # Calculate A12
+        a12 = vda(dataset, predictions, combined_data)
+        stat_result.add_effect_size('A12', a12)
+
+def add_dof(dataset, predictions, combined_data, test_func, stat_result): 
+    import pdb; pdb.set_trace()
+
 def execute_test(dataset, design, predictions, combined_data: CombinedData, test):         
     # Get function handler
     test_func = lookup_function(test)
@@ -913,24 +874,14 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
         stat_result = test_func(dataset, predictions, combined_data)
 
     # Calculate the effect size
-    parametric_tests =[students_t, paired_students_t]
-    nonparametric_tests = [welchs_t, mannwhitney_u, wilcoxon_signed_rank]
+    add_effect_size(dataset, predictions, combined_data, test_func, stat_result)
 
-    if test_func in parametric_tests: 
-        # Calculate Cohen's d
-        d = cohens(dataset, predictions, combined_data)
-        stat_result.add_effect_size('Cohen\'s d', d)
-    if test_func in parametric_tests or test_func in nonparametric_tests: 
-        # Calculate A12
-        a12 = vda(dataset, predictions, combined_data)
-        # import pdb; pdb.set_trace()
-        stat_result.add_effect_size('A12', a12)
-
-    
-    # Combine the effect size with the statistical result in some way...
+    # Compute the DOF
+    # add_dof(dataset, predictions, combined_data, test_func, stat_result)
 
     # Return results
     return stat_result
+
 
 # Correct for multiple comparisons
 def correct_multiple_comparison(res_data: ResultData, num_comparisons: int): 
