@@ -43,7 +43,7 @@ class StudentsTResult(TestResult):
     # p_value = attr.ib()
     dof = attr.ib()
     prediction = attr.ib()
-    null_hypothesis = attr.ib(default=None)
+    null_hypothesis = attr.ib(default="There is no difference in group means")
     interpretation = attr.ib(default=None)
 
     def __init__(self, test_statistic, p_value, dof, prediction):
@@ -65,8 +65,9 @@ class StudentsTResult(TestResult):
             else: 
                 self.adjusted_p_value = self.p_value
 
-    def specify_null_hypothesis(self):
-        self.null_hypothesis = "The two groups are not UPDATED"
+    def specify_null_hypothesis(self, x, y):
+        # TODO: Passing x and y seems more modular than passing string? 
+        self.null_hypothesis = "Update to be more specific about the particular hypothesis being tested"
 
     def set_interpretation(self, alpha, x, y):
         """
@@ -75,9 +76,9 @@ class StudentsTResult(TestResult):
             If t is negative and we are checking a less than relationship, use p/2 as the adjusted p-value.
             If t is negative and we are checking a greater than relationship, use 1 - p/2 as the adjusted p-value.
         """
-        one_sided = False
-        if self.adjusted_p_value: 
-            one_sided = True
+        self.specify_null_hypothesis(x=x, y=y)
+        
+        one_sided = True if self.adjusted_p_value else False
 
         # Start interpretation
         ttest_result = Significance.not_significant
