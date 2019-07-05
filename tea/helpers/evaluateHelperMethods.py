@@ -925,6 +925,7 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
         a12 = vda(dataset, predictions, combined_data)
         # import pdb; pdb.set_trace()
         stat_result.add_effect_size('A12', a12)
+
     
     # Combine the effect size with the statistical result in some way...
 
