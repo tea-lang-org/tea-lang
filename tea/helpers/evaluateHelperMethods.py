@@ -7,7 +7,7 @@ from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
-from tea.runtimeDataStructures.testResult import TestResult, StudentsTResult
+from tea.runtimeDataStructures.testResult import TestResult, StudentsTResult, PairedStudentsTResult
 
 # Stats
 from statistics import mean, stdev
@@ -335,18 +335,8 @@ def students_t(dataset, predictions, combined_data: BivariateData):
     test_result.adjust_p_val() # adjust p value
     test_result.set_interpretation(alpha=combined_data.alpha, x=x, y=y)
 
-
-    # return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
-    # return StudentsTResult(t_stat, p_val, adjusted_p)
-    # test_result = TestResult('Student\'s T test', t_stat, p_val, dof)
-    # test_result.set_adjusted_p_val(adjusted_p)
-    
-    import pdb; pdb.set_trace()
     return test_result
     
-    
-
-    # greater-than test when p/2 < alpha and t > 0, and of a less-than test when p/2 < alpha and t < 0
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html#scipy.stats.ttest_rel
 # Possible parameters: a, b : array | axis (without, over entire arrays) | nan_policy (optional) 
@@ -357,14 +347,24 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
     y = ys[0]
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
+    
+    prediction = predictions[0][0]
 
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    result = stats.ttest_rel(data[0], data[1])
+    t_stat, p_val = stats.ttest_rel(data[0], data[1])
+    dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
+    test_result = PairedStudentsTResult( 
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        dof = dof,
+                        prediction = prediction)
+    test_result.adjust_p_val() # adjust p value
+    test_result.set_interpretation(alpha=combined_data.alpha, x=x, y=y)
 
-    return TestResult('Paired Student\'s T test', result.statistic, result.pvalue)
+    return test_result
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 

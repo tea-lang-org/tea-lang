@@ -264,42 +264,42 @@ def test_indep_t_test():
     # print("Expected outcome: Student's t-test")
     print('++++++++++++')
 
-# def test_paired_t_test(): 
-#     data_path = get_data_path('spiderLong_within.csv')
+def test_paired_t_test(): 
+    data_path = get_data_path('spiderLong_within.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Group',
-#             'data type' : 'nominal',
-#             'categories' : ['Picture', 'Real Spider']
-#         },
-#         {
-#             'name' : 'Anxiety',
-#             'data type' : 'ratio'
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'experiment',
-#                             'independent variables': 'Group',
-#                             'dependent variables': 'Anxiety',
-#                             'within subjects' : 'Group'
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Group',
+            'data type' : 'nominal',
+            'categories' : ['Picture', 'Real Spider']
+        },
+        {
+            'name' : 'Anxiety',
+            'data type' : 'ratio'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': 'Group',
+                            'dependent variables': 'Anxiety',
+                            'within subjects' : 'Group'
 
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05
-#     }
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05
+    }
 
-#     tea.data(data_path, key="id")
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
+    tea.data(data_path, key="id")
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
 
-#     tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
+    tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
 
-#     # print("\nfrom Field et al.")
-#     # print("Expected outcome: Paired/Dependent t-test")
-#     print('++++++++++++')
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Paired/Dependent t-test")
+    print('++++++++++++')
 
 # def test_wilcoxon_signed_rank(): 
 #     data_path = get_data_path('alcohol.csv')
