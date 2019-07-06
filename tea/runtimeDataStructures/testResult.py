@@ -6,6 +6,34 @@ from tea.ast import DataType, LessThan, GreaterThan
 # Other
 import attr
 
+
+__stats_tests_to_null_hypotheses__ = {
+
+    "Pearson Correlation" : f'',
+    "Kendall Tau Correlation" : f'',
+    "Spearman Correlation" : f'',
+    "Pointbiserial Correlation" : f'',
+
+    "Student\'s T Test" : f'There is no difference in means between {group1} and {group2} on {outcome}.',
+    "Welch\'s T Test" : f'There is no difference in means between {group1} and {group2} on {outcome}.',
+    "Mann Whitney U Test" : 'range', # TODO
+    "Paired Student\'s T Test" : f'There is no difference in means between {group1} and {group2} on {outcome}.',
+    "Wilcoxon Signed Rank" : 'range', # TODO
+
+    "Chi Square Test" : f'',
+    "Fisher\'s Exact Test" : f'',
+
+    "F Test" : f'',
+    "Kruskall Wallis" : f'',
+    "Friedman" : f'',
+    "Factorial ANOVA" : f'',
+    "Repeated Measures One Way ANOVA" : f'',
+
+    "Bootstrap" : f''
+
+}
+
+
 @attr.s(init=True)
 class TestResult(Value): 
     name = attr.ib()
@@ -30,7 +58,11 @@ class TestResult(Value):
 
     def specify_null_hypothesis(self, x, y):
         # TODO: Passing x and y seems more modular than passing string? 
-        self.null_hypothesis = "Update to be more specific about the particular hypothesis being tested"
+        group1 = x #???
+        group2 = x #??
+        outcome = y #??
+
+        self.null_hypothesis = __stats_tests_to_null_hypotheses__[self.name]
 
     def set_interpretation(self, alpha, x, y):
         """
