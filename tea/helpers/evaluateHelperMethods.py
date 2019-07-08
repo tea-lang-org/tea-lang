@@ -310,9 +310,13 @@ def students_t(dataset, predictions, combined_data: BivariateData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
 
-    prediction = None
-    if predictions:
-        prediction = predictions[0][0]
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
     
     lhs = None
     rhs = None
@@ -349,7 +353,13 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
     
-    prediction = predictions[0][0]
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
 
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
@@ -384,7 +394,13 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
         data.append(cat_data)
     
 
-    prediction = predictions[0][0]
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
     t_stat, p_val = stats.ttest_ind(data[0], data[1], equal_var=False)
     # dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
     
@@ -422,7 +438,13 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    prediction = predictions[0][0]
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
     t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult( 
@@ -449,7 +471,13 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    prediction = predictions[0][0]
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
     t_stat, p_val = stats.wilcoxon(data[0], data[1])
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult( 
@@ -473,8 +501,23 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
 
     assert(len(data) == 2)
-
-    return stats.pearsonr(data[0], data[1])
+    
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.pearsonr(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = "Pearson Correlation",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+    return test_result
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
@@ -495,9 +538,23 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
     
     assert(len(data) == 2)
-    results =  stats.spearmanr(data[0], data[1])
 
-    return TestResult('Spearman R Correlation', results[0], results[1])
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.spearmanr(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = "Spearman\'s R Correlation",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+    return test_result
 
 # https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
 # Parameters: x (array-like) | y (array-like) : Arrays of rankings, of the same shape. If arrays are not 1-D, they will be flattened to 1-D.
@@ -510,9 +567,23 @@ def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
 
     assert(len(data) == 2)
-    results = stats.kendalltau(data[0], data[1])
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.kendalltau(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = "Kendall\'s Tau Correlation",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
 
-    return TestResult('Kendall Tau Correlation', results[0], results[1])
+    return test_result
 
 def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -528,12 +599,29 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
-    
-    return stats.pointbiserialr(data[0], data[1])
 
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.pointbiserialr(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = "Pointbiserial Correlation",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+    
+    return test_result
+
+    
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html
 # Parameters: observed (contingency table) | correction (bool for Yates' correction) | lambda (change statistic computed)
-ChisquareResult = namedtuple('ChisquareResult', ('chi2', 'p', 'dof', 'expected'))
+# ChisquareResult = namedtuple('ChisquareResult', ('chi2', 'p', 'dof', 'expected'))
 
 def chi_square(dataset: Dataset, predictions, combined_data: CombinedData): 
     # Compute the contingency table
@@ -572,9 +660,26 @@ def chi_square(dataset: Dataset, predictions, combined_data: CombinedData):
         raise ValueError(f"Currently, chi square requires/only supports 1 explanatory variable, instead received: {len(xs)} -- {xs}")
 
     # chi2, p, dof, ex = chi2_contingency(obs, correction=False)
+    # chi2, p, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
 
-    chi2, p, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
-    return ChisquareResult(chi2, p, dof, ex)
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    test_statistic, p_val, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
+    dof = None
+    test_result = TestResult( 
+                        name = "Chi Square Test",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+    
+    return test_result
+    
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
 # Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
@@ -614,8 +719,26 @@ def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData):
         contingency_table.append(table_row)
         contingency_table_key.append(table_row_key)
 
-    odds_ratio, p_value = stats.fisher_exact(contingency_table, alternative='two-sided')
-    return FishersResult(odds_ratio, p_value)
+    # odds_ratio, p_value = stats.fisher_exact(contingency_table, alternative='two-sided')
+    # return FishersResult(odds_ratio, p_value)
+
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    odds_ratio, p_val = stats.fisher_exact(contingency_table, alternative='two-sided')
+    dof = None
+    test_result = TestResult( 
+                        name = "Chi Square Test",
+                        test_statistic = odds_ratio,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+    
+    return test_result
 
 def f_test(dataset: Dataset, predictions, combined_data: CombinedData):  
     # Construct formula
@@ -630,6 +753,20 @@ def f_test(dataset: Dataset, predictions, combined_data: CombinedData):
     formula = ols(f"{y.metadata[name]} ~ C({x.metadata[name]})", data=dataset.data)
     model =formula.fit()
     return sm.stats.anova_lm(model, type=2)
+
+
+    # prediction = predictions[0][0]
+    # odds_ratio, p_val = stats.fisher_exact(contingency_table, alternative='two-sided')
+    # dof = None
+    # test_result = TestResult( 
+    #                     name = "Chi Square Test",
+    #                     test_statistic = odds_ratio,
+    #                     p_value = p_val,
+    #                     prediction = prediction,
+    #                     dof = dof)
+    
+    # return test_result
+    
     # import pdb; pdb.set_trace()
     # >>> moore_lm = ols('conformity ~ C(fcategory, Sum)*C(partner_status, Sum)',
                 #  data=data).fit()
@@ -722,7 +859,13 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
             data.append(cat_data)
     
-    prediction = predictions[0][0]
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
     t_stat, p_val = stats.kruskal(*data)
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult( 
@@ -750,7 +893,26 @@ def friedman(dataset: Dataset, predictions, combined_data: CombinedData):
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
             data.append(cat_data)
     
-    return stats.friedmanchisquare(*data)
+    # return stats.friedmanchisquare(*data)
+
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    test_statistic, p_val = stats.friedmanchisquare(*data)
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = "Kruskall Wallis Test",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof)
+    
+    return test_result
+    
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
