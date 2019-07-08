@@ -998,8 +998,53 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
                 cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
                 stat = bs.bootstrap(cat_data.to_numpy(), stat_func=bs_stats.median)
                 calculations[c] = stat
+        
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+
+    x = xs[0] # We should do this for the prediction, only....?
+    cat = [k for k,v in x.metadata[categories].items()]
+    test_statistic = {}
+    p_val = None
+    for c in cat: 
+        # import pdb; pdb.set_trace()
+        lb = calculations[c].lower_bound
+        ub = calculations[c].upper_bound
+
+        test_statistic[c] = (lb, ub)
+
+    alpha = combined_data.alpha
+    lb = None
+    ub = None
+    for group, bounds in test_statistic.items(): 
+        if not lb:
+            assert(not ub)
+            lb = bounds[0]
+            ub = bounds[1]
+        else: 
+            if bounds[0] >= lb and bounds[0] <= ub: 
+                p_val = f'Greater than or equal to {alpha}'
+            elif bounds[1] >= lb and bounds[1] <=ub:  
+                p_val = f'Greater than or equal to {alpha}'
+            else: 
+                p_val = f'Less than {alpha}'
+
+    dof = None
+    test_result = TestResult( 
+                        name = "Bootstrap",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        table = calculations)
     
-    return calculations
+    return test_result
+    
 
 def cohens(dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
