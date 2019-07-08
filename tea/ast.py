@@ -111,10 +111,14 @@ class LessThanEqual(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
 
-@attr.s(hash=True, repr=False)
+@attr.s(hash=True, str=False)
 class GreaterThan(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
+
+    def __str__(self): 
+        return f"{self.lhs.value} > {self.rhs.value}"
+
 
 @attr.s(hash=True, repr=False)
 class GreaterThanEqual(Node):

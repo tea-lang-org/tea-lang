@@ -683,7 +683,7 @@ def chi_square(dataset: Dataset, predictions, combined_data: CombinedData):
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
 # Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
-FishersResult = namedtuple('FishersResult', ('oddsratio', 'p_value'))
+# FishersResult = namedtuple('FishersResult', ('oddsratio', 'p_value'))
 
 def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData): 
     assert(len(combined_data.vars) == 2)
@@ -752,25 +752,35 @@ def f_test(dataset: Dataset, predictions, combined_data: CombinedData):
     
     formula = ols(f"{y.metadata[name]} ~ C({x.metadata[name]})", data=dataset.data)
     model =formula.fit()
-    return sm.stats.anova_lm(model, type=2)
-
-
-    # prediction = predictions[0][0]
-    # odds_ratio, p_val = stats.fisher_exact(contingency_table, alternative='two-sided')
-    # dof = None
-    # test_result = TestResult( 
-    #                     name = "Chi Square Test",
-    #                     test_statistic = odds_ratio,
-    #                     p_value = p_val,
-    #                     prediction = prediction,
-    #                     dof = dof)
     
-    # return test_result
+
+    if predictions:
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    result_df = sm.stats.anova_lm(model, type=2)
+    # Need to inspect the result_df and return the appropriate test_statistic/p_value pair based on the prediction
+    col_name = "C(" + x.metadata[name] + ")"
+    for row_name in result_df.index: 
+        if row_name == col_name: 
+            row_data = result_df.loc[row_name]
+            test_statistic = row_data['F']
+            p_val = row_data['PR(>F)']
+            dof = row_data['df']
+
+    test_result = TestResult( 
+                        name = "F Test",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof, 
+                        table = result_df)
     
-    # import pdb; pdb.set_trace()
-    # >>> moore_lm = ols('conformity ~ C(fcategory, Sum)*C(partner_status, Sum)',
-                #  data=data).fit()
-    # >>> table = sm.stats.anova_lm(moore_lm, typ=2) # Type 2 Anova DataFrame
+    return test_result
+
 
 # Private function to prevent duplicate symmetric interactions
 # (e.g., ''A*B' is the same as 'B*A', both should not occur in ANOVA formula twice)
@@ -818,9 +828,34 @@ def factorial_ANOVA(dataset: Dataset, predictions, combined_data: CombinedData):
 
     ols_formula = ols(formula, data=dataset.data)
     model = ols_formula.fit()
-    return sm.stats.anova_lm(model, type=2)
+    result_df = sm.stats.anova_lm(model, type=2)
+    if predictions:
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
 
-def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData): 
+    col_name = "C(" + x.metadata[name] + ")"
+    for row_name in result_df.index: 
+        if row_name == col_name: 
+            row_data = result_df.loc[row_name]
+            test_statistic = row_data['F']
+            p_val = row_data['PR(>F)']
+            dof = row_data['df']
+
+    test_result = TestResult( 
+                        name = "Factorial ANOVA",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof, 
+                        table = result_df)
+    
+    return test_result
+
+def rm_one_way_anova(dataset: Dataset, predictions, design, combined_data: CombinedData): 
     data = dataset.data
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -835,13 +870,37 @@ def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData):
         if "within subjects" in design and design["within subjects"] == x.metadata[name]:
             within_subjs.append(x.metadata[name])
     
-    # import pdb; pdb.set_trace()
+    if predictions:
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+
     key = dataset.pid_col_name
-    # import pdb; pdb.set_trace()
     aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=key, within=within_subjs, aggregate_func='mean')
     # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
     res2way = aovrm2way.fit()
-    return res2way
+    result_df = res2way.anova_table
+
+    col_name = x.metadata[name]
+    for row_name in result_df.index: 
+        if row_name == col_name: 
+            row_data = result_df.loc[row_name]
+            test_statistic = row_data['F Value']
+            p_val = row_data['Pr > F']
+            dof = (row_data['Num DF'], row_data['Den DF'])
+
+    test_result = TestResult( 
+                        name = "Repeated Measures One Way ANOVA",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        table = result_df)
+    
+    return test_result
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
 def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData): 
@@ -939,31 +998,8 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
                 cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
                 stat = bs.bootstrap(cat_data.to_numpy(), stat_func=bs_stats.median)
                 calculations[c] = stat
-                # import pdb; pdb.set_trace()
-                # store all the medians & confidence intervals
-                # return all the medians & CIs
-                # data.append(cat_data)
     
     return calculations
-
-        # Interaction effects
-        # Add the interactions
-        # interactions = []
-        # for i in range(len(xs)): 
-        #     x_i = xs[i]
-        #     # inter = f"{x_i.metadata[name]}" 
-        #     for j in range(len(xs)):
-        #         if i != j: 
-        #             x_j = xs[j]
-        #             # inter += " * " + f"C({x_j.metadata[name]})"
-        #             interactions.append(inter)
-                    
-        #             if _is_interaction_unique(interactions, inter):
-        #                 formula += " + " +  inter
-
-
-    # import pdb; pdb.set_trace()
-    # Start with the case where there are only 2 groups to compare (like t-test)
 
 def cohens(dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -1078,7 +1114,7 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
 
     # Execute the statistical test
     if test_func is rm_one_way_anova: 
-        stat_result = test_func(dataset, design, combined_data)
+        stat_result = test_func(dataset, predictions, design, combined_data)
     else:
         stat_result = test_func(dataset, predictions, combined_data)
 

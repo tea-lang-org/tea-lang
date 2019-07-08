@@ -48,6 +48,7 @@ class TestResult(Value):
     adjusted_p_value = attr.ib(default=None)
     null_hypothesis = attr.ib(default=None)
     interpretation = attr.ib(default=None)
+    table = attr.ib(default=None)
 
     def adjust_p_val(self):
         # Adjust p value
