@@ -6,7 +6,6 @@ from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
-from tea.runtimeDataStructures.resultData import ResultData
 from tea.runtimeDataStructures.testResult import TestResult
 
 # Stats
@@ -332,13 +331,14 @@ def students_t(dataset, predictions, combined_data: BivariateData):
     
     dof = len(lhs) + len(rhs) - 2 # Group1 + Group2 - 2
     test_result = TestResult( 
-                        name = "Student\'s T Test",
+                        name = students_t_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
-    test_result.adjust_p_val() # adjust p value
-    test_result.set_interpretation(alpha=combined_data.alpha, x=x, y=y)
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
 
     return test_result
     
@@ -368,13 +368,14 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.ttest_rel(data[0], data[1])
     dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
     test_result = TestResult( 
-                        name = "Paired Student\'s T Test",
+                        name = paired_students_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
-    test_result.adjust_p_val() # adjust p value
-    test_result.set_interpretation(alpha=combined_data.alpha, x=x, y=y)
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
 
     return test_result
 
@@ -410,11 +411,14 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
     else: 
         dof = len(data[1]) - 1
     test_result = TestResult( 
-                        name = "Welch\'s T Test",
+                        name = welchs_t_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
 
     return test_result
 
@@ -448,11 +452,14 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult( 
-                        name = "Mann Whitney U Test",
+                        name = mann_whitney_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
 
     return test_result
 
@@ -481,11 +488,14 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     t_stat, p_val = stats.wilcoxon(data[0], data[1])
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult( 
-                        name = "Wilcoxon Signed Rank Test",
+                        name = wilcoxon_signed_rank_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
 
     return test_result
 
@@ -512,11 +522,12 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.pearsonr(data[0], data[1])
     dof = None
     test_result = TestResult( 
-                        name = "Pearson Correlation",
+                        name = pearson_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
     return test_result
 
 
@@ -549,11 +560,12 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.spearmanr(data[0], data[1])
     dof = None
     test_result = TestResult( 
-                        name = "Spearman\'s R Correlation",
+                        name = spearman_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
     return test_result
 
 # https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
@@ -577,11 +589,12 @@ def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.kendalltau(data[0], data[1])
     dof = None
     test_result = TestResult( 
-                        name = "Kendall\'s Tau Correlation",
+                        name = kendalltau_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
 
     return test_result
 
@@ -610,11 +623,12 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.pointbiserialr(data[0], data[1])
     dof = None
     test_result = TestResult( 
-                        name = "Pointbiserial Correlation",
+                        name = pointbiserial_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
     
     return test_result
 
@@ -676,7 +690,8 @@ def chi_square(dataset: Dataset, predictions, combined_data: CombinedData):
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
     
     return test_result
     
@@ -736,7 +751,8 @@ def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData):
                         test_statistic = odds_ratio,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
     
     return test_result
 
@@ -776,7 +792,8 @@ def f_test(dataset: Dataset, predictions, combined_data: CombinedData):
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof, 
+                        dof = dof,
+                        alpha = combined_data.alpha,
                         table = result_df)
     
     return test_result
@@ -846,11 +863,12 @@ def factorial_ANOVA(dataset: Dataset, predictions, combined_data: CombinedData):
             dof = row_data['df']
 
     test_result = TestResult( 
-                        name = "Factorial ANOVA",
+                        name = factorial_anova_name,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof, 
+                        dof = dof,
+                        alpha = combined_data.alpha,
                         table = result_df)
     
     return test_result
@@ -893,11 +911,12 @@ def rm_one_way_anova(dataset: Dataset, predictions, design, combined_data: Combi
             dof = (row_data['Num DF'], row_data['Den DF'])
 
     test_result = TestResult( 
-                        name = "Repeated Measures One Way ANOVA",
+                        name = rm_one_way_anova_name,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
+                        alpha = combined_data.alpha,
                         table = result_df)
     
     return test_result
@@ -932,7 +951,8 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
     
     return test_result
     # return TestResult('Kruskal Wallis', result.statistic, result.pvalue)
@@ -968,7 +988,8 @@ def friedman(dataset: Dataset, predictions, combined_data: CombinedData):
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
-                        dof = dof)
+                        dof = dof,
+                        alpha = combined_data.alpha)
     
     return test_result
     
@@ -1041,6 +1062,7 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
+                        alpha = combined_data.alpha,
                         table = calculations)
     
     return test_result
@@ -1140,15 +1162,21 @@ def lookup_function(test_name):
 def add_effect_size(dataset, predictions, combined_data, test_func, stat_result):   
     parametric_tests =[students_t, paired_students_t]
     nonparametric_tests = [welchs_t, mannwhitney_u, wilcoxon_signed_rank]
+    added_effect_size = False
 
     if test_func in parametric_tests: 
         # Calculate Cohen's d
         d = cohens(dataset, predictions, combined_data)
         stat_result.add_effect_size('Cohen\'s d', d)
+        added_effect_size = True
     if test_func in parametric_tests or test_func in nonparametric_tests: 
         # Calculate A12
         a12 = vda(dataset, predictions, combined_data)
         stat_result.add_effect_size('A12', a12)
+        added_effect_size = True
+
+    if added_effect_size:
+        stat_result.add_effect_size_to_interpretation()
 
 def add_dof(dataset, predictions, combined_data, test_func, stat_result): 
     import pdb; pdb.set_trace()
@@ -1172,8 +1200,8 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
     # Return results
     return stat_result
 
-
-# Correct for multiple comparisons
-def correct_multiple_comparison(res_data: ResultData, num_comparisons: int): 
-    # TODO: refactor ResultData first. 
-    res_data.adjust_p_values(num_comparisons) 
+#
+# # Correct for multiple comparisons
+# def correct_multiple_comparison(res_data: ResultData, num_comparisons: int):
+#     # TODO: refactor ResultData first.
+#     res_data.adjust_p_values(num_comparisons)
