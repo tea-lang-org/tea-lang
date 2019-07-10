@@ -25,44 +25,47 @@ def get_data_path(filename):
     
     return data_path
 
-# # Example from Kabacoff
-# # Expected outcome: Pearson correlation 
-# def test_pearson_corr(): 
-#     data_path = get_data_path('statex77.csv')
-#     # data_path2 = get_data_path('statex87.csv')
+# Example from Kabacoff
+# Expected outcome: Pearson correlation 
+def test_pearson_corr(): 
+    data_path = get_data_path('statex77.csv')
+    # data_path2 = get_data_path('statex87.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Illiteracy',
-#             'data type' : 'interval',
-#             'categories' : [0, 100]
-#         },
-#         {
-#             'name' : 'Life Exp',
-#             'data type' : 'ratio',
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': ['Illiteracy', 'Life Exp'],
-#                             'outcome variables': ''
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#         'normal distribution': ['Illiteracy']
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Illiteracy',
+            'data type' : 'interval',
+            'categories' : [0, 100]
+        },
+        {
+            'name' : 'HS Grad',
+            'data type' : 'ratio',
+        },
+        {
+            'name' : 'Life Exp',
+            'data type' : 'ratio'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['Illiteracy', 'HS Grad'],
+                            'outcome variables': 'Life Exp'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+        'normal distribution': ['Illiteracy']
+    }
 
-#     tea.data(data_path)
-#     # tea.data(data_path2)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions, 'strict')
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
 
-#     results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
-#     # print("\nfrom Kabacoff")
-#     # print("Expected outcome: Pearson")
-#     print('++++++++++++')
+    results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
+    # print("\nfrom Kabacoff")
+    # print("Expected outcome: Pearson")
+    print('++++++++++++')
     
 # def test_pearson_corr_2(): 
 #     data_path = get_data_path('exam.csv')
@@ -229,45 +232,42 @@ def get_data_path(filename):
 #     # print("Expected outcome: Pointbiserial")
 #     print('++++++++++++')
 
-def test_indep_t_test():
-    data_path = get_data_path('UScrime.csv')
+# def test_indep_t_test():
+#     data_path = get_data_path('UScrime.csv')
 
-    # Declare and annotate the variables of interest
-    variables = [
-        {
-            'name' : 'So',
-            'data type' : 'nominal',
-            'categories' : ['0', '1']
-        },
-        {
-            'name' : 'Prob',
-            'data type' : 'ratio',
-            'range' : [0,1]
-        }
-    ]
-    experimental_design = {
-                            'study type': 'observational study',
-                            'contributor variables': 'So',
-                            'outcome variables': 'Prob',
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05,
-        'groups normally distributed': [['Prob', 'So']]
-    }
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name' : 'So',
+#             'data type' : 'nominal',
+#             'categories' : ['0', '1']
+#         },
+#         {
+#             'name' : 'Prob',
+#             'data type' : 'ratio',
+#             'range' : [0,1]
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'observational study',
+#                             'contributor variables': 'So',
+#                             'outcome variables': 'Prob',
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05,
+#         'groups normally distributed': [['So', 'Prob']],
+#         # 'log normal distribution': 'Prob'
+#     }
     
-    transformations = {
-        'log': ['Prob']
-    }
+#     tea.data(data_path)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions)
 
-    tea.data(data_path)
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
-
-    tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])  ## Southern is greater
-    # print("\nfrom Kabacoff")
-    # print("Expected outcome: Student's t-test")
-    print('++++++++++++')
+#     tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])  ## Southern is greater
+#     # print("\nfrom Kabacoff")
+#     # print("Expected outcome: Student's t-test")
+#     print('++++++++++++')
 
 # def test_paired_t_test(): 
 #     data_path = get_data_path('spiderLong_within.csv')
@@ -292,7 +292,8 @@ def test_indep_t_test():
 
 #                         }
 #     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05
+#         'Type I (False Positive) Error Rate': 0.05,
+#         # 'groups normally distributed': [['Group', 'Anxiety']]
 #     }
 
 #     tea.data(data_path, key="id")
@@ -372,6 +373,7 @@ def test_indep_t_test():
 #                         }
 #     assumptions = {
 #         'Type I (False Positive) Error Rate': 0.05,
+#         'groups normally distributed': [['trt', 'response']]
 #     }
 
 #     tea.data(data_path)

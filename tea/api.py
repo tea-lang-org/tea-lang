@@ -126,7 +126,26 @@ def assume(user_assumptions: Dict[str, str], mode=None):
         MODE = 'strict'
         log(f"\nRunning under {MODE.upper()} mode.\n")
         log(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
+
+# TODO: merge this with assumptions or add a separate transformations step...
+def add_transformations(dataset_obj): 
+    global assumptions # contains user assumptions (after assume() is called)
     
+    # Handle log transformation
+    # Is there a variable that needs log transformation?
+    if log_normal_distribution in assumptions: 
+        dataset_obj.add_transformations({log_normal_distribution: assumptions[log_normal_distribution]})
+     
+
+    # Do a log transform and store the data... --> Should work for empty data (no data)
+    # reanme original column??
+
+    #better approach might be to: -- This is a longer-term change to make
+    # store log/list of transformations in Dataset obj
+    # when access the data, check if there are transformations for that data/column
+    # if yes, apply. If no, do not. 
+    # To apply, would need a list of transformation functions. 
+
 def hypothesize(vars: list, prediction: list=None): 
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
     global assumptions, all_results
@@ -137,6 +156,8 @@ def hypothesize(vars: list, prediction: list=None):
     assert(study_design)
 
     dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
+    add_transformations(dataset_obj)
+    import pdb; pdb.set_trace()
 
     v_objs = []
     for v in vars: 

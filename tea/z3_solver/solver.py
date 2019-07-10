@@ -912,7 +912,6 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
                 if var.metadata[name] == test_var.name:
                     var_data.append(var)
         kwargs = {'dataset': dataset, 'var_data': var_data, 'alpha': alpha}
-        # import pdb; pdb.set_trace()
         if __property_to_function__ == {}:
             prop_val = prop.property.function(**kwargs)
         else: 
@@ -968,7 +967,7 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                                     log(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
                                     log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
-                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                                solver.add(ap.__z3__ == z3.BoolVal(True))
                             else: 
                                 raise ValueError(f"Invalid MODE: {MODE}")
                         else: 
@@ -992,7 +991,7 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                                     log(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
                                     log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
-                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                                solver.add(ap.__z3__ == z3.BoolVal(True))
                             else: 
                                 raise ValueError(f"Invalid MODE: {MODE}")
         else:
@@ -1083,9 +1082,14 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     if model and z3.is_true(model.evaluate(prop.__z3__)):
                         val = verify_prop(dataset, combined_data, prop)
                         if val: 
-                            log(f"Property holds.")
+                            if is_assumed_prop(assumed_props, prop):
+                                log(f"User assumption property holds.")
+                            else: 
+                                log(f"Property holds.")
                         if not val: 
                             if not test_invalid: # The property does not check
+                                if is_assumed_prop(assumed_props, prop):
+                                    solver.add(prop.__z3__ == z3.BoolVal(True))
                                 # if not is_assumed_prop(assumed_props, prop): 
                                 #     if MODE == 'strict': 
                                 #         log(f"Running under STRICT mode.")
@@ -1101,19 +1105,23 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                                 #     else: 
                                 #         raise ValueError(f"Invalid MODE: {MODE}")
                                 # else: 
+                                else: 
                                     log(f"Property FAILS")
                                     solver.pop() # remove the last test
                                     test_invalid = True
                                     model = None
+                                    solver.add(prop.__z3__ == z3.BoolVal(val))
                             else: # test is already invalid. Going here just for completeness of logging
                                 log(f"EVER GET HERE?")
-                        solver.add(prop.__z3__ == z3.BoolVal(val))
+                        
         solver.push() # Push latest state as backtracking point
 
 
         
         
     solver.check()
+    # try: 
+    import pdb; pdb.set_trace()
     model = solver.model() # final model
     # import pdb; pdb.set_trace()
     tests_to_conduct = []
@@ -1124,6 +1132,9 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             tests_to_conduct.append(test.name)
         elif not model: # No test applies
             pass
+
+    # except: 
+        # tests_to_conduct = []
 
     reset_all_tests()
     return tests_to_conduct

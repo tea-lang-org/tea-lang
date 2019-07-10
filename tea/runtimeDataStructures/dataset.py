@@ -1,5 +1,8 @@
+from tea.global_vals import *
+
 import attr
 import pandas as pd
+import numpy as np
 import os
 import csv
 from typing import Dict
@@ -8,6 +11,10 @@ from urllib.parse import urlparse
 import requests
 
 BASE_PATH = os.getcwd()
+
+__transformation_to_function__ = {
+    log_normal_distribution: np.log
+}
 
 def _dir_exists(path):
     return os.path.isdir(path) and os.path.exists(path)
@@ -19,6 +26,7 @@ class Dataset(object):
     pid_col_name = attr.ib() # name of column in pandas DataFrame that has participant ids
     row_pids = attr.ib(init=False) # list of unique participant ids
     data = attr.ib(init=False) # pandas DataFrame
+    transformations = attr.ib(default={}) # dictionary of transformations to apply to specific variables/columns
     
     @staticmethod
     def load(path, name):
@@ -85,9 +93,16 @@ class Dataset(object):
                 return { 'dtype': v.dtype, 
                         'categories': v.categories} 
 
+    def add_transformations(self, new_trans: Dict[str, str]):
+        new_pairs = []
+        for key, value in new_trans.items(): 
+            new_pairs.append((key, value)) # append tuples
 
+        self.transformations.update(new_pairs)
     # SQL style select
     def select(self, col: str, where: list = None):
+        global __transformation_to_function__
+
         # TODO should check that the query is valid (no typos, etc.) before build
 
         def build_query(where: list):
@@ -107,5 +122,10 @@ class Dataset(object):
             res = df.query(query)[col] # makes a copy
         else: 
             res = df[col]
+
+        # Apply transformation if there is one
+        for trans, col_name in self.transformations.items(): 
+            if col == col_name: 
+                res = __transformation_to_function__[trans](res)
 
         return res

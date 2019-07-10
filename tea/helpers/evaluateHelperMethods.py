@@ -620,6 +620,7 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
             prediction = predictions[0]
     else: 
         prediction = None
+        
     t_stat, p_val = stats.pointbiserialr(data[0], data[1])
     dof = None
     test_result = TestResult( 
