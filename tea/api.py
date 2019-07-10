@@ -116,16 +116,17 @@ def assume(user_assumptions: Dict[str, str], mode=None):
     assumptions = user_assumptions
     assumptions[alpha_keywords[1]] = alpha
 
-    if mode: 
-        assert (mode == 'strict' or mode == 'relaxed')
+    # Set MODE for dealing with assumptions
+    if mode and mode == 'relaxed': 
         MODE = mode
-        log(f"Running under {mode.upper()} mode.\n")
-        if MODE == 'strict':
-            log(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
-        else: 
-            assert(MODE == 'relaxed')
-            log(f"This means that user assertions will be checked. Should they fail, Tea will issue a warning but proceed as if user's assertions were true.")
-
+        log(f"\nRunning under {MODE.upper()} mode.\n")
+        log(f"This means that user assertions will be checked. Should they fail, Tea will issue a warning but proceed as if user's assertions were true.")
+    else: 
+        assert (mode == None or mode == 'strict')
+        MODE = 'strict'
+        log(f"\nRunning under {MODE.upper()} mode.\n")
+        log(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
+    
 def hypothesize(vars: list, prediction: list=None): 
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
     global assumptions, all_results

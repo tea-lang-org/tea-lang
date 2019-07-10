@@ -898,7 +898,10 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
 
     if (len(prop.vars) == len(combined_data.vars)):
         kwargs = {'dataset': dataset, 'var_data': combined_data, 'alpha': alpha}
-        prop_val = __property_to_function__[prop.__z3__](**kwargs)    
+        if __property_to_function__ == {}:
+            prop_val = prop.property.function(**kwargs)
+        else: 
+            prop_val = __property_to_function__[prop.__z3__](**kwargs)    
     else: 
         assert (len(prop.vars) < len(combined_data.vars))
         var_data = []
@@ -952,16 +955,19 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
 
                             # CHECK ASSUMPTIONS HERE
                             val = verify_prop(dataset, combined_data, ap)
-                            # if val: 
-                            #     solver.add(ap.__z3__ == z3.BoolVal(True))
-                            # else: 
                             if MODE == 'strict': 
                                 log(f"Running under STRICT mode.")
-                                log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.")
+                                if val: 
+                                    log(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                else: 
+                                    log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.") 
                                 solver.add(ap.__z3__ == z3.BoolVal(val))
                             elif MODE == 'relaxed': 
                                 log(f"Running under RELAXED mode.")
-                                log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
+                                if val: 
+                                    log(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                else: 
+                                    log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
                                 solver.add(ap.__z3__ == z3.BoolVal(val))
                             else: 
                                 raise ValueError(f"Invalid MODE: {MODE}")
@@ -971,24 +977,24 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                             ap = prop(*stat_vars)
                             assumed_props.append(ap)
 
-                            solver.add(ap.__z3__ == z3.BoolVal(True))
-
-                            # # CHECK ASSUMPTIONS HERE
-                            # val = verify_prop(dataset, combined_data, ap)
-                            # if val: 
-                            #     solver.add(ap.__z3__ == z3.BoolVal(True))
-                            # else: 
-                            #     if MODE == 'strict': 
-                            #         log(f"Running under STRICT mode.")
-                            #         log(f"User asserted ({prop._name}) FAILS. Tea will override user assertion.")
-                            #         solver.add(ap.__z3__ == z3.BoolVal(False))
-                            #     elif MODE == 'relaxed': 
-                            #         log(f"Running under RELAXED mode.")
-                            #         log(f"User asserted ({prop._name}) FAILS. User assertion will be considered true.")
-                            #         solver.add(ap.__z3__ == z3.BoolVal(True))
-                            #     else: 
-                            #         raise ValueError(f"Invalid MODE: {MODE}")
-                            # solver.add(ap.__z3__ == z3.BoolVal(True))         
+                            # CHECK ASSUMPTIONS HERE
+                            val = verify_prop(dataset, combined_data, ap)
+                            if MODE == 'strict': 
+                                log(f"Running under STRICT mode.")
+                                if val: 
+                                    log(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                else: 
+                                    log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.")
+                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                            elif MODE == 'relaxed': 
+                                log(f"Running under RELAXED mode.")
+                                if val: 
+                                    log(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                else: 
+                                    log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
+                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                            else: 
+                                raise ValueError(f"Invalid MODE: {MODE}")
         else:
             pass
     # import pdb; pdb.set_trace()
