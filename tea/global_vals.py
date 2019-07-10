@@ -26,6 +26,9 @@ eq_variance = 'equal variance'
 paired = 'paired'
 cat_distribution = 'category distributions'
 
+# For assumptions about STATISTICAL TEST TO RUN
+user_stat_test = 'Statistical Test'
+
 # For non-statistical meta-properties of data
 name = 'var_name'
 data_type = 'dtype'
@@ -64,3 +67,8 @@ mann_whitney_name = "Mann Whitney U Test"
 wilcoxon_signed_rank_name = "Wilcoxon Signed Rank Test"
 rm_one_way_anova_name = "Repeated Measures One Way ANOVA"
 factorial_anova_name = "Factorial ANOVA"
+
+# Test to Assumptions (Expanded) -- Use when users state test they want to run 
+tests_to_assumptions = {
+    students_t_name : [eq_variance, groups_normal]
+}

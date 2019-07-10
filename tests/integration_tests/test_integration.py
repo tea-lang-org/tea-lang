@@ -60,7 +60,7 @@ def test_pearson_corr():
     tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
+    tea.assume(assumptions, 'relaxed')
 
     results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
     # print("\nfrom Kabacoff")
@@ -232,42 +232,43 @@ def test_pearson_corr():
 #     # print("Expected outcome: Pointbiserial")
 #     print('++++++++++++')
 
-# def test_indep_t_test():
-#     data_path = get_data_path('UScrime.csv')
+def test_indep_t_test():
+    data_path = get_data_path('UScrime.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'So',
-#             'data type' : 'nominal',
-#             'categories' : ['0', '1']
-#         },
-#         {
-#             'name' : 'Prob',
-#             'data type' : 'ratio',
-#             'range' : [0,1]
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': 'So',
-#                             'outcome variables': 'Prob',
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#         'groups normally distributed': [['So', 'Prob']],
-#         # 'log normal distribution': 'Prob'
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'So',
+            'data type' : 'nominal',
+            'categories' : ['0', '1']
+        },
+        {
+            'name' : 'Prob',
+            'data type' : 'ratio',
+            'range' : [0,1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': 'So',
+                            'outcome variables': 'Prob',
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+        # 'Statistical Test': "Student's T Test",
+        # 'groups normally distributed': [['So', 'Prob']],
+        # 'log normal distribution': 'Prob'
+    }
     
-#     tea.data(data_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
 
-#     tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])  ## Southern is greater
-#     # print("\nfrom Kabacoff")
-#     # print("Expected outcome: Student's t-test")
-#     print('++++++++++++')
+    tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])  ## Southern is greater
+    # print("\nfrom Kabacoff")
+    # print("Expected outcome: Student's t-test")
+    print('++++++++++++')
 
 # def test_paired_t_test(): 
 #     data_path = get_data_path('spiderLong_within.csv')
@@ -307,47 +308,48 @@ def test_pearson_corr():
 #     # print("Expected outcome: Paired/Dependent t-test")
 #     print('++++++++++++')
 
-# def test_wilcoxon_signed_rank(): 
-#     data_path = get_data_path('alcohol.csv')
+def test_wilcoxon_signed_rank(): 
+    data_path = get_data_path('alcohol.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'drug',
-#             'data type' : 'nominal',
-#             'categories' : ['Alcohol']
-#         },
-#         {
-#             'name' : 'day',
-#             'data type' : 'nominal',
-#             'categories': ['sundayBDI', 'wedsBDI']
-#         },
-#         {
-#             'name' : 'value',
-#             'data type' : 'ratio'
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'experiment',
-#                             'independent variables': 'day',
-#                             'dependent variables': 'value',
-#                             'within subjects' : 'day'
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'drug',
+            'data type' : 'nominal',
+            'categories' : ['Alcohol']
+        },
+        {
+            'name' : 'day',
+            'data type' : 'nominal',
+            'categories': ['sundayBDI', 'wedsBDI']
+        },
+        {
+            'name' : 'value',
+            'data type' : 'ratio'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': 'day',
+                            'dependent variables': 'value',
+                            'within subjects' : 'day'
 
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05
-#     }
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+        'Statistical Test': "Student's T Test"
+    }
 
-#     tea.data(data_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions, 'relaxed')
 
-#     tea.hypothesize(['day', 'value'], ['day:sundayBDI > wedsBDI'])
+    tea.hypothesize(['day', 'value'], ['day:sundayBDI > wedsBDI'])
 
-#     # print("\nfrom Field et al.")
-#     # print("Expected outcome: Wilcoxon signed rank test")
-#     print('++++++++++++')
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Wilcoxon signed rank test")
+    print('++++++++++++')
 
 # def test_f_test(): 
 #     data_path = get_data_path('cholesterol.csv')

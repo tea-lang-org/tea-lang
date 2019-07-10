@@ -104,6 +104,7 @@ def assume(user_assumptions: Dict[str, str], mode=None):
     global alpha, alpha_keywords
     global assumptions
     global MODE
+    global study_design
 
     if alpha_keywords[0] in user_assumptions:
         if alpha_keywords[1] in user_assumptions:
@@ -126,6 +127,22 @@ def assume(user_assumptions: Dict[str, str], mode=None):
         MODE = 'strict'
         log(f"\nRunning under {MODE.upper()} mode.\n")
         log(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
+
+    # Syntactic sugar, user can provide name of statistical test
+    if user_stat_test in assumptions: 
+        new_assumptions = {}
+        for test_name, test_assumps in tests_to_assumptions.items(): 
+            if test_name == assumptions[user_stat_test]:
+                # construct assumptions as if the user provided them
+                for ta in test_assumps: 
+                    x = study_design[iv_identifier] if study_type_identifier in study_design and study_design[study_type_identifier] == experiment_identifier else study_design[contributor_identifier]
+                    y = study_design[dv_identifier] if study_type_identifier in study_design and study_design[study_type_identifier] == experiment_identifier else study_design[outcome_identifier]
+                    new_assumptions[ta] = [[x,y]]
+                
+                assumptions.update(new_assumptions) # add test assumptions to user defined assumptions; NOTE: This will override user assumptions
+        
+        # TODO what happens if user provides a test name that is a typo or doesn't exist or isn't supported by Tea? 
+
 
 # TODO: merge this with assumptions or add a separate transformations step...
 def add_transformations(dataset_obj): 
@@ -157,7 +174,6 @@ def hypothesize(vars: list, prediction: list=None):
 
     dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
     add_transformations(dataset_obj)
-    import pdb; pdb.set_trace()
 
     v_objs = []
     for v in vars: 

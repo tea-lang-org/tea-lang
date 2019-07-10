@@ -28,7 +28,7 @@ def all_tests():
     return __ALL_TESTS__
 
 def reset_all_tests(): 
-    global __test_map__, __ALL_TESTS__ 
+    global __test_map__, __ALL_TESTS__, __property_to_function__
     global pearson_corr, kendalltau_corr, pointbiserial_corr_a, pointbiserial_corr_b
     global students_t, paired_students_t, welchs_t, mannwhitney_u
     global chi_square, fishers_exact
@@ -54,6 +54,7 @@ def reset_all_tests():
     
     __test_map__ = {}
     __ALL_TESTS__ = []
+    __property_to_function__ = {}
 
 
 # Contains the global map from z3 variables which
@@ -901,6 +902,7 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
         if __property_to_function__ == {}:
             prop_val = prop.property.function(**kwargs)
         else: 
+            # import pdb; pdb.set_trace()
             prop_val = __property_to_function__[prop.__z3__](**kwargs)    
     else: 
         assert (len(prop.vars) < len(combined_data.vars))
@@ -1120,8 +1122,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         
         
     solver.check()
-    # try: 
-    import pdb; pdb.set_trace()
+
     model = solver.model() # final model
     # import pdb; pdb.set_trace()
     tests_to_conduct = []
@@ -1132,9 +1133,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             tests_to_conduct.append(test.name)
         elif not model: # No test applies
             pass
-
-    # except: 
-        # tests_to_conduct = []
 
     reset_all_tests()
     return tests_to_conduct
