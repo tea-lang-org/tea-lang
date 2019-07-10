@@ -11,6 +11,7 @@ from typing import Dict, List
 
 # Prog -> List[StatisticalTest] -> Query
 alpha = 0.01 # Default
+MODE = 'strict' # Default
 
 # Contains a map from z3 variables representing tests
 # back to the test objects allowing us to map back
@@ -86,6 +87,10 @@ def all_props():
 #             selected_props.append(p)
 
 #     return selected_props
+
+def set_mode(mode): 
+    global MODE
+    MODE = mode
 
 @attr.s(hash=False, cmp=False, auto_attribs=True, init=False)
 class StatVar:
@@ -904,9 +909,11 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
                 if var.metadata[name] == test_var.name:
                     var_data.append(var)
         kwargs = {'dataset': dataset, 'var_data': var_data, 'alpha': alpha}
-        # if prop._name == 'is_groups_normal':
-        #     import pdb; pdb.set_trace()
-        prop_val = __property_to_function__[prop.__z3__](**kwargs)
+        # import pdb; pdb.set_trace()
+        if __property_to_function__ == {}:
+            prop_val = prop.property.function(**kwargs)
+        else: 
+            prop_val = __property_to_function__[prop.__z3__](**kwargs)
 
     ret_val = None
     if isinstance(prop_val, tuple):
@@ -919,7 +926,7 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
     return ret_val
 
 # Assumes properties to hold
-def assume_properties(stat_var_map, assumptions: Dict[str,str], solver): 
+def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset, combined_data): 
     global assumptions_to_properties, alpha
 
     assumed_props = []
@@ -942,19 +949,59 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver):
                             # stat_vars.append(stat_var_map[var]) 
                             ap = prop(stat_var_map[var]) 
                             assumed_props.append(ap)
-                            solver.add(ap.__z3__ == z3.BoolVal(True))
+
+                            # CHECK ASSUMPTIONS HERE
+                            val = verify_prop(dataset, combined_data, ap)
+                            # if val: 
+                            #     solver.add(ap.__z3__ == z3.BoolVal(True))
+                            # else: 
+                            if MODE == 'strict': 
+                                log(f"Running under STRICT mode.")
+                                log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.")
+                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                            elif MODE == 'relaxed': 
+                                log(f"Running under RELAXED mode.")
+                                log(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
+                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                            else: 
+                                raise ValueError(f"Invalid MODE: {MODE}")
                         else: 
                             assert isinstance(var, list)
                             stat_vars = [stat_var_map[v] for v in var]
                             ap = prop(*stat_vars)
                             assumed_props.append(ap)
+
                             solver.add(ap.__z3__ == z3.BoolVal(True))
-                    
-                    
+
+                            # # CHECK ASSUMPTIONS HERE
+                            # val = verify_prop(dataset, combined_data, ap)
+                            # if val: 
+                            #     solver.add(ap.__z3__ == z3.BoolVal(True))
+                            # else: 
+                            #     if MODE == 'strict': 
+                            #         log(f"Running under STRICT mode.")
+                            #         log(f"User asserted ({prop._name}) FAILS. Tea will override user assertion.")
+                            #         solver.add(ap.__z3__ == z3.BoolVal(False))
+                            #     elif MODE == 'relaxed': 
+                            #         log(f"Running under RELAXED mode.")
+                            #         log(f"User asserted ({prop._name}) FAILS. User assertion will be considered true.")
+                            #         solver.add(ap.__z3__ == z3.BoolVal(True))
+                            #     else: 
+                            #         raise ValueError(f"Invalid MODE: {MODE}")
+                            # solver.add(ap.__z3__ == z3.BoolVal(True))         
         else:
             pass
-
+    # import pdb; pdb.set_trace()
     return assumed_props
+
+# Helper for synthesize tests
+def is_assumed_prop(assumed_props, prop):
+    for ap in assumed_props:
+        if prop == ap: 
+            return True
+    
+    return False
+
 
 # Problem statement: Given a set of properties, tell me which tests are valid to run
 # This is a concrete (rather than symbolic) problem 
@@ -976,16 +1023,16 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         stat_var_map[v.metadata[name]] = var 
         combined_data_vars.append(var)
 
-    # Assume properties are True based on user assumptions
+    # Assume properties based on user assumptions and mode
     solver = z3.Solver()
     # s = Tactic('qflia').solver()
-    assumed_props = assume_properties(stat_var_map, assumptions, solver)
+    assumed_props = assume_properties(stat_var_map, assumptions, solver, dataset, combined_data)
+    # import pdb; pdb.set_trace()
 
     # Update the arity of test-level properties
     for prop in test_props: 
         prop._update(len(combined_data.vars))
 
-    # print(combined_data)
     # Apply all tests to the variables we are considering now in combined_data
     for test in all_tests(): 
         test.apply(*combined_data_vars)
@@ -1005,14 +1052,10 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         if result == z3.unsat:
             # import pdb; pdb.set_trace()
             log("Test is unsat.\n")
-            # print("no more solutions")
-            # print(solver.num_scopes())
             solver.pop() 
-            # model = solver.model() # may need to do a check before call model
         elif result == z3.unknown:
             print("failed to solve")
             try:
-                # print(solver.model())
                 pass
             except z3.Z3Exception:
                 return
@@ -1024,41 +1067,48 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             if model and z3.is_true(model.evaluate(test.__z3__)):
                 # Verify the properties for that test
                 for prop in test._properties:
-                    log(f"Testing assumption: {prop._name}.")
-                    need_to_verify = True
-                    # If the prop was assumed by the user, skip verification.
-                    for ap in assumed_props:
-                        if prop == ap: 
-                            # log(f"Property was a user assumption. ")
-                            # prop.property_test_results = "Assumed true."
-
-                            val = verify_prop(dataset, combined_data, prop)
-                            if val: 
-                                log(f"Assumed property ({prop._name}) holds.")
-                            else: 
-                                log(f"Assumed property ({prop._name}) fails. Proceeding to check other assumptions anyway.")
-                            need_to_verify = False
-                    if need_to_verify: 
-                        # Does this property need to hold for the test to be valid?
-                        # If so, verify that the property does hold
-                        if model and z3.is_true(model.evaluate(prop.__z3__)):
-                            val = verify_prop(dataset, combined_data, prop)
-                            if val: 
-                                log(f"Property holds.")
-                            if not val: 
-                                # if test.name == 'f_test':
-                                #     import pdb; pdb.set_trace()
-                                if not test_invalid: # The property does not check
+                    if is_assumed_prop(assumed_props, prop):
+                        log(f"User asserted property: {prop._name}.")
+                    else: 
+                        log(f"Testing assumption: {prop._name}.")
+                    
+                    # Does this property need to hold for the test to be valid?
+                    # If so, verify that the property does hold
+                    if model and z3.is_true(model.evaluate(prop.__z3__)):
+                        val = verify_prop(dataset, combined_data, prop)
+                        if val: 
+                            log(f"Property holds.")
+                        if not val: 
+                            if not test_invalid: # The property does not check
+                                # if not is_assumed_prop(assumed_props, prop): 
+                                #     if MODE == 'strict': 
+                                #         log(f"Running under STRICT mode.")
+                                #         log(f"User asserted ({prop._name}) FAILS. Tea will override user assertion.")
+                                        
+                                #         # Remove the last test
+                                #         solver.pop() 
+                                #         test_invalid = True
+                                #         model = None
+                                #     elif MODE == 'relaxed': 
+                                #         log(f"Running under RELAXED mode.")
+                                #         log(f"User asserted ({prop._name}) FAILS. User assertion will be considered true.")
+                                #     else: 
+                                #         raise ValueError(f"Invalid MODE: {MODE}")
+                                # else: 
                                     log(f"Property FAILS")
                                     solver.pop() # remove the last test
                                     test_invalid = True
                                     model = None
-                                else: # test is already invalid. Going here just for completeness of logging
-                                    log(f"EVER GET HERE?")
-                            solver.add(prop.__z3__ == z3.BoolVal(val))
+                            else: # test is already invalid. Going here just for completeness of logging
+                                log(f"EVER GET HERE?")
+                        solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
+
+
+        
         
     solver.check()
+    import pdb; pdb.set_trace()
     model = solver.model() # final model
     # import pdb; pdb.set_trace()
     tests_to_conduct = []
@@ -1071,7 +1121,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
             pass
 
     reset_all_tests()
-    # import pdb; pdb.set_trace()
     return tests_to_conduct
 
 def which_props(tests_names: list, var_names: List[str]):

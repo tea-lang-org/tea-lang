@@ -361,6 +361,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         # Add paired property
         add_paired_property(dataset, combined_data, study_type, design) # check sample sizes are identical
 
+        # Infer stats tests (mingled with)
         tests = synthesize_tests(dataset, assumptions, combined_data)
         
     

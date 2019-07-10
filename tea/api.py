@@ -10,6 +10,7 @@ from .evaluate import evaluate
 import tea.helpers
 import tea.runtimeDataStructures
 import tea.z3_solver
+from tea.z3_solver.solver import set_mode
 
 from typing import Dict
 from .global_vals import *
@@ -36,9 +37,13 @@ alpha = 0.01
 
 all_results = {} # Used for multiple comparison correction
 
+# For solver
+MODE = 'strict'
+
 ## For testing purposes
 def download_data(url, name): 
     return load_data_from_url(url, name)
+
 
 # @sets global dataset_path and dataaset_obj (of type Dataset)
 def data(file, key=None): 
@@ -95,9 +100,10 @@ def define_study_design(design: Dict[str, str]):
     # dataset_id = design[uid] if uid in design else None
     
 
-def assume(user_assumptions: Dict[str, str]): 
+def assume(user_assumptions: Dict[str, str], mode=None): 
     global alpha, alpha_keywords
     global assumptions
+    global MODE
 
     if alpha_keywords[0] in user_assumptions:
         if alpha_keywords[1] in user_assumptions:
@@ -110,9 +116,20 @@ def assume(user_assumptions: Dict[str, str]):
     assumptions = user_assumptions
     assumptions[alpha_keywords[1]] = alpha
 
+    if mode: 
+        assert (mode == 'strict' or mode == 'relaxed')
+        MODE = mode
+        log(f"Running under {mode.upper()} mode.\n")
+        if MODE == 'strict':
+            log(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
+        else: 
+            assert(MODE == 'relaxed')
+            log(f"This means that user assertions will be checked. Should they fail, Tea will issue a warning but proceed as if user's assertions were true.")
+
 def hypothesize(vars: list, prediction: list=None): 
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
     global assumptions, all_results
+    global MODE
 
     assert(dataset_path)
     assert(vars_objs)
@@ -127,6 +144,7 @@ def hypothesize(vars: list, prediction: list=None):
     # Create and get back handle to AST node
     relationship = relate(v_objs, prediction)
     # Interpret AST node, Returns ResultData object <-- this may need to change
+    set_mode(MODE)
     result = evaluate(dataset_obj, relationship, assumptions, study_design)
     
     print(f"\n{result}")
