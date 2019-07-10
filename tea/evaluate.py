@@ -8,7 +8,7 @@ from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
-from tea.helpers.evaluateHelperMethods import determine_study_type, assign_roles, add_paired_property, execute_test, correct_multiple_comparison
+from tea.helpers.evaluateHelperMethods import determine_study_type, assign_roles, add_paired_property, execute_test
 from tea.z3_solver.solver import synthesize_tests
 
 import attr
@@ -396,7 +396,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             results[test] = test_result
         
         
-        res_data = ResultData(results)
+        res_data = ResultData(results, combined_data)
 
         """
         # TODO: use a handle here to more generally/modularly support corrections, need a more generic data structure for this!
