@@ -328,6 +328,16 @@ def students_t(dataset, predictions, combined_data: BivariateData):
         data.append(cat_data)
 
     t_stat, p_val = stats.ttest_ind(lhs, rhs, equal_var=True)
+
+    group_descriptive_statistics = {
+        prediction.lhs.value: {
+            'mean': mean(lhs),
+            'stdev': stdev(lhs),
+        }, prediction.rhs.value: {
+            'mean': mean(rhs),
+            'stdev': stdev(rhs),
+        },
+    }
     
     dof = len(lhs) + len(rhs) - 2 # Group1 + Group2 - 2
     test_result = TestResult( 
@@ -338,7 +348,8 @@ def students_t(dataset, predictions, combined_data: BivariateData):
                         dof = dof,
                         alpha = combined_data.alpha,
                         x = x,
-                        y = y)
+                        y = y,
+                        group_descriptive_statistics=group_descriptive_statistics)
 
     return test_result
     

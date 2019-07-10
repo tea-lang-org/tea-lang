@@ -77,6 +77,7 @@ class TestResult(Value):
     table = attr.ib(default=None)
     x = attr.ib(default=None)
     y = attr.ib(default=None)
+    group_descriptive_statistics = attr.ib(default=None)
 
     def __attrs_post_init__(self):
         self.adjust_p_val()
@@ -109,7 +110,7 @@ class TestResult(Value):
 
             cats = list(self.x.metadata[categories].items())
             return __stats_tests_to_null_hypotheses__[self.name] \
-                .format(__test_to_statistic_of_interest__[self.name], cats[0][0], cats[1][0], self.y.metadata[name])
+                .format(__test_to_statistic_of_interest__[self.name], f"{self.x.metadata[name]} = {cats[0][0]}", f"{self.x.metadata[name]} = {cats[1][0]}", self.y.metadata[name])
 
         return ""
 
@@ -152,7 +153,7 @@ class TestResult(Value):
 
 
         # TODO Maybe the "means" part could be replacable....
-        self.interpretation = f"t({self.dof}) = {self.test_statistic}, {self.adjusted_p_value}. " if self.dof else ""
+        self.interpretation = f"t({self.dof}) = {'%.5f'%(self.test_statistic)}, p = {'%.5f'%(self.adjusted_p_value)}. " if self.dof else ""
         if ttest_result == ttest_result.not_significant:
             self.interpretation += f"Fail to reject the null hypothesis at alpha = {self.alpha}. "
             self.interpretation += self.null_hypothesis
@@ -164,19 +165,22 @@ class TestResult(Value):
                 var1, var2 = self._calculate_two_group_vars()
                 self.interpretation += f"There is a relationship between {var1} and {var2}."
             elif self.name in __two_group_outcome_tests__:
+                var1, var2 = self._calculate_two_group_outcome_vars()
                 stat = __test_to_statistic_of_interest__[self.name]
-                self.interpretation += f"The difference in {stat}s of {self.y.metadata[name]} for {self.x.metadata[name]} = {self.prediction.lhs.value} " \
-                    f"and {self.x.metadata[name]} = {self.prediction.rhs.value} is significant. "
+                self.interpretation += f"The difference in {stat}s of {self.y.metadata[name]} for {self.x.metadata[name]} = {var1} " \
+                    f"and {self.x.metadata[name]} = {var2} is significant. "
         elif ttest_result == ttest_result.significantly_greater:
             self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
             stat = __test_to_statistic_of_interest__[self.name]
-            self.interpretation += f"The {stat} of {self.y.metadata[name]} for {self.x.metadata[name]} = {self.prediction.lhs.value} is significantly" \
-                f" greater than the {stat} for {self.x.metadata[name]} = {self.prediction.rhs.value}. "
+            var1, var2 = self._calculate_two_group_outcome_vars()
+            self.interpretation += f"The {stat} of {self.y.metadata[name]} for {self.x.metadata[name]} = {var1} is significantly" \
+                f" greater than the {stat} for {self.x.metadata[name]} = {var2}. "
         elif ttest_result == ttest_result.significantly_less:
             self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
             stat = __test_to_statistic_of_interest__[self.name]
-            self.interpretation += f"The {stat} of {self.y.metadata[name]} for {self.x.metadata[name]} = {self.prediction.lhs.value} is significantly" \
-                f" less than the {stat} for {self.x.metadata[name]} = {self.prediction.rhs.value}. "
+            var1, var2 = self._calculate_two_group_outcome_vars()
+            self.interpretation += f"The {stat} of {self.y.metadata[name]} for {self.x.metadata[name]} = {var1} is significantly" \
+                f" less than the {stat} for {self.x.metadata[name]} = {var2}. "
         else:
             assert False, "ttest_result case without an associated self.interpretation."
 
@@ -197,7 +201,11 @@ class TestResult(Value):
             self.effect_size = {name : effect_size}
 
     def add_effect_size_to_interpretation(self):
-        self.interpretation += f"The effect size is {self.effect_size}. " \
+        effect_sizes = ""
+        for effect_size_name, effect_size_value in self.effect_size.items():
+            effect_sizes += f"{effect_size_name} = {'%.5f' % (effect_size_value)}, "
+        effect_sizes = effect_sizes[:-2]
+        self.interpretation += f"The effect size is {effect_sizes}. " \
             f"The effect size is the magnitude of the difference, which gives a holistic view of the results [1].\n" \
             f"[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282."
 
@@ -215,6 +223,15 @@ class TestResult(Value):
             assert isinstance(self.prediction.lhs, Relationship)
             var1 = self.prediction.lhs.var
             var2 = self.prediction.rhs.var
+
+        return (var1, var2)
+
+    def _calculate_two_group_outcome_vars(self):
+        var1 = self.prediction.lhs.value
+        var2 = self.prediction.rhs.value
+        if self.group_descriptive_statistics:
+            var1 = f"{var1} (M={'%.5f'%(self.group_descriptive_statistics[var1]['mean'])}, SD={'%.5f'%(self.group_descriptive_statistics[var1]['stdev'])})"
+            var2 = f"{var2} (M={'%.5f'%(self.group_descriptive_statistics[var2]['mean'])}, SD={'%.5f'%(self.group_descriptive_statistics[var2]['stdev'])})"
 
         return (var1, var2)
 
