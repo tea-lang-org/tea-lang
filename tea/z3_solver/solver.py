@@ -1108,7 +1108,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         
         
     solver.check()
-    import pdb; pdb.set_trace()
     model = solver.model() # final model
     # import pdb; pdb.set_trace()
     tests_to_conduct = []
