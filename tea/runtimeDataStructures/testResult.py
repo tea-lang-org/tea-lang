@@ -18,12 +18,14 @@ __test_to_statistic_of_interest__ = {
     mann_whitney_name: "median",
     paired_students_name: "mean",
     wilcoxon_signed_rank_name: "median",
+    kruskall_wallis_name: "median",
+    factorial_anova_name: "mean",
 }
 
 __stats_tests_to_null_hypotheses__ = {
     pearson_name:  'There is no relationship between {} and {}.',
     kendalltau_name: 'There is no relationship between {} and {}.',
-    spearman_name: 'There is no relationship between {} and {}.',
+    spearman_name: 'There is no monotonic relationship between {} and {}.',
     pointbiserial_name: 'There is no association between {} and {}.',
 
     students_t_name : 'There is no difference in {}s between {} and {} on {}.',
@@ -32,16 +34,16 @@ __stats_tests_to_null_hypotheses__ = {
     paired_students_name : 'There is no difference in {}s between {} and {} on {}.',
     wilcoxon_signed_rank_name : 'There is no difference in {}s between {} and {} on {}.',
 
-    "Chi Square Test" : f'{group1} and {group2} are independent.',
-    "Fisher\'s Exact Test" : f'{group1} and {group2} are independent.',
+    chi_square_name : 'There is no association between {} and {} on {}.',
+    fisher_exact_name : 'There is no association between {} and {} on {}.',
 
     # Regression or anova?
-    "F Test" : f'All regression coefficients are equal to zero.',
-    "Kruskall Wallis" : f'The medians of all groups are equal.',
+    f_test_name : 'The variances of the groups ({}) are{}equal.',
+    kruskall_wallis_name : 'There is no difference in {}s between {} on {}.',
     # This isn't very descriptive…
     "Friedman" : f'There is no difference between the groups',
-    factorial_anova_name : f'The difference in means between two populations is not significantly different.',
-    rm_one_way_anova_name : f'The means of all groups/conditions are equal.',
+    factorial_anova_name : 'There is no difference in {}s between {} on {}.',
+    rm_one_way_anova_name : 'The means of all groups/conditions ({}) are{}equal.',
 
     # Does this depend on the statistic being calculated?
     "Bootstrap" : f''
@@ -60,6 +62,21 @@ __two_group_outcome_tests__ = {
     mann_whitney_name,
     paired_students_name,
     wilcoxon_signed_rank_name,
+}
+
+__categorical_tests__ = {
+    chi_square_name,
+    fisher_exact_name,
+}
+
+__many_groups_test__ = {
+    rm_one_way_anova_name,
+    f_test_name,
+}
+
+__many_groups_outcome_tests__ = {
+    kruskall_wallis_name,
+    factorial_anova_name,
 }
 
 
@@ -82,7 +99,8 @@ class TestResult(Value):
     def __attrs_post_init__(self):
         self.adjust_p_val()
 
-        if self.prediction:
+        # TODO: Handle more cases without a prediction.
+        if self.prediction or (self.x and self.y):
             self.null_hypothesis = self.get_null_hypothesis()
             self.set_interpretation()
         else:
@@ -91,7 +109,7 @@ class TestResult(Value):
 
     def adjust_p_val(self):
         # Adjust p value
-        if self.prediction:
+        if self.prediction or (self.x and self.y):
             if self._is_one_sided():
                 self.adjusted_p_value = self.p_value/2
             else: 
@@ -111,6 +129,25 @@ class TestResult(Value):
             cats = list(self.x.metadata[categories].items())
             return __stats_tests_to_null_hypotheses__[self.name] \
                 .format(__test_to_statistic_of_interest__[self.name], f"{self.x.metadata[name]} = {cats[0][0]}", f"{self.x.metadata[name]} = {cats[1][0]}", self.y.metadata[name])
+        elif self.name in __many_groups_test__:
+            assert self.x
+            assert len(self.x.metadata[categories]) > 0
+
+            return __stats_tests_to_null_hypotheses__[self.name] \
+                .format(self._get_all_groups(), " ")
+        elif self.name in __many_groups_outcome_tests__:
+            assert self.x
+            assert self.y
+
+            return __stats_tests_to_null_hypotheses__[self.name] \
+                .format(__test_to_statistic_of_interest__[self.name], self._get_all_groups(), self.y.metadata[name])
+        elif self.name in __categorical_tests__:
+            assert self.x
+            assert self.y
+            var1, var2 = self._calculate_two_group_vars()
+            return __stats_tests_to_null_hypotheses__[self.name] \
+                .format(var1, var2, self.y.metadata[name])
+
 
         return ""
 
@@ -169,6 +206,16 @@ class TestResult(Value):
                 stat = __test_to_statistic_of_interest__[self.name]
                 self.interpretation += f"The difference in {stat}s of {self.y.metadata[name]} for {self.x.metadata[name]} = {var1} " \
                     f"and {self.x.metadata[name]} = {var2} is significant. "
+            elif self.name in __many_groups_test__:
+                self.interpretation += __stats_tests_to_null_hypotheses__[self.name] \
+                    .format(self._get_all_groups(), " not ")
+            elif self.name in __many_groups_outcome_tests__:
+                stat = __test_to_statistic_of_interest__[self.name]
+                self.interpretation += f"There is a difference in {stat}s of {self.y.metadata[name]} for at least one of {self._get_all_groups()}."
+            elif self.name in __categorical_tests__:
+                var1, var2 = self._calculate_two_group_vars()
+                self.interpretation += f"There is an association between {var1} and {var2} on {self.y.metadata[name]}."
+
         elif ttest_result == ttest_result.significantly_greater:
             self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
             stat = __test_to_statistic_of_interest__[self.name]
@@ -216,13 +263,19 @@ class TestResult(Value):
     def _calculate_two_group_vars(self):
         var1 = ""
         var2 = ""
-        if isinstance(self.prediction.lhs, Literal):
-            var1 = self.prediction.lhs.value
-            var2 = self.prediction.rhs.value
+        if self.prediction:
+            if isinstance(self.prediction.lhs, Literal):
+                var1 = self.prediction.lhs.value
+                var2 = self.prediction.rhs.value
+            else:
+                assert isinstance(self.prediction.lhs, Relationship)
+                var1 = self.prediction.lhs.var
+                var2 = self.prediction.rhs.var
         else:
-            assert isinstance(self.prediction.lhs, Relationship)
-            var1 = self.prediction.lhs.var
-            var2 = self.prediction.rhs.var
+            assert len(self.x.metadata[categories]) == 2
+            cats = list(self.x.metadata[categories].items())
+            var1 = cats[0][0]
+            var2 = cats[1][0]
 
         return (var1, var2)
 
@@ -234,6 +287,10 @@ class TestResult(Value):
             var2 = f"{var2} (M={'%.5f'%(self.group_descriptive_statistics[var2]['mean'])}, SD={'%.5f'%(self.group_descriptive_statistics[var2]['stdev'])})"
 
         return (var1, var2)
+
+    def _get_all_groups(self):
+        assert self.x
+        return self.x.metadata[name] + " = " + ', '.join([str(cat[0]) for cat in list(self.x.metadata[categories].items())])
 
     def _is_one_sided(self):
         return True if self.name in __two_group_outcome_tests__ and \

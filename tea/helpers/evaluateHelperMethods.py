@@ -697,12 +697,14 @@ def chi_square(dataset: Dataset, predictions, combined_data: CombinedData):
     test_statistic, p_val, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
     dof = None
     test_result = TestResult( 
-                        name = "Chi Square Test",
+                        name = chi_square_name,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
-                        alpha = combined_data.alpha)
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
     
     return test_result
     
@@ -758,12 +760,14 @@ def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData):
     odds_ratio, p_val = stats.fisher_exact(contingency_table, alternative='two-sided')
     dof = None
     test_result = TestResult( 
-                        name = "Chi Square Test",
+                        name = fisher_exact_name,
                         test_statistic = odds_ratio,
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
-                        alpha = combined_data.alpha)
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
     
     return test_result
 
@@ -799,13 +803,15 @@ def f_test(dataset: Dataset, predictions, combined_data: CombinedData):
             dof = row_data['df']
 
     test_result = TestResult( 
-                        name = "F Test",
+                        name = f_test_name,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
                         alpha = combined_data.alpha,
-                        table = result_df)
+                        table = result_df,
+                        x=x,
+                        y=y)
     
     return test_result
 
@@ -873,14 +879,16 @@ def factorial_ANOVA(dataset: Dataset, predictions, combined_data: CombinedData):
             p_val = row_data['PR(>F)']
             dof = row_data['df']
 
-    test_result = TestResult( 
+    test_result = TestResult(
                         name = factorial_anova_name,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
                         alpha = combined_data.alpha,
-                        table = result_df)
+                        table = result_df,
+                        y = y,
+                        x = xs[0])
     
     return test_result
 
@@ -928,7 +936,9 @@ def rm_one_way_anova(dataset: Dataset, predictions, design, combined_data: Combi
                         prediction = prediction,
                         dof = dof,
                         alpha = combined_data.alpha,
-                        table = result_df)
+                        table = result_df,
+                        x = x,
+                        y = y)
     
     return test_result
 
@@ -958,12 +968,14 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.kruskal(*data)
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult( 
-                        name = "Kruskall Wallis Test",
+                        name = kruskall_wallis_name,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
-                        alpha = combined_data.alpha)
+                        alpha = combined_data.alpha,
+                        x = xs[0], # TODO: Not sure if it's possible to have multiple x's?
+                        y = y)
     
     return test_result
     # return TestResult('Kruskal Wallis', result.statistic, result.pvalue)

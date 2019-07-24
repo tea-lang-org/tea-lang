@@ -60,9 +60,15 @@ class ResultData(Value):
                 if results.name:
                     output += f"name = {results.name}\n"
                 if results.test_statistic:
-                    output += f"test_statistic = {'%.5f'%(results.test_statistic)}\n"
+                    if isinstance(results.test_statistic, dict):
+                        output += f"test_statistic = {results.test_statistic}\n"
+                    else:
+                        output += f"test_statistic = {'%.5f'%(results.test_statistic)}\n"
                 if results.p_value:
-                    output += f"p_value = {'%.5f'%(results.p_value)}\n"
+                    if isinstance(results.p_value, str):
+                        output += f"p_value = {results.p_value}\n"
+                    else:
+                        output += f"p_value = {'%.5f'%(results.p_value)}\n"
                 if results.adjusted_p_value:
                     output += f"adjusted_p_value = {'%.5f'%(results.adjusted_p_value)}\n"
                 if results.alpha:
