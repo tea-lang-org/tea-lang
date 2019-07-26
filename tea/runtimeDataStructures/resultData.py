@@ -60,11 +60,17 @@ class ResultData(Value):
                 if results.name:
                     output += f"name = {results.name}\n"
                 if results.test_statistic:
-                    output += f"test_statistic = {results.test_statistic}\n"
+                    if isinstance(results.test_statistic, dict):
+                        output += f"test_statistic = {results.test_statistic}\n"
+                    else:
+                        output += f"test_statistic = {'%.5f'%(results.test_statistic)}\n"
                 if results.p_value:
-                    output += f"p_value = {results.p_value}\n"
+                    if isinstance(results.p_value, str):
+                        output += f"p_value = {results.p_value}\n"
+                    else:
+                        output += f"p_value = {'%.5f'%(results.p_value)}\n"
                 if results.adjusted_p_value:
-                    output += f"adjusted_p_value = {results.adjusted_p_value}\n"
+                    output += f"adjusted_p_value = {'%.5f'%(results.adjusted_p_value)}\n"
                 if results.alpha:
                     output += f"alpha = {results.alpha}\n"
                 if results.dof:
@@ -75,7 +81,7 @@ class ResultData(Value):
                     effect_sizes = results.effect_size.items()
                     output += f"Effect size:\n"
                     for effect_size_name, effect_size_value in effect_sizes:
-                        output += f"{effect_size_name} = {effect_size_value}\n"
+                        output += f"{effect_size_name} = {'%.5f'%(effect_size_value)}\n"
                 if results.null_hypothesis:
                     output += f"Null hypothesis = {results.null_hypothesis}\n"
                 if results.interpretation:
