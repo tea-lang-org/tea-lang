@@ -1,15 +1,16 @@
 # Tea
 from tea.global_vals import *
-from tea.ast import DataType, GreaterThan
+from tea.ast import DataType, LessThan, GreaterThan
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
-from tea.runtimeDataStructures.resultData import ResultData
 from tea.runtimeDataStructures.testResult import TestResult
 
 # Stats
+from statistics import mean, stdev
+from math import sqrt
 from scipy import stats # Stats library used
 from sklearn import preprocessing # for creating interaction effects
 import statsmodels.api as sm
@@ -255,7 +256,7 @@ def compute_normal_distribution(data):
 def compute_variance(data): 
     return -1
 
-# Levene test to test for equal variances - Leven is more robust to nonnormal data than Bartlett's test
+# Levene test to test for equal variances - Levene is more robust to nonnormal data than Bartlett's test
 # Null Hypothesis is that samples have the same variances
 # Rejecting null means that samples have different variances
 # TODO: ??? Default/currently using .05 alpha level
@@ -298,10 +299,8 @@ def is_dependent_samples(var_name: str, design: Dict[str, str]):
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
-StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p')) #, 'interpretation'))
+# StudentsTResult = namedtuple('StudentsTResult', ('statistic', 'p', 'adjusted_p')) #, 'interpretation'))
 def students_t(dataset, predictions, combined_data: BivariateData):
-
-    # predictions = [[GreaterThans]]
 
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -310,91 +309,39 @@ def students_t(dataset, predictions, combined_data: BivariateData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
 
-    pred = None
-    if predictions:
-        pred = predictions[0][0]
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
     
     lhs = None
     rhs = None
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-        if c == pred.lhs.value:
+        if c == prediction.lhs.value:
             lhs = cat_data
-        if c == pred.rhs.value:
+        if c == prediction.rhs.value:
             rhs = cat_data
         data.append(cat_data)
 
     t_stat, p_val = stats.ttest_ind(lhs, rhs, equal_var=True)
-
-    # Are there user predictions?
-    if predictions: 
-        one_sided = [(isinstance(*v, GreaterThan) or isinstance(*v, LessThan)) for v in predictions]
-
-        # import pdb; pdb.set_trace()
-        if any(one_sided):
-            adjusted_p = p_val/2
-        else: 
-            adjusted_p = p_val
-
-
-        # TODO: This should really go in a sanitizing step or something...
-        alpha = combined_data.alpha
-        class TTestResult(Enum):
-            not_significant = 0
-            significantly_different = 1
-            significantly_greater = 2
-            significantly_less = 3
-
-        ttest_result = TTestResult.not_significant
-        # Based on https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faq-what-are-the-differences-between-one-tailed-and-two-tailed-tests/
-        # From the example on this site:
-        # If t is negative and we are checking a less than relationship, use p/2 as the adjusted p-value.
-        # If t is negative and we are checking a greater than relationship, use 1 - p/2 as the adjusted p-value.
-        if t_stat > 0:
-            if isinstance(pred, GreaterThan) and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_greater
-            elif isinstance(pred, LessThan) and 1 - adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_less
-            elif not one_sided and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_different
-            else:
-                ttest_result = TTestResult.not_significant
-        elif t_stat < 0:
-            if isinstance(pred, LessThan) and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_less
-            elif isinstance(pred, GreaterThan) and 1 - adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_greater
-            elif not one_sided and adjusted_p < alpha:
-                ttest_result = TTestResult.significantly_different
-            else:
-                ttest_result = TTestResult.not_significant
-        elif not one_sided and adjusted_p < alpha:
-            ttest_result = ttest_result.significantly_different
-        else:
-            assert False, "t_stat = 0 and it's not a one-sided test. Not sure under what conditions this is possible."
-
-        interpretation = None
-        if ttest_result == ttest_result.not_significant:
-            interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} " \
-                f"and {x.metadata[name]} = {pred.rhs.value} is not significant."
-        elif ttest_result == ttest_result.significantly_different:
-            interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} " \
-                f"and {x.metadata[name]} = {pred.rhs.value} is significant."
-        elif ttest_result == ttest_result.significantly_greater:
-            interpretation = f"The mean of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} is significantly" \
-                f" greater than the mean for {x.metadata[name]} = {pred.rhs.value}"
-        elif ttest_result == ttest_result.significantly_less:
-            interpretation = f"The mean of {y.metadata[name]} for {x.metadata[name]} = {pred.lhs.value} is significantly" \
-                f" less than the mean for {x.metadata[name]} = {pred.rhs.value}"
-        else:
-            assert False, "ttest_result case without an associated interpretation."
-
-        # return StudentsTResult(t_stat, p_val, adjusted_p, interpretation)
-        return StudentsTResult(t_stat, p_val, adjusted_p)
     
-    
+    dof = len(lhs) + len(rhs) - 2 # Group1 + Group2 - 2
+    test_result = TestResult( 
+                        name = students_t_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
 
-    # greater-than test when p/2 < alpha and t > 0, and of a less-than test when p/2 < alpha and t < 0
+    return test_result
+    
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html#scipy.stats.ttest_rel
 # Possible parameters: a, b : array | axis (without, over entire arrays) | nan_policy (optional) 
@@ -405,18 +352,37 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
     y = ys[0]
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
+    
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
 
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.ttest_rel(data[0], data[1])
+    t_stat, p_val = stats.ttest_rel(data[0], data[1])
+    dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
+    test_result = TestResult( 
+                        name = paired_students_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
+
+    return test_result
+
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
 def welchs_t(dataset, predictions, combined_data: BivariateData):
-    # assert(len(predictions) == 1)
-
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
     x = xs[0]
@@ -428,7 +394,34 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.ttest_ind(data[0], data[1], equal_var=False)
+
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.ttest_ind(data[0], data[1], equal_var=False)
+    # dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
+    
+    # TODO Maybe use Satterthaite-Welch adjustment 
+    if len(data[0]) < len(data[1]): 
+        dof = len(data[0]) - 1
+    else: 
+        dof = len(data[1]) - 1
+    test_result = TestResult( 
+                        name = welchs_t_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
+
+    return test_result
+
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
@@ -449,7 +442,27 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = mann_whitney_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
+
+    return test_result
+
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
@@ -465,7 +478,27 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
     
-    return stats.wilcoxon(data[0], data[1])
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.wilcoxon(data[0], data[1])
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = wilcoxon_signed_rank_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        x = x,
+                        y = y)
+
+    return test_result
+
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
 # Parameters: x (array-like) | y (array-like)
@@ -478,8 +511,24 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
 
     assert(len(data) == 2)
-
-    return s.pearsonr(data[0], data[1])
+    
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.pearsonr(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = pearson_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
+    return test_result
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
@@ -500,9 +549,24 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
     
     assert(len(data) == 2)
-    results =  stats.spearmanr(data[0], data[1])
 
-    return TestResult('Spearman R Correlation', results[0], results[1])
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.spearmanr(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = spearman_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
+    return test_result
 
 # https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
 # Parameters: x (array-like) | y (array-like) : Arrays of rankings, of the same shape. If arrays are not 1-D, they will be flattened to 1-D.
@@ -515,9 +579,24 @@ def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         data.append(var_data)
 
     assert(len(data) == 2)
-    results = stats.kendalltau(data[0], data[1])
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.kendalltau(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = kendalltau_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
 
-    return TestResult('Kendall Tau Correlation', results[0], results[1])
+    return test_result
 
 def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -533,12 +612,30 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
     for c in cat: 
         cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
         data.append(cat_data)
-    
-    return stats.pointbiserialr(data[0], data[1])
 
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.pointbiserialr(data[0], data[1])
+    dof = None
+    test_result = TestResult( 
+                        name = pointbiserial_name,
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
+    
+    return test_result
+
+    
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html
 # Parameters: observed (contingency table) | correction (bool for Yates' correction) | lambda (change statistic computed)
-ChisquareResult = namedtuple('ChisquareResult', ('chi2', 'p', 'dof', 'expected'))
+# ChisquareResult = namedtuple('ChisquareResult', ('chi2', 'p', 'dof', 'expected'))
 
 def chi_square(dataset: Dataset, predictions, combined_data: CombinedData): 
     # Compute the contingency table
@@ -577,13 +674,31 @@ def chi_square(dataset: Dataset, predictions, combined_data: CombinedData):
         raise ValueError(f"Currently, chi square requires/only supports 1 explanatory variable, instead received: {len(xs)} -- {xs}")
 
     # chi2, p, dof, ex = chi2_contingency(obs, correction=False)
+    # chi2, p, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
 
-    chi2, p, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
-    return ChisquareResult(chi2, p, dof, ex)
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    test_statistic, p_val, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
+    dof = None
+    test_result = TestResult( 
+                        name = "Chi Square Test",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
+    
+    return test_result
+    
 
 # https://docs.scipy.org/doc/scipy-0.18.1/reference/generated/scipy.stats.fisher_exact.html#scipy.stats.fisher_exact
 # Parmaters: table (2 x 2) | alternative (default='two-sided' optional)
-FishersResult = namedtuple('FishersResult', ('oddsratio', 'p_value'))
+# FishersResult = namedtuple('FishersResult', ('oddsratio', 'p_value'))
 
 def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData): 
     assert(len(combined_data.vars) == 2)
@@ -619,8 +734,27 @@ def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData):
         contingency_table.append(table_row)
         contingency_table_key.append(table_row_key)
 
-    odds_ratio, p_value = stats.fisher_exact(contingency_table, alternative='two-sided')
-    return FishersResult(odds_ratio, p_value)
+    # odds_ratio, p_value = stats.fisher_exact(contingency_table, alternative='two-sided')
+    # return FishersResult(odds_ratio, p_value)
+
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    odds_ratio, p_val = stats.fisher_exact(contingency_table, alternative='two-sided')
+    dof = None
+    test_result = TestResult( 
+                        name = "Chi Square Test",
+                        test_statistic = odds_ratio,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
+    
+    return test_result
 
 def f_test(dataset: Dataset, predictions, combined_data: CombinedData):  
     # Construct formula
@@ -634,11 +768,36 @@ def f_test(dataset: Dataset, predictions, combined_data: CombinedData):
     
     formula = ols(f"{y.metadata[name]} ~ C({x.metadata[name]})", data=dataset.data)
     model =formula.fit()
-    return sm.stats.anova_lm(model, type=2)
-    # import pdb; pdb.set_trace()
-    # >>> moore_lm = ols('conformity ~ C(fcategory, Sum)*C(partner_status, Sum)',
-                #  data=data).fit()
-    # >>> table = sm.stats.anova_lm(moore_lm, typ=2) # Type 2 Anova DataFrame
+    
+
+    if predictions:
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    result_df = sm.stats.anova_lm(model, type=2)
+    # Need to inspect the result_df and return the appropriate test_statistic/p_value pair based on the prediction
+    col_name = "C(" + x.metadata[name] + ")"
+    for row_name in result_df.index: 
+        if row_name == col_name: 
+            row_data = result_df.loc[row_name]
+            test_statistic = row_data['F']
+            p_val = row_data['PR(>F)']
+            dof = row_data['df']
+
+    test_result = TestResult( 
+                        name = "F Test",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        table = result_df)
+    
+    return test_result
+
 
 # Private function to prevent duplicate symmetric interactions
 # (e.g., ''A*B' is the same as 'B*A', both should not occur in ANOVA formula twice)
@@ -686,9 +845,35 @@ def factorial_ANOVA(dataset: Dataset, predictions, combined_data: CombinedData):
 
     ols_formula = ols(formula, data=dataset.data)
     model = ols_formula.fit()
-    return sm.stats.anova_lm(model, type=2)
+    result_df = sm.stats.anova_lm(model, type=2)
+    if predictions:
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
 
-def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData): 
+    col_name = "C(" + x.metadata[name] + ")"
+    for row_name in result_df.index: 
+        if row_name == col_name: 
+            row_data = result_df.loc[row_name]
+            test_statistic = row_data['F']
+            p_val = row_data['PR(>F)']
+            dof = row_data['df']
+
+    test_result = TestResult( 
+                        name = factorial_anova_name,
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        table = result_df)
+    
+    return test_result
+
+def rm_one_way_anova(dataset: Dataset, predictions, design, combined_data: CombinedData): 
     data = dataset.data
     xs = combined_data.get_explanatory_variables()
     ys = combined_data.get_explained_variables()
@@ -703,13 +888,38 @@ def rm_one_way_anova(dataset: Dataset, design, combined_data: CombinedData):
         if "within subjects" in design and design["within subjects"] == x.metadata[name]:
             within_subjs.append(x.metadata[name])
     
-    # import pdb; pdb.set_trace()
+    if predictions:
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+
     key = dataset.pid_col_name
-    # import pdb; pdb.set_trace()
     aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=key, within=within_subjs, aggregate_func='mean')
     # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
     res2way = aovrm2way.fit()
-    return res2way
+    result_df = res2way.anova_table
+
+    col_name = x.metadata[name]
+    for row_name in result_df.index: 
+        if row_name == col_name: 
+            row_data = result_df.loc[row_name]
+            test_statistic = row_data['F Value']
+            p_val = row_data['Pr > F']
+            dof = (row_data['Num DF'], row_data['Den DF'])
+
+    test_result = TestResult( 
+                        name = rm_one_way_anova_name,
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        table = result_df)
+    
+    return test_result
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html
 def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData): 
@@ -727,7 +937,27 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
             data.append(cat_data)
     
-    return stats.kruskal(*data)
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    t_stat, p_val = stats.kruskal(*data)
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = "Kruskall Wallis Test",
+                        test_statistic = t_stat,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
+    
+    return test_result
+    # return TestResult('Kruskal Wallis', result.statistic, result.pvalue)
+
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.friedmanchisquare.html#scipy.stats.friedmanchisquare
 def friedman(dataset: Dataset, predictions, combined_data: CombinedData): 
     xs = combined_data.get_explanatory_variables()
@@ -742,7 +972,27 @@ def friedman(dataset: Dataset, predictions, combined_data: CombinedData):
             cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
             data.append(cat_data)
     
-    return stats.friedmanchisquare(*data)
+    # return stats.friedmanchisquare(*data)
+
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+    test_statistic, p_val = stats.friedmanchisquare(*data)
+    dof = len(data[0]) # TODO This might not be correct
+    test_result = TestResult( 
+                        name = "Kruskall Wallis Test",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha)
+    
+    return test_result
+    
 
 
 # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.linregress.html
@@ -769,32 +1019,113 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
                 cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
                 stat = bs.bootstrap(cat_data.to_numpy(), stat_func=bs_stats.median)
                 calculations[c] = stat
-                # import pdb; pdb.set_trace()
-                # store all the medians & confidence intervals
-                # return all the medians & CIs
-                # data.append(cat_data)
+        
+    if predictions: 
+        if isinstance(predictions[0], list): 
+            prediction = predictions[0][0]
+        else: 
+            prediction = predictions[0]
+    else: 
+        prediction = None
+
+    x = xs[0] # We should do this for the prediction, only....?
+    cat = [k for k,v in x.metadata[categories].items()]
+    test_statistic = {}
+    p_val = None
+    for c in cat: 
+        # import pdb; pdb.set_trace()
+        lb = calculations[c].lower_bound
+        ub = calculations[c].upper_bound
+
+        test_statistic[c] = (lb, ub)
+
+    alpha = combined_data.alpha
+    lb = None
+    ub = None
+    for group, bounds in test_statistic.items(): 
+        if not lb:
+            assert(not ub)
+            lb = bounds[0]
+            ub = bounds[1]
+        else: 
+            if bounds[0] >= lb and bounds[0] <= ub: 
+                p_val = f'Greater than or equal to {alpha}'
+            elif bounds[1] >= lb and bounds[1] <=ub:  
+                p_val = f'Greater than or equal to {alpha}'
+            else: 
+                p_val = f'Less than {alpha}'
+
+    dof = None
+    test_result = TestResult( 
+                        name = "Bootstrap",
+                        test_statistic = test_statistic,
+                        p_value = p_val,
+                        prediction = prediction,
+                        dof = dof,
+                        alpha = combined_data.alpha,
+                        table = calculations)
     
-    return calculations
+    return test_result
+    
 
-        # Interaction effects
-        # Add the interactions
-        # interactions = []
-        # for i in range(len(xs)): 
-        #     x_i = xs[i]
-        #     # inter = f"{x_i.metadata[name]}" 
-        #     for j in range(len(xs)):
-        #         if i != j: 
-        #             x_j = xs[j]
-        #             # inter += " * " + f"C({x_j.metadata[name]})"
-        #             interactions.append(inter)
-                    
-        #             if _is_interaction_unique(interactions, inter):
-        #                 formula += " + " +  inter
+def cohens(dataset, predictions, combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
+    data = []
 
+    pred = None
+    if predictions:
+        pred = predictions[0][0]
+    
+    lhs = None
+    rhs = None
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if c == pred.lhs.value:
+            lhs = cat_data
+        if c == pred.rhs.value:
+            rhs = cat_data
+        data.append(cat_data)
+    
+    cohens_d = (mean(lhs) - mean(rhs)) / (sqrt((stdev(lhs) ** 2 + stdev(rhs) ** 2) / 2))
+    return cohens_d
 
-    # import pdb; pdb.set_trace()
-    # Start with the case where there are only 2 groups to compare (like t-test)
+def vda(dataset, predictions, combined_data: CombinedData): 
+    xs = combined_data.get_explanatory_variables()
+    ys = combined_data.get_explained_variables()
+    x = xs[0]
+    y = ys[0]
+    cat = [k for k,v in x.metadata[categories].items()]
+    data = []
 
+    pred = None
+    if predictions:
+        pred = predictions[0][0]
+    
+    lhs = None
+    rhs = None
+    for c in cat: 
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if c == pred.lhs.value:
+            lhs = cat_data
+        if c == pred.rhs.value:
+            rhs = cat_data
+        data.append(cat_data)
+
+    
+    m = len(lhs)
+    n = len(rhs)
+    concat = lhs.append(rhs)
+    r = stats.rankdata(concat)
+    r1 = sum(r[range(0,m)])
+  
+    # Compute the measure
+    # A = (r1/m - (m+1)/2)/n # formula (14) in Vargha and Delaney, 2000
+    A = (2*r1 - m*(m+1)) / (2*n*m) # equivalent formula to avoid accuracy errors
+    return A
 
 __stat_test_to_function__ = {
     'pearson_corr' : pearson_corr,
@@ -803,11 +1134,11 @@ __stat_test_to_function__ = {
     'pointbiserial_corr_a': pointbiserial,
     'pointbiserial_corr_b': pointbiserial,
     
-    'students_t': students_t,
-    'welchs_t': welchs_t,
-    'mannwhitney_u' : mannwhitney_u,
-    'paired_students_t' : paired_students_t,
-    'wilcoxon_signed_rank' : wilcoxon_signed_rank,
+    'students_t': students_t, # cohen's d, A12
+    'welchs_t': welchs_t, # A12
+    'mannwhitney_u' : mannwhitney_u, # A12
+    'paired_students_t' : paired_students_t, # cohen's d, A12
+    'wilcoxon_signed_rank' : wilcoxon_signed_rank, # A12
 
     'chi_square' : chi_square,
     'fishers_exact' : fishers_exact,
@@ -828,23 +1159,49 @@ def lookup_function(test_name):
     else: 
         raise ValueError(f"Cannot find the test:{test_name}")
 
-def execute_test(dataset, design, predictions, combined_data: CombinedData, test):     
-    # import pdb; pdb.set_trace()    
+def add_effect_size(dataset, predictions, combined_data, test_func, stat_result):   
+    parametric_tests =[students_t, paired_students_t]
+    nonparametric_tests = [welchs_t, mannwhitney_u, wilcoxon_signed_rank]
+    added_effect_size = False
+
+    if test_func in parametric_tests: 
+        # Calculate Cohen's d
+        d = cohens(dataset, predictions, combined_data)
+        stat_result.add_effect_size('Cohen\'s d', d)
+        added_effect_size = True
+    if test_func in parametric_tests or test_func in nonparametric_tests: 
+        # Calculate A12
+        a12 = vda(dataset, predictions, combined_data)
+        stat_result.add_effect_size('A12', a12)
+        added_effect_size = True
+
+    if added_effect_size:
+        stat_result.add_effect_size_to_interpretation()
+
+def add_dof(dataset, predictions, combined_data, test_func, stat_result): 
+    import pdb; pdb.set_trace()
+
+def execute_test(dataset, design, predictions, combined_data: CombinedData, test):         
     # Get function handler
     test_func = lookup_function(test)
 
     # Execute the statistical test
     if test_func is rm_one_way_anova: 
-        stat_result = test_func(dataset, design, combined_data)
+        stat_result = test_func(dataset, predictions, design, combined_data)
     else:
         stat_result = test_func(dataset, predictions, combined_data)
+
+    # Calculate the effect size
+    add_effect_size(dataset, predictions, combined_data, test_func, stat_result)
+
+    # Compute the DOF
+    # add_dof(dataset, predictions, combined_data, test_func, stat_result)
 
     # Return results
     return stat_result
 
-# Correct for multiple comparisons
-def correct_multiple_comparison(res_data: ResultData, num_comparisons: int): 
-    # TODO: refactor ResultData first. 
-    res_data.adjust_p_values(num_comparisons) 
-
-    import pdb; pdb.set_trace()
+#
+# # Correct for multiple comparisons
+# def correct_multiple_comparison(res_data: ResultData, num_comparisons: int):
+#     # TODO: refactor ResultData first.
+#     res_data.adjust_p_values(num_comparisons)

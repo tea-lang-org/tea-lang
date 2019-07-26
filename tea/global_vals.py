@@ -43,8 +43,24 @@ assumptions_to_properties = {
     eq_variance : ['has_equal_variance']
 }
 
+# For solver, how to treat user assumptions
+# MODE = 'strict' #can be 'strict' or 'relaxed'
+
 # LOGGING
 # TODO: This shoudl eventually write out to a file somewhere.
 def log(message: str):
-    # print(message)
-    pass
+    print(message)
+    # pass
+
+# Test names.
+pearson_name = "Pearson Correlation"
+kendalltau_name = "Kendall\'s Tau Correlation"
+spearman_name = "Spearman\'s R Correlation"
+pointbiserial_name = "Pointbiserial Correlation"
+students_t_name = "Student\'s T Test"
+paired_students_name = "Paired Student\'s T Test"
+welchs_t_name = "Welch\'s T Test"
+mann_whitney_name = "Mann Whitney U Test"
+wilcoxon_signed_rank_name = "Wilcoxon Signed Rank Test"
+rm_one_way_anova_name = "Repeated Measures One Way ANOVA"
+factorial_anova_name = "Factorial ANOVA"

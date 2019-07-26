@@ -1,14 +1,231 @@
+from tea.global_vals import *
+from enum import Enum
 from .value import Value
+from tea.ast import DataType, LessThan, GreaterThan, Literal, Relationship
 
+# Other
 import attr
+
+
+# Need to be reset for each test
+group1 = None
+group2 = None
+outcome = None
+
+__test_to_statistic_of_interest__ = {
+    students_t_name: "mean",
+    welchs_t_name: "mean",
+    mann_whitney_name: "median",
+    paired_students_name: "mean",
+    wilcoxon_signed_rank_name: "median",
+}
+
+__stats_tests_to_null_hypotheses__ = {
+    pearson_name:  'There is no relationship between {} and {}.',
+    kendalltau_name: 'There is no relationship between {} and {}.',
+    spearman_name: 'There is no relationship between {} and {}.',
+    pointbiserial_name: 'There is no association between {} and {}.',
+
+    students_t_name : 'There is no difference in {}s between {} and {} on {}.',
+    welchs_t_name : 'There is no difference in {}s between {} and {} on {}.',
+    mann_whitney_name : 'There is no difference in {}s between {} and {} on {}.',
+    paired_students_name : 'There is no difference in {}s between {} and {} on {}.',
+    wilcoxon_signed_rank_name : 'There is no difference in {}s between {} and {} on {}.',
+
+    "Chi Square Test" : f'{group1} and {group2} are independent.',
+    "Fisher\'s Exact Test" : f'{group1} and {group2} are independent.',
+
+    # Regression or anova?
+    "F Test" : f'All regression coefficients are equal to zero.',
+    "Kruskall Wallis" : f'The medians of all groups are equal.',
+    # This isn't very descriptive…
+    "Friedman" : f'There is no difference between the groups',
+    factorial_anova_name : f'The difference in means between two populations is not significantly different.',
+    rm_one_way_anova_name : f'The means of all groups/conditions are equal.',
+
+    # Does this depend on the statistic being calculated?
+    "Bootstrap" : f''
+}
+
+__two_group_tests__ = {
+    pearson_name,
+    kendalltau_name,
+    spearman_name,
+    pointbiserial_name,
+}
+
+__two_group_outcome_tests__ = {
+    students_t_name,
+    welchs_t_name,
+    mann_whitney_name,
+    paired_students_name,
+    wilcoxon_signed_rank_name,
+}
+
 
 @attr.s(init=True)
 class TestResult(Value): 
     name = attr.ib()
     test_statistic = attr.ib()
     p_value = attr.ib()
+    prediction = attr.ib()
+    alpha = attr.ib()
+    dof = attr.ib(default=None)
+    adjusted_p_value = attr.ib(default=None)
+    null_hypothesis = attr.ib(default=None)
+    interpretation = attr.ib(default=None)
+    table = attr.ib(default=None)
+    x = attr.ib(default=None)
+    y = attr.ib(default=None)
+
+    def __attrs_post_init__(self):
+        self.adjust_p_val()
+
+        if self.prediction:
+            self.null_hypothesis = self.get_null_hypothesis()
+            self.set_interpretation()
+        else:
+            print("No prediction specified.")
+        print(self.null_hypothesis)
+
+    def adjust_p_val(self):
+        # Adjust p value
+        if self.prediction:
+            if self._is_one_sided():
+                self.adjusted_p_value = self.p_value/2
+            else: 
+                self.adjusted_p_value = self.p_value
+
+    def get_null_hypothesis(self):
+        # TODO: Passing x and y seems more modular than passing string?
+        if self.name in __two_group_tests__:
+            var1, var2 = self._calculate_two_group_vars()
+            return __stats_tests_to_null_hypotheses__[self.name] \
+                .format(var1, var2)
+        elif self.name in __two_group_outcome_tests__:
+            assert self.x
+            assert len(self.x.metadata[categories]) == 2
+            assert self.y
+
+            cats = list(self.x.metadata[categories].items())
+            return __stats_tests_to_null_hypotheses__[self.name] \
+                .format(__test_to_statistic_of_interest__[self.name], cats[0][0], cats[1][0], self.y.metadata[name])
+
+        return ""
+
+    def set_interpretation(self):
+        """
+            Based on https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faq-what-are-the-differences-between-one-tailed-and-two-tailed-tests/
+            From the example on this site:
+            If t is negative and we are checking a less than relationship, use p/2 as the adjusted p-value.
+            If t is negative and we are checking a greater than relationship, use 1 - p/2 as the adjusted p-value.
+        """
+
+        # import pdb; pdb.set_trace()
+        # one_sided = True if self.adjusted_p_value else False
+        one_sided = self._is_one_sided()
+
+        # Start interpretation
+        ttest_result = Significance.not_significant
+        if self.test_statistic > 0:
+            if one_sided and isinstance(self.prediction, GreaterThan) and self.adjusted_p_value < self.alpha:
+                ttest_result = Significance.significantly_greater
+            elif one_sided and isinstance(self.prediction, LessThan) and 1 - self.adjusted_p_value < self.alpha:
+                ttest_result = Significance.significantly_less
+            elif not one_sided and self.adjusted_p_value and self.adjusted_p_value < self.alpha:
+                ttest_result = Significance.significantly_different
+            else:
+                ttest_result = Significance.not_significant
+        elif self.test_statistic < 0:
+            if one_sided and isinstance(self.prediction, LessThan) and self.adjusted_p_value < self.alpha:
+                ttest_result = Significance.significantly_less
+            elif one_sided and isinstance(self.prediction, GreaterThan) and 1 - self.adjusted_p_value < self.alpha:
+                ttest_result = Significance.significantly_greater
+            elif not one_sided and self.adjusted_p_value < self.alpha:
+                ttest_result = Significance.significantly_different
+            else:
+                ttest_result = Significance.not_significant
+        elif not one_sided and self.adjusted_p_value and self.adjusted_p_value < self.alpha:
+            ttest_result = ttest_result.significantly_different
+        else:
+            assert False, "test_statistic = 0 and it's not a one-sided test. Not sure under what conditions this is possible."
+
+
+        # TODO Maybe the "means" part could be replacable....
+        self.interpretation = f"t({self.dof}) = {self.test_statistic}, {self.adjusted_p_value}. " if self.dof else ""
+        if ttest_result == ttest_result.not_significant:
+            self.interpretation += f"Fail to reject the null hypothesis at alpha = {self.alpha}. "
+            self.interpretation += self.null_hypothesis
+            # self.interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {self.prediction.lhs.value} " \
+            #     f"and {x.metadata[name]} = {self.prediction.rhs.value} is not significant."
+        elif ttest_result == ttest_result.significantly_different:
+            self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
+            if self.name in __two_group_tests__:
+                var1, var2 = self._calculate_two_group_vars()
+                self.interpretation += f"There is a relationship between {var1} and {var2}."
+            elif self.name in __two_group_outcome_tests__:
+                stat = __test_to_statistic_of_interest__[self.name]
+                self.interpretation += f"The difference in {stat}s of {self.y.metadata[name]} for {self.x.metadata[name]} = {self.prediction.lhs.value} " \
+                    f"and {self.x.metadata[name]} = {self.prediction.rhs.value} is significant. "
+        elif ttest_result == ttest_result.significantly_greater:
+            self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
+            stat = __test_to_statistic_of_interest__[self.name]
+            self.interpretation += f"The {stat} of {self.y.metadata[name]} for {self.x.metadata[name]} = {self.prediction.lhs.value} is significantly" \
+                f" greater than the {stat} for {self.x.metadata[name]} = {self.prediction.rhs.value}. "
+        elif ttest_result == ttest_result.significantly_less:
+            self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
+            stat = __test_to_statistic_of_interest__[self.name]
+            self.interpretation += f"The {stat} of {self.y.metadata[name]} for {self.x.metadata[name]} = {self.prediction.lhs.value} is significantly" \
+                f" less than the {stat} for {self.x.metadata[name]} = {self.prediction.rhs.value}. "
+        else:
+            assert False, "ttest_result case without an associated self.interpretation."
+
+        
+    # def adjust_p_val(self, correction): 
+    #     self.self.adjusted_p_value = attr.ib()
+    #     self.self.adjusted_p_value = self.p_value/correction
     
-    def adjust_p_val(self, correction): 
-        self.adjusted_p_val = attr.ib()
-        self.adjusted_p_val = self.p_value/correction
+    # def set_adjusted_p_val(self, adjusted_p_value): 
+    #     self.self.adjusted_p_value = attr.ib()
+    #     self.self.adjusted_p_value = adjusted_p_value
+
+    def add_effect_size(self, name, effect_size): 
+        if hasattr(self, 'effect_size'):
+            self.effect_size[name] = effect_size
+        else: 
+            self.effect_size = attr.ib()
+            self.effect_size = {name : effect_size}
+
+    def add_effect_size_to_interpretation(self):
+        self.interpretation += f"The effect size is {self.effect_size}. " \
+            f"The effect size is the magnitude of the difference, which gives a holistic view of the results [1].\n" \
+            f"[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282."
+
+    
+    def add_doc(self, name, dof):
         import pdb; pdb.set_trace()
+
+    def _calculate_two_group_vars(self):
+        var1 = ""
+        var2 = ""
+        if isinstance(self.prediction.lhs, Literal):
+            var1 = self.prediction.lhs.value
+            var2 = self.prediction.rhs.value
+        else:
+            assert isinstance(self.prediction.lhs, Relationship)
+            var1 = self.prediction.lhs.var
+            var2 = self.prediction.rhs.var
+
+        return (var1, var2)
+
+    def _is_one_sided(self):
+        return True if self.name in __two_group_outcome_tests__ and \
+                        (isinstance(self.prediction, GreaterThan) or isinstance(self.prediction, LessThan)) \
+                else False
+
+
+class Significance(Enum): 
+        not_significant = 0
+        significantly_different = 1
+        significantly_greater = 2
+        significantly_less = 3
