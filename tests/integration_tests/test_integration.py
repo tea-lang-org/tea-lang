@@ -263,6 +263,7 @@ def test_indep_t_test():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
+        'groups normally distributed': ['So', 'Prob']
     }
 
     tea.data(data_path)
