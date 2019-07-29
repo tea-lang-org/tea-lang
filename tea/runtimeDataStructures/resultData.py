@@ -15,7 +15,6 @@ class ResultData(Value):
         self.test_to_assumptions = {}
         for test in __ALL_TESTS__:
             if test.name in test_to_results:
-                print(test.name)
                 test_assumptions = []
                 # TODO: The names get stale if hypothesize() is called multiple times in a row.
                 for applied_prop in test._properties:

@@ -49,8 +49,8 @@ assumptions_to_properties = {
 # LOGGING
 # TODO: This shoudl eventually write out to a file somewhere.
 def log(message: str):
-    print(message)
-    # pass
+    # print(message)
+    pass
 
 # Test names.
 pearson_name = "Pearson Correlation"
