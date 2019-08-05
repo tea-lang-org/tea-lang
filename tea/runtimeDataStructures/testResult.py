@@ -86,7 +86,6 @@ class TestResult(Value):
             self.set_interpretation()
         else:
             print("No prediction specified.")
-        print(self.null_hypothesis)
 
     def adjust_p_val(self):
         # Adjust p value

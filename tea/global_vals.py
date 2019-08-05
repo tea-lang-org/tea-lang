@@ -49,7 +49,11 @@ assumptions_to_properties = {
 # LOGGING
 # TODO: This shoudl eventually write out to a file somewhere.
 def log(message: str):
-    # print(message)
+    print(message)
+    # pass
+
+
+def log_debug(message: str):
     pass
 
 # Test names.
