@@ -390,19 +390,25 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
 
-    for c in cat: 
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-        data.append(cat_data)
-    
-
-    if predictions: 
-        if isinstance(predictions[0], list): 
+    if predictions:
+        if isinstance(predictions[0], list):
             prediction = predictions[0][0]
-        else: 
+        else:
             prediction = predictions[0]
-    else: 
+    else:
         prediction = None
-    t_stat, p_val = stats.ttest_ind(data[0], data[1], equal_var=False)
+
+    lhs = None
+    rhs = None
+    for c in cat:
+        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if c == prediction.lhs.value:
+            lhs = cat_data
+        if c == prediction.rhs.value:
+            rhs = cat_data
+        data.append(cat_data)
+
+    t_stat, p_val = stats.ttest_ind(lhs, rhs, equal_var=False)
     # dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
     
     # TODO Maybe use Satterthaite-Welch adjustment 
