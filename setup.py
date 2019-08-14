@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='tealang',
-      version='0.3',
+      version='0.1',
       description='Tea: A High-level Language and Runtime System to Automate Statistical Analysis',
       url='https://github.com/emjun/tea-lang',
       author='Eunice Jun',

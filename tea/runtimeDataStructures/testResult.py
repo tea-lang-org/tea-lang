@@ -175,9 +175,9 @@ class TestResult(Value):
             else:
                 ttest_result = Significance.not_significant
         elif self.test_statistic < 0:
-            if one_sided and isinstance(self.prediction, LessThan) and self.adjusted_p_value < self.alpha:
+            if one_sided and isinstance(self.prediction, LessThan) and  1 - self.adjusted_p_value < self.alpha:
                 ttest_result = Significance.significantly_less
-            elif one_sided and isinstance(self.prediction, GreaterThan) and 1 - self.adjusted_p_value < self.alpha:
+            elif one_sided and isinstance(self.prediction, GreaterThan) and self.adjusted_p_value < self.alpha:
                 ttest_result = Significance.significantly_greater
             elif not one_sided and self.adjusted_p_value < self.alpha:
                 ttest_result = Significance.significantly_different

@@ -208,7 +208,8 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
                 var_name = prediction[:delimiter_ind].strip()
                 var = get_var_from_list(var_name, vars)
                 lhs = prediction[delimiter_ind+1:comparator_ind].strip()
-                rhs = prediction[comparator_ind+1:].strip()
+                # Add len(c) to index in case comparator is longer than one character
+                rhs = prediction[comparator_ind+len(c):].strip()
                 
                 types = set(type(k) for k in var.categories.keys())
                 assert(len(types) == 1) # Assert all keys have the same type
