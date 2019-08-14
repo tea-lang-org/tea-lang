@@ -50,6 +50,11 @@ assumptions_to_properties = {
 # TODO: This shoudl eventually write out to a file somewhere.
 def log(message: str):
     print(message)
+    # pass
+
+
+def log_debug(message: str):
+    pass
 
 # Test names.
 pearson_name = "Pearson Correlation"
