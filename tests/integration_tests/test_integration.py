@@ -25,209 +25,209 @@ def get_data_path(filename):
     
     return data_path
 
-# # Example from Kabacoff
-# # Expected outcome: Pearson correlation 
-# def test_pearson_corr(): 
-#     data_path = get_data_path('statex77.csv')
-#     # data_path2 = get_data_path('statex87.csv')
+# Example from Kabacoff
+# Expected outcome: Pearson correlation 
+def test_pearson_corr(): 
+    data_path = get_data_path('statex77.csv')
+    # data_path2 = get_data_path('statex87.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Illiteracy',
-#             'data type' : 'interval',
-#             'categories' : [0, 100]
-#         },
-#         {
-#             'name' : 'Life Exp',
-#             'data type' : 'ratio',
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': ['Illiteracy', 'Life Exp'],
-#                             'outcome variables': ''
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#         'normal distribution': ['Illiteracy']
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Illiteracy',
+            'data type' : 'interval',
+            'categories' : [0, 100]
+        },
+        {
+            'name' : 'Life Exp',
+            'data type' : 'ratio',
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['Illiteracy', 'Life Exp'],
+                            'outcome variables': ''
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+        'normal distribution': ['Illiteracy']
+    }
 
-#     tea.data(data_path)
-#     # tea.data(data_path2)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions, 'strict')
+    tea.data(data_path)
+    # tea.data(data_path2)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions, 'strict')
 
-#     results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
-#     # print("\nfrom Kabacoff")
-#     # print("Expected outcome: Pearson")
-#     print('++++++++++++')
+    results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
+    # print("\nfrom Kabacoff")
+    # print("Expected outcome: Pearson")
+    print('++++++++++++')
     
-# def test_pearson_corr_2(): 
-#     data_path = get_data_path('exam.csv')
+def test_pearson_corr_2(): 
+    data_path = get_data_path('exam.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Exam',
-#             'data type' : 'ratio',
-#             'range' : [0, 100]
-#         },
-#         {
-#             'name' : 'Anxiety',
-#             'data type' : 'interval',
-#             'range' : [0, 100]
-#         },
-#         {
-#             'name' : 'Gender',
-#             'data type' : 'nominal',
-#             'categories' : ['Male', 'Female']
-#         },
-#         {
-#             'name' : 'Revise',
-#             'data type' : 'ratio'
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': ['Anxiety', 'Gender', 'Revise'],
-#                             'outcome variables': 'Exam'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Exam',
+            'data type' : 'ratio',
+            'range' : [0, 100]
+        },
+        {
+            'name' : 'Anxiety',
+            'data type' : 'interval',
+            'range' : [0, 100]
+        },
+        {
+            'name' : 'Gender',
+            'data type' : 'nominal',
+            'categories' : ['Male', 'Female']
+        },
+        {
+            'name' : 'Revise',
+            'data type' : 'ratio'
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['Anxiety', 'Gender', 'Revise'],
+                            'outcome variables': 'Exam'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
 
-#     tea.data(data_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design)
-#     tea.assume(assumptions)
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design)
+    tea.assume(assumptions)
 
-#     results = tea.hypothesize(['Anxiety', 'Exam'])
-#     results = tea.hypothesize(['Revise', 'Exam'])
-#     results = tea.hypothesize(['Anxiety', 'Revise'])
-#     # print("\nfrom Field et al.")
-#     # print("Expected outcome: Pearson")
-#     print('++++++++++++')
+    results = tea.hypothesize(['Anxiety', 'Exam'])
+    results = tea.hypothesize(['Revise', 'Exam'])
+    results = tea.hypothesize(['Anxiety', 'Revise'])
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Pearson")
+    print('++++++++++++')
 
-# def test_spearman_corr(): 
-#     data_path = get_data_path('liar.csv')
+def test_spearman_corr(): 
+    data_path = get_data_path('liar.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Creativity',
-#             'data type' : 'interval'
-#         },
-#         {
-#             'name' : 'Position',
-#             'data type' : 'ordinal',
-#             'categories' : [6, 5, 4, 3, 2, 1] # ordered from lowest to highest
-#         },
-#         {
-#             'name' : 'Novice',
-#             'data type' : 'nominal',
-#             'categories' : [0, 1]
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': ['Novice', 'Creativity'],
-#                             'outcome variables': 'Position'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Creativity',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Position',
+            'data type' : 'ordinal',
+            'categories' : [6, 5, 4, 3, 2, 1] # ordered from lowest to highest
+        },
+        {
+            'name' : 'Novice',
+            'data type' : 'nominal',
+            'categories' : [0, 1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['Novice', 'Creativity'],
+                            'outcome variables': 'Position'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
 
-#     tea.data(data_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design)
-#     tea.assume(assumptions)
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design)
+    tea.assume(assumptions)
 
-#     results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
-#     # print("\nfrom Field et al.")
-#     # print("Expected outcome: Spearman")
-#     print('++++++++++++')
+    results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6']) # TODO: allow for partial orders?
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Spearman")
+    print('++++++++++++')
 
-# # Same as test for Spearman rho
-# def test_kendall_tau_corr(): 
-#     data_path = get_data_path('liar.csv')
+# Same as test for Spearman rho
+def test_kendall_tau_corr(): 
+    data_path = get_data_path('liar.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'Creativity',
-#             'data type' : 'interval'
-#         },
-#         {
-#             'name' : 'Position',
-#             'data type' : 'ordinal',
-#             'categories' : [6, 5, 4, 3, 2, 1] # ordered from lowest to highest
-#         },
-#         {
-#             'name' : 'Novice',
-#             'data type' : 'nominal',
-#             'categories' : [0, 1]
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': ['Novice', 'Creativity'],
-#                             'outcome variables': 'Position'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Creativity',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Position',
+            'data type' : 'ordinal',
+            'categories' : [6, 5, 4, 3, 2, 1] # ordered from lowest to highest
+        },
+        {
+            'name' : 'Novice',
+            'data type' : 'nominal',
+            'categories' : [0, 1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['Novice', 'Creativity'],
+                            'outcome variables': 'Position'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
 
-#     tea.data(data_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design)
-#     tea.assume(assumptions)
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design)
+    tea.assume(assumptions)
 
-#     results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
-#     # print("\nfrom Field et al.")
-#     # print("Expected outcome: Kendall Tau")
-#     print('++++++++++++')
+    results = tea.hypothesize(['Position', 'Creativity'], ['Position:1 > 6', 'Position:1 > 2']) # I think this works!?
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Kendall Tau")
+    print('++++++++++++')
     
 
-# def test_pointbiserial_corr(): 
-#     data_path = get_data_path('pbcorr.csv')
+def test_pointbiserial_corr(): 
+    data_path = get_data_path('pbcorr.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'time',
-#             'data type' : 'ratio'
-#         },
-#         {
-#             'name' : 'gender',
-#             'data type' : 'nominal',
-#             'categories' : [0, 1] # ordered from lowest to highest
-#         },
-#         {
-#             'name' : 'recode',
-#             'data type' : 'nominal',
-#             'categories' : [0, 1]
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'observational study',
-#                             'contributor variables': ['gender', 'recode'],
-#                             'outcome variables': 'time'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'time',
+            'data type' : 'ratio'
+        },
+        {
+            'name' : 'gender',
+            'data type' : 'nominal',
+            'categories' : [0, 1] # ordered from lowest to highest
+        },
+        {
+            'name' : 'recode',
+            'data type' : 'nominal',
+            'categories' : [0, 1]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': ['gender', 'recode'],
+                            'outcome variables': 'time'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
 
-#     tea.data(data_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design)
-#     tea.assume(assumptions)
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design)
+    tea.assume(assumptions)
 
-#     tea.hypothesize(['time', 'gender'], ['gender:1 > 0']) # I think this works!?
-#     # print("\nfrom Field et al.")
-#     # print("Expected outcome: Pointbiserial")
-#     print('++++++++++++')
+    tea.hypothesize(['time', 'gender'], ['gender:1 > 0']) # I think this works!?
+    # print("\nfrom Field et al.")
+    # print("Expected outcome: Pointbiserial")
+    print('++++++++++++')
 
 def test_indep_t_test():
     data_path = get_data_path('UScrime.csv')

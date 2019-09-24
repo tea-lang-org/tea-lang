@@ -21,7 +21,8 @@ class Dataset(object):
     data = attr.ib(init=False) # pandas DataFrame
     
     @staticmethod
-    def load(path, name):
+    def load(path: str, name):
+        assert(isinstance(path, str))
         home = Path.home()
         tea_path = home / '.tea'
         if not _dir_exists(tea_path):

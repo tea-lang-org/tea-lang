@@ -28,7 +28,7 @@ def all_tests():
     return __ALL_TESTS__
 
 def reset_all_tests(): 
-    global __test_map__, __ALL_TESTS__ 
+    global __test_map__, __ALL_TESTS__,__property_to_function__
     global pearson_corr, kendalltau_corr, pointbiserial_corr_a, pointbiserial_corr_b
     global students_t, paired_students_t, welchs_t, mannwhitney_u
     global chi_square, fishers_exact
@@ -54,6 +54,7 @@ def reset_all_tests():
     
     __test_map__ = {}
     __ALL_TESTS__ = []
+    # __property_to_function__ = {}
 
 
 # Contains the global map from z3 variables which

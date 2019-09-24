@@ -14,6 +14,7 @@ from tea.z3_solver.solver import set_mode
 
 from typing import Dict
 from .global_vals import *
+from pathlib import Path
 
 # Set at start of programs
 # Used across functions
@@ -49,6 +50,8 @@ def download_data(url, name):
 def data(file, key=None): 
     global dataset_path, dataset_obj, dataset_id
 
+    # Require that the path to the data must be a string or a Path object
+    assert(isinstance(file, str) or isinstance(file, Path))
     dataset_path = file
     dataset_id = key
 
