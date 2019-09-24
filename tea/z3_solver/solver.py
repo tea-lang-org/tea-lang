@@ -54,7 +54,7 @@ def reset_all_tests():
     
     __test_map__ = {}
     __ALL_TESTS__ = []
-    # __property_to_function__ = {}
+    __property_to_function__ = {}
 
 
 # Contains the global map from z3 variables which
@@ -902,7 +902,10 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
         if __property_to_function__ == {}:
             prop_val = prop.property.function(**kwargs)
         else: 
-            prop_val = __property_to_function__[prop.__z3__](**kwargs)    
+            try:
+                prop_val = __property_to_function__[prop.__z3__](**kwargs)    
+            except: 
+                import pdb; pdb.set_trace()
     else: 
         assert (len(prop.vars) < len(combined_data.vars))
         var_data = []
