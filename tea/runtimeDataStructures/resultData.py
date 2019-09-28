@@ -1,3 +1,7 @@
+import contextlib
+import html
+import io
+
 from tea.z3_solver.solver import __ALL_TESTS__
 from tea.runtimeDataStructures.value import Value
 from tea.runtimeDataStructures.combinedData import CombinedData
@@ -96,3 +100,62 @@ class ResultData(Value):
 
     def __str__(self):  # Maybe what the user sees?
         return self._pretty_print()
+
+    def as_html(self):
+        html_out = io.StringIO()
+        with contextlib.redirect_stdout(html_out):
+            print("<h1>Results</h1>")
+            for test_name, results in self.test_to_results.items():
+                print("<hr>")
+                print(f"<h2>{html.escape(test_name)}</h2>")
+                print("<h3>Assumptions</h3>")
+                test_assumptions = self.test_to_assumptions.get(test_name, [])
+                if test_assumptions:
+                    print("<ul>")
+                    for assumption in test_assumptions:
+                        print(f"<li>{html.escape(assumption)}</li>")
+                    print("</ul>")
+                else:
+                    print("<p>No assumptions</p>")
+                print("<h3>Results</h3>")
+                if hasattr(results, "__dict__"):
+                    def dl_pair(term, definition):
+                        dt = html.escape(str(term))
+                        dd = html.escape(str(definition))
+                        return f"<li><b>{dt}:</b> {dd}</li>"
+                    print("<ul>")
+                    if results.name:
+                        print(dl_pair("name", results.name))
+                    if results.test_statistic:
+                        if isinstance(results.test_statistic, dict):
+                            print(dl_pair("test_statistic", results.test_statistic))
+                        else:
+                            print(dl_pair("test_statistic", f"{results.test_statistic:.5f}"))
+                    if results.p_value:
+                        if isinstance(results.p_value, str):
+                            print(dl_pair("p_value", results.p_value))
+                        else:
+                            print(dl_pair("p_value", f"{results.p_value:.5f}"))
+                    if results.adjusted_p_value:
+                        print(dl_pair("adjusted_p_value", f"{results.adjusted_p_value:.5f}"))
+                    if results.alpha:
+                        print(dl_pair("alpha", results.alpha))
+                    if results.dof:
+                        print(dl_pair("dof", results.dof))
+                    if results.table is not None:
+                        print(dl_pair("table", results.table))
+                    if "effect_size" in results.__dict__:
+                        effect_sizes = results.effect_size.items()
+                        sub_dl = "<ul>"
+                        for name, value in results.effect_size.items():
+                            sub_dl += dl_pair(name, f"{value:.5f}")
+                        sub_dl += "</ul>"
+                        print(f"<li><b>Effect size:</b>{sub_dl}</li>")
+                    if results.null_hypothesis:
+                        print(dl_pair("Null hypothesis", results.null_hypothesis))
+                    if results.interpretation:
+                        print(dl_pair("Interpretation", results.interpretation))
+                    print("</ul>")
+                else:
+                    print("<p>{html.escape(str(results))}</p>")
+        return html_out.getvalue()
