@@ -1,8 +1,4 @@
-from .build import (load_data, load_data_from_url, const,
-                    ordinal, isordinal,
-                    nominal, isnominal,
-                    ratio, isratio,
-                    interval, isinterval, isnumeric,
+from .build import (load_data, load_data_from_url, load_data_from_df, const,
                     select, compare, relate, predict,
                     get_var_from_list
                    )
@@ -15,6 +11,7 @@ from tea.z3_solver.solver import set_mode
 from typing import Dict
 from .global_vals import *
 from pathlib import Path
+from pandas import DataFrame
 
 # Set at start of programs
 # Used across functions
@@ -46,41 +43,29 @@ def download_data(url, name):
     return load_data_from_url(url, name)
 
 
-# @sets global dataset_path and dataaset_obj (of type Dataset)
-def data(file, key=None): 
+# @sets global dataset_path
+def data(data, key=None): 
     global dataset_path, dataset_obj, dataset_id
 
-    # Require that the path to the data must be a string or a Path object
-    assert(isinstance(file, str) or isinstance(file, Path))
-    dataset_path = file
-    dataset_id = key
+    if isinstance(data,DataFrame):
+        dataset_path = None
+        dataset_id = key
+        dataset_obj = load_data_from_df(data)
+
+    elif isinstance(data, str) or isinstance(data, Path):
+        dataset_path = data
+        dataset_id = key
+        dataset_obj = load_data(dataset_path, dataset_id)
+
+def get_data():
+    global dataset_obj
+    return dataset_obj
 
 def define_variables(vars: Dict[str, str]):
-    global vars_objs
+    global dataset_obj
 
-    # reset the variables
-    vars_objs = []
-
-    for var in vars: 
-        name = var['name']
-
-        if (var[var_dtype] == 'nominal'): 
-            categories = var[var_categories]
-            v_obj = nominal(name, categories)
-        elif (var[var_dtype] == 'ordinal'): 
-            categories = var[var_categories]
-            v_obj = ordinal(name, categories)
-        elif (var[var_dtype] == 'interval'): 
-            drange=None
-            if var_drange in var: 
-                drange = var[var_drange]
-            v_obj = interval(name, drange)
-        else: 
-            assert(var[var_dtype] == 'ratio')
-            drange = var[var_drange] if var_drange in var else None
-            v_obj = interval(name, drange)
-
-        vars_objs.append(v_obj)
+    assert(dataset_obj)
+    dataset_obj.set_variables(vars)
 
 
 def define_study_design(design: Dict[str, str]): 
@@ -135,15 +120,12 @@ def hypothesize(vars: list, prediction: list=None):
     global assumptions, all_results
     global MODE
 
-    assert(dataset_path)
-    assert(vars_objs)
+    assert(dataset_obj.variables)
     assert(study_design)
-
-    dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
 
     v_objs = []
     for v in vars: 
-        v_objs.append(get_var_from_list(v, vars_objs)) # may want to use Dataset instance method instead
+        v_objs.append(get_var_from_list(v, dataset_obj.variables)) # may want to use Dataset instance method instead
     
     # Create and get back handle to AST node
     relationship = relate(v_objs, prediction)
