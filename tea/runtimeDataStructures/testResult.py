@@ -89,6 +89,7 @@ class TestResult(Value):
     alpha = attr.ib()
     dof = attr.ib(default=None)
     adjusted_p_value = attr.ib(default=None)
+    corrected_p_value = attr.ib(default=None) # for multiple comparisons
     null_hypothesis = attr.ib(default=None)
     interpretation = attr.ib(default=None)
     table = attr.ib(default=None)
@@ -113,6 +114,21 @@ class TestResult(Value):
                 self.adjusted_p_value = self.p_value/2
             else: 
                 self.adjusted_p_value = self.p_value
+
+    def bonferroni_correction(self, num_comparisons):
+        assert(num_comparisons >= 1)
+        
+        # Does it already have an adjusted p value?
+        if self.adjusted_p_value:
+            self.corrected_p_value = self.adjusted_p_value/(num_comparisons * 1.0)
+
+        else: 
+            if isinstance(self.p_value, float): # Self is not a result from Bootstrapping
+                self.corrected_p_value = self.p_value/(num_comparisons * 1.0)
+
+        ## FOR DEBUGGING
+        if num_comparisons != 1:
+            import pdb; pdb.set_trace()
 
     def get_null_hypothesis(self):
         # TODO: Passing x and y seems more modular than passing string?

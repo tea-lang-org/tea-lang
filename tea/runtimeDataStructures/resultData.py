@@ -41,6 +41,11 @@ class ResultData(Value):
         results = [v for k,v in self.test_to_results.items()]
         return results
 
+    def bonferroni_correction(self, num_comparisons):
+        for key,value in self.test_to_results.items():
+            value.bonferroni_correction(num_comparisons)
+        return self
+
     def _pretty_print(self):
         output = "\nResults:\n--------------"
         for test_name, results in self.test_to_results.items():
@@ -91,8 +96,9 @@ class ResultData(Value):
             # import pdb; pdb.set_trace()
         return output
 
-    def __repr__(self):
-        return self._pretty_print()
+    # def __repr__(self):
+    #     return self._pretty_print()
+        return self
 
     def __str__(self):  # Maybe what the user sees?
         return self._pretty_print()
