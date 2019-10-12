@@ -1,7 +1,7 @@
 from tea.ast import (   Node, Variable, Literal, 
                         Equal, NotEqual, LessThan, 
                         LessThanEqual, GreaterThan, GreaterThanEqual,
-                        Relate
+                        Relate, PositiveRelationship
                     )
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
@@ -399,6 +399,16 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         
         res_data = ResultData(results, combined_data)
 
+        follow_up = []
+
+        # There are multiple hypotheses to follow-up and correct for
+        if expr.predictions and len(expr.predictions) > 1: 
+            for pred in expr.predictions: 
+                # create follow-up expr Node (to evaluate recursively)
+                pred_res = evaluate(dataset, pred, assumptions, design)
+                follow_up.append(pred_res) # add follow-up result to follow_up
+        
+        res_data.add_follow_up(follow_up) # add follow-up results to the res_data object
         """
         # TODO: use a handle here to more generally/modularly support corrections, need a more generic data structure for this!
         if expr.predictions:
@@ -410,14 +420,25 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             if len(preds) >= 1: 
                 correct_multiple_comparison(res_data,  len(preds))
         """
-
+        import pdb; pdb.set_trace()
         return res_data
+
+    elif isinstance(expr, PositiveRelationship):
+        # get variables
+        vars = [expr.lhs.var, expr.rhs.var]
+
+        # create a Relate object
+        pos_relate_expr = Relate(vars)
+        return evaluate(dataset, pos_relate_expr, assumptions, design)
+
+    # elif isinstance(expr, Relationship):
+    #     import pdb; pdb.set_trace()
         
-    elif isinstance(expr, Mean):
-        var = evaluate(dataset, expr.var)
-        assert isinstance(var, VarData)
+    # elif isinstance(expr, Mean):
+    #     var = evaluate(dataset, expr.var)
+    #     assert isinstance(var, VarData)
 
-        # bs.bootstrap(var.dataframe, stat_func=
-        # bs_stats.mean)
+    #     # bs.bootstrap(var.dataframe, stat_func=
+    #     # bs_stats.mean)
 
-        raise Exception('Not implemented Mean')
+    #     raise Exception('Not implemented Mean')

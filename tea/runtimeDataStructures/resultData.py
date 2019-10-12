@@ -9,6 +9,7 @@ import attr
 class ResultData(Value):
     test_to_results = attr.ib(type=dict)
     test_to_assumptions = attr.ib(type=dict)
+    follow_up_results = attr.ib(type=list, default=None)
 
     def __init__(self, test_to_results, combined_data: CombinedData):
         self.test_to_results = test_to_results
@@ -93,12 +94,22 @@ class ResultData(Value):
 
             else: 
                 output += f"{str(results)}\n"
-            # import pdb; pdb.set_trace()
+        
+        if hasattr(self, 'follow_up_results'): # not empty
+            for res in self.follow_up_results:
+                print("\nFollow up for multiple comparisons: \n")
+                print(res)    
+
         return output
 
+    def add_follow_up(self, follow_up_res_data: list):
+        if len(follow_up_res_data) >= 1:
+            setattr(self, 'follow_up_results', follow_up_res_data)
+
+
     # def __repr__(self):
-    #     return self._pretty_print()
-        return self
+    #     # return self._pretty_print()
+    #     return self
 
     def __str__(self):  # Maybe what the user sees?
         return self._pretty_print()

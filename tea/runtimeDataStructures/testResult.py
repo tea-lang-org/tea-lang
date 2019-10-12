@@ -284,6 +284,7 @@ class TestResult(Value):
                 var2 = self.prediction.rhs.value
             else:
                 assert isinstance(self.prediction.lhs, Relationship)
+                # assert isinstance(self.prediction.lhs, Relationship)
                 var1 = self.prediction.lhs.var
                 var2 = self.prediction.rhs.var
         else:

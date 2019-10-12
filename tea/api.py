@@ -153,7 +153,10 @@ def hypothesize(vars: list, prediction: list=None):
     set_mode(MODE)
     num_comparisons = 1
     result = evaluate(dataset_obj, relationship, assumptions, study_design)
+
     # if num_predictions > 1, do follow-up (recursive evaluation)
+    # if num_predictions > 1: 
+    #     import pdb; pdb.set_trace()
     # increment num_comparison
 
     # Make multiple comparison correction
