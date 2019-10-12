@@ -1078,11 +1078,14 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
             ub = bounds[1]
         else: 
             if bounds[0] >= lb and bounds[0] <= ub: 
-                p_val = f'Greater than or equal to {alpha}'
+                p_val = f'Confidence intervals overlap.'
+                # p_val = f'Greater than or equal to {alpha}'
             elif bounds[1] >= lb and bounds[1] <=ub:  
-                p_val = f'Greater than or equal to {alpha}'
+                p_val = f'Confidence intervals overlap.'
+                # p_val = f'Greater than or equal to {alpha}'
             else: 
-                p_val = f'Less than {alpha}'
+                p_val = f'Confidence intervals do NOT overlap'
+                # p_val = f'Less than {alpha}'
 
     dof = None
     test_result = TestResult( 

@@ -59,7 +59,7 @@ def test_pearson_corr():
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions, 'strict')
 
-    results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp', 'Illiteracy ~ Life Exp'])
+    results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
     # print("\nfrom Kabacoff")
     # print("Expected outcome: Pearson")
     print('++++++++++++')
@@ -503,46 +503,46 @@ def test_pearson_corr():
 #     # print("Expected outcome: Factorial ANOVA")
 #     print('++++++++++++')
 
-# def test_two_way_anova(): 
-#     data_path = get_data_path('co2.csv')
+def test_two_way_anova(): 
+    data_path = get_data_path('co2.csv')
 
-#     # Declare and annotate the variables of interest
-#     variables = [
-#         {
-#             'name' : 'uptake',
-#             'data type' : 'interval'
-#         },
-#         {
-#             'name' : 'Type',
-#             'data type' : 'nominal',
-#             'categories': ['Quebec', 'Mississippi']
-#         },
-#         {
-#             'name' : 'conc',
-#             'data type' : 'ordinal',
-#             'categories': [95, 175, 250, 350, 500, 675, 1000]
-#         }
-#     ]
-#     experimental_design = {
-#                             'study type': 'experiment',
-#                             'independent variables': ['Type', 'conc'],
-#                             'dependent variables': 'uptake',
-#                             'within subjects': 'conc',
-#                             'between subjects': 'Type'
-#                         }
-#     assumptions = {
-#         'Type I (False Positive) Error Rate': 0.05,
-#     }
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'uptake',
+            'data type' : 'interval'
+        },
+        {
+            'name' : 'Type',
+            'data type' : 'nominal',
+            'categories': ['Quebec', 'Mississippi']
+        },
+        {
+            'name' : 'conc',
+            'data type' : 'ordinal',
+            'categories': [95, 175, 250, 350, 500, 675, 1000]
+        }
+    ]
+    experimental_design = {
+                            'study type': 'experiment',
+                            'independent variables': ['Type', 'conc'],
+                            'dependent variables': 'uptake',
+                            'within subjects': 'conc',
+                            'between subjects': 'Type'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
 
-#     tea.data(data_path)
-#     tea.define_variables(variables)
-#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-#     tea.assume(assumptions)
+    tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
 
-#     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
-#     #Type main effect?
-#     # print('Supposed to be 2 way ANOVA')
-#     print('++++++++++++')
+    tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
+    #Type main effect?
+    # print('Supposed to be 2 way ANOVA')
+    print('++++++++++++')
 
 # def test_chi_square(): 
 #     data_path = get_data_path('catsData.csv')
