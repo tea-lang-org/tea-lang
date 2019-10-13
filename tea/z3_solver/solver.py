@@ -404,12 +404,24 @@ def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha):
 
 
 
-def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
-    xs = var_data.get_explanatory_variables()
-    ys = var_data.get_explained_variables()
+def has_equal_variance(dataset: Dataset, var_data: list, alpha):
+    xs = []
+    ys = []
     cat_xs = []
     cont_ys = []
     grouped_data = []
+
+
+    if isinstance(var_data, CombinedData):
+        xs = var_data.get_explanatory_variables()
+        ys = var_data.get_explained_variables()
+
+    else: 
+        for var in var_data: 
+            if var.role == iv_identifier or var.role == contributor_identifier:
+                xs.append(var)
+            if var.role == dv_identifier or var.role == outcome_identifier:
+                ys.append(var)
 
 
     for x in xs: 
@@ -434,7 +446,8 @@ def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
                 # elif isinstance(var_data, MultivariateData):
                 #     var_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
-                    raise ValueError(f"var_data_data object is neither BivariateData nor MultivariateData: {type(var_data)}")
+                    eq_var = compute_eq_variance(grouped_data)
+                    # raise ValueError(f"var_data_data object is neither BivariateData nor MultivariateData: {type(var_data)}")
 
     if eq_var[0] is None and eq_var[1] is None:
         import pdb; pdb.set_trace()
@@ -449,6 +462,7 @@ def has_groups_normal_distribution(dataset, var_data, alpha):
     cat_xs = []
     cont_ys = []
     grouped_data = []
+    result = None
 
     if isinstance(var_data, CombinedData):
         xs = var_data.get_explanatory_variables()
@@ -642,6 +656,7 @@ def construct_all_tests(combined_data: CombinedData):
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
 def construct_mutlivariate_tests(combined_data): 
+    import pdb; pdb.set_trace()
     construct_factorial_ANOVA(combined_data)
     # pass
 
@@ -674,6 +689,7 @@ def construct_factorial_ANOVA(combined_data: CombinedData):
     assert(len(y_vars) == 1)
     pairs_list = [[x, y_vars[0]] for x in x_vars]
 
+    import pdb; pdb.set_trace()
     factorial_ANOVA = StatisticalTest('factorial_ANOVA', all_vars, # Variable number of factors
                                 test_properties=
                                 [one_y_variable],
@@ -899,11 +915,14 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
 
     if (len(prop.vars) == len(combined_data.vars)):
         kwargs = {'dataset': dataset, 'var_data': combined_data, 'alpha': alpha}
+        # import pdb; pdb.set_trace()
         if __property_to_function__ == {}:
+            # import pdb; pdb.set_trace()
             prop_val = prop.property.function(**kwargs)
         else: 
             prop_val = __property_to_function__[prop.__z3__](**kwargs)   
     else: 
+        # import pdb; pdb.set_trace()
         assert (len(prop.vars) < len(combined_data.vars))
         var_data = []
         # For each of the variables for which we are checking the current prop

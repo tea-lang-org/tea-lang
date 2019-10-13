@@ -54,7 +54,8 @@ def log(message: str):
 
 
 def log_debug(message: str):
-    pass
+    print(message)
+    # pass
 
 # Test names.
 pearson_name = "Pearson Correlation"

@@ -532,12 +532,14 @@ def test_two_way_anova():
                         }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05,
+        'groups normally distributed': [['Type', 'uptake'], ['Type', 'conc']],
+        'equal variance': [['Type', 'uptake'],['conc', 'uptake']]
     }
 
     tea.data(data_path)
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions)
+    tea.assume(assumptions, mode='relaxed')
 
     tea.hypothesize(['uptake', 'conc', 'Type']) # Fails: not all groups are normal
     #Type main effect?
