@@ -1089,6 +1089,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         else:
             model = solver.model()
             test_invalid = False
+            val = False
             # Does the test apply?
             # Would this ever be false??
             if model and z3.is_true(model.evaluate(test.__z3__)):
@@ -1097,6 +1098,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     if is_assumed_prop(assumed_props, prop):
                         log_debug(f"User asserted property: {prop._name}.")
                         val = True
+                        solver.add(prop.__z3__ == z3.BoolVal(val))
                         # import pdb; pdb.set_trace()
                     else: 
                         log_debug(f"Testing assumption: {prop._name}.")
@@ -1107,36 +1109,23 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                             val = verify_prop(dataset, combined_data, prop)
                             if val: 
                                 log_debug(f"Property holds.")
-                            if not val: 
-                                if not test_invalid: # The property does not check
-                                    # if not is_assumed_prop(assumed_props, prop): 
-                                    #     if MODE == 'strict': 
-                                    #         log_debug(f"Running under STRICT mode.")
-                                    #         log_debug(f"User asserted ({prop._name}) FAILS. Tea will override user assertion.")
-                                            
-                                    #         # Remove the last test
-                                    #         solver.pop() 
-                                    #         test_invalid = True
-                                    #         model = None
-                                    #     elif MODE == 'relaxed': 
-                                    #         log_debug(f"Running under RELAXED mode.")
-                                    #         log_debug(f"User asserted ({prop._name}) FAILS. User assertion will be considered true.")
-                                    #     else: 
-                                    #         raise ValueError(f"Invalid MODE: {MODE}")
-                                    # else: 
-                                        log_debug(f"Property FAILS")
-                                        solver.pop() # remove the last test
-                                        test_invalid = True
-                                        model = None
-                                else: # test is already invalid. Going here just for completeness of logging
-                                    log_debug(f"EVER GET HERE?")
-                        solver.add(prop.__z3__ == z3.BoolVal(val))
+                            else: # The property does not verify
+                                assert (val == False)
+                                log_debug(f"Property FAILS")
+                                # if not test_invalid: 
+                                solver.pop() # remove the last test
+                                test_invalid = True
+                                model = None
+                                # else: # test is already invalid. Going here just for completeness of logging
+                                #     log_debug(f"EVER GET HERE?")
+                            solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
 
 
         
         
     solver.check()
+    # import pdb; pdb.set_trace()
     model = solver.model() # final model
     tests_to_conduct = []
     # Could add all the test props first 
@@ -1204,6 +1193,7 @@ def which_props(tests_names: list, var_names: List[str]):
 
     result = s.check()
     if result == z3.unsat:
+        import pdb; pdb.set_trace()
         print("no solution")
     elif result == z3.unknown:
         print("failed to solve")
