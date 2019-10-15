@@ -990,8 +990,7 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                                 else: 
                                     log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
                                 
-                                import pdb; pdb.set_trace()
-                                solver.add(ap.__z3__ == z3.BoolVal(val)) # check is this right?
+                                solver.add(ap.__z3__ == z3.BoolVal(True))
                             else: 
                                 raise ValueError(f"Invalid MODE: {MODE}")
                         else: 
@@ -1079,7 +1078,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         # Check the model 
         result = solver.check()
         if result == z3.unsat:
-            import pdb; pdb.set_trace()
             log_debug("Test is unsat.\n")
             solver.pop() 
         elif result == z3.unknown:
@@ -1099,14 +1097,13 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                     if is_assumed_prop(assumed_props, prop):
                         log_debug(f"User asserted property: {prop._name}.")
                         val = True
-                        import pdb; pdb.set_trace()
+                        # import pdb; pdb.set_trace()
                     else: 
                         log_debug(f"Testing assumption: {prop._name}.")
                     
                         # Does this property need to hold for the test to be valid?
                         # If so, verify that the property does hold
                         if model and z3.is_true(model.evaluate(prop.__z3__)):
-                            import pdb; pdb.set_trace()
                             val = verify_prop(dataset, combined_data, prop)
                             if val: 
                                 log_debug(f"Property holds.")
@@ -1140,9 +1137,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         
         
     solver.check()
-    import pdb; pdb.set_trace()
     model = solver.model() # final model
-    # import pdb; pdb.set_trace()
     tests_to_conduct = []
     # Could add all the test props first 
     # Then add all the tests 
