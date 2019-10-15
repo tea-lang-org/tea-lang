@@ -166,7 +166,7 @@ def hypothesize(vars: list, prediction: list = None):
     # return output
 
 
-## TODO: Add relate and compare methods
+# TODO: Add relate and compare methods
 
 # @param vars that user would like to relate
 # @param stats_tests contains all the tests that the user would like

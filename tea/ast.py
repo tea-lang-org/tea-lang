@@ -1,9 +1,7 @@
 import attr
-import os
-import csv
-
 from enum import Enum
-from typing import Dict, Union
+from typing import Union
+
 
 class Node(object): 
     def relate(self, other):
@@ -34,6 +32,7 @@ class Node(object):
     def __or__(self, other):
         return Or(self, other)
 
+
 @attr.s(repr=False)
 class DataType(Enum):  
     ORDINAL = 0
@@ -42,6 +41,7 @@ class DataType(Enum):
     # for INTERPRETATIONS, important distinction (?)
     INTERVAL = 2 
     RATIO = 3
+
 
 @attr.s(hash=True, repr=False, cmp=False)
 class Variable(Node): 
@@ -83,6 +83,7 @@ class Variable(Node):
     def __repr__(self): 
         return self.name
 
+
 @attr.s(hash=True, repr=False)
 class Select(Node):
     var: Variable # variable to filter on
@@ -91,25 +92,30 @@ class Select(Node):
     def __repr__(self):
         return (f"Select {self.var} on [{self.condition}]")
 
+
 @attr.s(hash=True, repr=False)
 class Equal(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
+
 
 @attr.s(hash=True, repr=False)
 class NotEqual(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
 
+
 @attr.s(hash=True, repr=False)
 class LessThan(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
 
+
 @attr.s(hash=True, repr=False)
 class LessThanEqual(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
+
 
 @attr.s(hash=True, str=False)
 class GreaterThan(Node):
@@ -124,6 +130,7 @@ class GreaterThan(Node):
 class GreaterThanEqual(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
+
 
 @attr.s(hash=True, repr=False)
 class Relate(Node):
@@ -141,9 +148,11 @@ class Relate(Node):
 
         return cls(dfile='', variables=[x_var,y_var], data=df)
 
+
 @attr.s(hash=True, repr=False)
 class Mean(Node):
     var = attr.ib(type=Node)
+
 
 # TODO: Should definitely check that the values that are passed are correct/exist/legit
 @attr.s(hash=True, cmp=False)
@@ -162,6 +171,7 @@ class Literal(Node):
     def __ne__(self, other):
         return NotEqual(self, other)
 
+
 @attr.s(hash=True, cmp=False)
 class Relationship(Node):
     var = attr.ib(type=Node)
@@ -172,10 +182,12 @@ class Relationship(Node):
     def negative(self, other):
         return NegativeRelationship(self, other)
 
+
 @attr.s(hash=True, cmp=False)
 class PositiveRelationship(Node):
     lhs = attr.ib(type=Node)
     rhs = attr.ib(type=Node)
+
 
 @attr.s(hash=True, cmp=False)
 class NegativeRelationship(Node):
