@@ -27,42 +27,42 @@ def get_data_path(filename):
 
 # Example from Kabacoff
 # Expected outcome: Pearson correlation 
-def test_pearson_corr(): 
-    data_path = get_data_path('statex77.csv')
-    # data_path2 = get_data_path('statex87.csv')
+# def test_pearson_corr(): 
+#     data_path = get_data_path('statex77.csv')
+#     # data_path2 = get_data_path('statex87.csv')
 
-    # Declare and annotate the variables of interest
-    variables = [
-        {
-            'name' : 'Illiteracy',
-            'data type' : 'interval',
-            'categories' : [0, 100]
-        },
-        {
-            'name' : 'Life Exp',
-            'data type' : 'ratio',
-        }
-    ]
-    experimental_design = {
-                            'study type': 'observational study',
-                            'contributor variables': ['Illiteracy', 'Life Exp'],
-                            'outcome variables': ''
-                        }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05,
-        'normal distribution': ['Illiteracy']
-    }
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name' : 'Illiteracy',
+#             'data type' : 'interval',
+#             'categories' : [0, 100]
+#         },
+#         {
+#             'name' : 'Life Exp',
+#             'data type' : 'ratio',
+#         }
+#     ]
+#     experimental_design = {
+#                             'study type': 'observational study',
+#                             'contributor variables': ['Illiteracy', 'Life Exp'],
+#                             'outcome variables': ''
+#                         }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05,
+#         'normal distribution': ['Illiteracy']
+#     }
 
-    tea.data(data_path)
-    # tea.data(data_path2)
-    tea.define_variables(variables)
-    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.assume(assumptions, 'strict')
+#     tea.data(data_path)
+#     # tea.data(data_path2)
+#     tea.define_variables(variables)
+#     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.assume(assumptions, 'strict')
 
-    results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
-    # print("\nfrom Kabacoff")
-    # print("Expected outcome: Pearson")
-    print('++++++++++++')
+#     results = tea.hypothesize(['Illiteracy', 'Life Exp'], ['Illiteracy ~ Life Exp'])
+#     # print("\nfrom Kabacoff")
+#     # print("Expected outcome: Pearson")
+#     print('++++++++++++')
     
 # def test_pearson_corr_2(): 
 #     data_path = get_data_path('exam.csv')
