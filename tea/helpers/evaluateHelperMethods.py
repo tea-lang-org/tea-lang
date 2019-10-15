@@ -267,14 +267,17 @@ def compute_variance(data):
 # TODO: ??? Default/currently using .05 alpha level
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html#scipy.stats.levene
 
+
 def compute_eq_variance(groups_data):
     levene_test = stats.levene(*groups_data)
     return levene_test[0], levene_test[1]
+
 
 # Queries dataset using var_data's query
 # @returns data for var_data according to its internally held query
 def get_data(dataset: Dataset, var: VarData):
     return dataset.select(var.metadata[name], where=f"{var.metadata[query]}")
+
 
 def is_normal(comp_data: CombinedData, alpha, data=None):
     if data is not None: # raw data being checked for normality
@@ -283,24 +286,31 @@ def is_normal(comp_data: CombinedData, alpha, data=None):
     else:
         return comp_data.properties.dist[1] < alpha
 
+
 def is_equal_variance(comp_data: CombinedData, alpha):
     return comp_data.properties.var[1] < alpha
+
 
 def is_numeric(data_type: DataType):
     return data_type is DataType.INTERVAL or data_type is DataType.RATIO
 
+
 def is_ordinal(data_type: DataType):
     return data_type is DataType.ORDINAL
 
+
 def is_nominal(data_type: DataType):
     return data_type is DataType.NOMINAL
+
 
 # TODO make more robust to variables that happen to be between/within -- random effects, not random effects, etc.
 def is_independent_samples(var_name: str, design: Dict[str, str]):
     return var_name in design['between subjects'] if ('between subjects' in design) else False
 
+
 def is_dependent_samples(var_name: str, design: Dict[str, str]):
     return var_name in design['within subjects'] if ('between subjects' in design) else False
+
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html
 # Possible parameters: a, b : array | axis (without, over entire arrays) | equal_var (default is True) | nan_policy (optional) 
