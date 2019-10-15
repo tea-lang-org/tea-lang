@@ -146,8 +146,6 @@ class TestResult(Value):
             var1, var2 = self._calculate_two_group_vars()
             return __stats_tests_to_null_hypotheses__[self.name] \
                 .format(var1, var2, self.y.metadata[name])
-
-
         return ""
 
     def set_interpretation(self):
@@ -230,7 +228,6 @@ class TestResult(Value):
         else:
             assert False, "ttest_result case without an associated self.interpretation."
 
-        
     # def adjust_p_val(self, correction): 
     #     self.self.adjusted_p_value = attr.ib()
     #     self.self.adjusted_p_value = self.p_value/correction
@@ -244,12 +241,12 @@ class TestResult(Value):
             self.effect_size[name] = effect_size
         else: 
             self.effect_size = attr.ib()
-            self.effect_size = {name : effect_size}
+            self.effect_size = {name: effect_size}
 
     def add_effect_size_to_interpretation(self):
         effect_sizes = ""
         for effect_size_name, effect_size_value in self.effect_size.items():
-            effect_sizes += f"{effect_size_name} = {'%.5f' % (effect_size_value)}, "
+            effect_sizes += f"{effect_size_name} = {'%.5f' % effect_size_value}, "
         effect_sizes = effect_sizes[:-2]
         self.interpretation += f"The effect size is {effect_sizes}. " \
             f"The effect size is the magnitude of the difference, which gives a holistic view of the results [1].\n" \
