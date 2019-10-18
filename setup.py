@@ -12,6 +12,18 @@ setuptools.setup(name='tealang',
       long_description_content_type="text/markdown",
       url='https://github.com/emjun/tea-lang',
       packages=setuptools.find_packages(),
+      install_requires=[
+          'attrs',
+          'pandas',
+          'scipy',
+          'scikit-learn',
+          'statsmodels',
+          'bootstrapped',
+          'pipfile',
+          'requests',
+          'z3-solver',
+          'urllib3'
+      ],
       classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache License 2.0",
