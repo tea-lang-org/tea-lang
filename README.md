@@ -6,7 +6,7 @@
 Tea is a domain specific programming language that automates statistical test
 selection and execution. Tea is currently written in/for Python. 
 
-Tea has an <a href='https://arxiv.org/pdf/1904.05387.pdf'>academic Arxiv paper</a>. 
+Tea has an <a href='http://tea-lang.org/index_files/tea_UIST2019.pdf'>academic research paper</a>. 
 
 Users provide 5 pieces of information: 
 * the *dataset* of interest, 
@@ -25,10 +25,10 @@ variance between groups, etc.) hold. Tea then finally executes the valid tests.
 Tea currently provides a module to conduct Null Hypothesis Significance
 Testing (NHST). 
 
-*We are actively working on expanding the kinds of analyses Tea can support. Some ideas we have: Bayesian inference and linear modeling.*
+*We are actively working on expanding the kinds of analyses Tea can support. Some ideas we have: linear modeling and Bayesian inference.*
 
 ## How can I use Tea?
-Tea will **very soon** be available on pip! Check back for updates :)
+Tea is available on pip! 
 
 ## How can I cite Tea?
 For now, please cite it!: 
@@ -36,14 +36,14 @@ For now, please cite it!:
 article{JunEtAl2019:Tea,
   title={Tea: A High-level Language and Runtime System for Automating Statistical Analysis},
   author={Jun, Eunice and Daum, Maureen and Roesch, Jared and Chasins, Sarah E. and Berger, Emery D. and Just, Rene and Reinecke, Katharina},
-  journal={Arxiv},
+  journal={Proceedings of the 32nd Annual ACM Symposium on User Interface Software and Technology (UIST)},
   year={2019}
 }
 ```
 
 ## How reliable is Tea?
 Tea is currently a research prototype. Our constraint solver is based on
-statistical texts (see <a href='https://arxiv.org/pdf/1904.05387.pdf'>our paper</a> for more info). 
+statistical texts (see <a href='http://tea-lang.org/index_files/tea_UIST2019.pdf'>our paper</a> for more info). 
 
 If you find any bugs, please let us know (email Eunice at emjun [at] cs.washington.edu)!
 
@@ -54,18 +54,15 @@ To contribute *code*, please see <a href='./CONTRIBUTING.md'> docs and
 gudielines</a> and open an issue or pull request. 
 
 If you want to use Tea for a
-project, talk about Tea's design, or anything else, please get in touch: emjun at
-cs.washington.edu.
+project, talk about Tea's design, or anything else, please get in touch: emjun [at] cs.washington.edu!
 
 ## Where can I learn more about Tea?
 Please find more information at <a href='https://www.tea-lang.org'>our website</a>. 
 
 ## I have ideas. I want to chat. 
-Please reach out! We are nice :): emjun at cs.washington.edu
+Please reach out! We are nice :) Email Eunice at emjun [at] cs.washington.edu!
 
 
 ### By the way, why Python?
 Python is a common language for data science. We hope Tea can easily integrate
 into user workflows. 
-
-*We are working on compiling Tea programs to different target languages, including R.*
