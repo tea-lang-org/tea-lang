@@ -4,6 +4,7 @@ from tea.ast import DataType
 
 import attr
 
+
 @attr.s(init=True)
 class VarData(Value):
     # dataframe: Any

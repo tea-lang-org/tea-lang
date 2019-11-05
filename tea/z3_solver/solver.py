@@ -74,6 +74,7 @@ __ALL_PROPERTIES__ = []
 # will give values to the properties
 __property_to_function__ = {}
 
+
 def all_props(): 
     """A helper for accessing the global set of properties"""
     global __ALL_PROPERTIES__
@@ -89,9 +90,11 @@ def all_props():
 
 #     return selected_props
 
+
 def set_mode(mode): 
     global MODE
     MODE = mode
+
 
 @attr.s(hash=False, cmp=False, auto_attribs=True, init=False)
 class StatVar:
@@ -216,6 +219,7 @@ class StatisticalTest:
         global __test_map__
         return __test_map__.get(var)
 
+
 class Property:
     name: str
     description: str
@@ -275,6 +279,7 @@ class Property:
         args.append(z3.BoolSort())
         self.__z3__ = z3.Function(self.name, *args)  # e.g. continuous(x)
 
+
 class AppliedProperty:
     property: Property
 
@@ -323,36 +328,43 @@ class AppliedProperty:
         global __property_var_map__
         return __property_var_map__.get(name)
 
+
 # Functions to verify properties
 def is_bivariate(dataset: Dataset, var_data: CombinedData, alpha):
     return len(var_data.vars) == 2
     # could also do...
     # return isinstance(var_data, BivariateData)
 
+
 def is_multivariate(datset: Dataset, var_data: CombinedData, alpha):
     return len(var_data.vars) > 2
     # could also do...
     # return isinstance(var_data, MultivariateData)
+
 
 def has_one_x(dataset: Dataset, var_data: CombinedData, alpha): 
     xs = var_data.get_explanatory_variables()
 
     return len(xs) == 1
 
+
 def has_one_y(dataset: Dataset, var_data: CombinedData, alpha): 
     ys = var_data.get_explained_variables()
 
     return len(ys) == 1
+
 
 def has_paired_observations(dataset: Dataset, var_data: CombinedData, alpha):
     global paired
 
     return var_data.properties[paired]
 
+
 def has_independent_observations(dataset: Dataset, var_data: CombinedData, alpha):
     global paired
 
     return not var_data.properties[paired]
+
 
 def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha): 
     xs = var_data.get_explanatory_variables()
@@ -366,15 +378,15 @@ def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha):
             if x.is_categorical() and y.is_categorical(): 
 
                 # Get the count for each category
-                x_cat = [k for k,v in x.metadata[categories].items()]
-                y_cat = [k for k,v in y.metadata[categories].items()]
+                x_cat = [k for k , v in x.metadata[categories].items()]
+                y_cat = [k for k , v in y.metadata[categories].items()]
 
                 for xc in x_cat: 
                     for yc in y_cat: 
                         data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{xc}'", f"{y.metadata[name]} == '{yc}'"])                    
 
                         # Check that the count is at least five for each of the (x,y) group pairs
-                        if (len(data) < 5): 
+                        if len(data) < 5:
                             return False
                 
                 return True
@@ -388,15 +400,15 @@ def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha):
         
         if x0.is_categorical() and x1.is_categorical():
             # Get the count for each category
-            x0_cat = [k for k,v in x0.metadata[categories].items()]
-            x1_cat = [k for k,v in x1.metadata[categories].items()]
+            x0_cat = [k for k , v in x0.metadata[categories].items()]
+            x1_cat = [k for k , v in x1.metadata[categories].items()]
 
             for x0c in x0_cat: 
                 for x1c in x1_cat: 
                     data = dataset.select(x1.metadata[name], where=[f"{x.metadata[name]} == '{xc}'", f"{x1.metadata[name]} == '{x1c}'"])                    
 
                     # Check that the count is at least five for each of the (x,x1) group pairs
-                    if (len(data) < 5): 
+                    if len(data) < 5:
                         return False
             return True
         else: 
@@ -423,7 +435,6 @@ def has_equal_variance(dataset: Dataset, var_data: list, alpha):
             if var.role == dv_identifier or var.role == outcome_identifier:
                 ys.append(var)
 
-
     for x in xs: 
         if x.is_categorical(): 
             cat_xs.append(x)
@@ -443,18 +454,16 @@ def has_equal_variance(dataset: Dataset, var_data: list, alpha):
                 if isinstance(var_data, BivariateData):
                     # Equal variance
                     eq_var = compute_eq_variance(grouped_data)
-                # elif isinstance(var_data, MultivariateData):
-                #     var_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
                     eq_var = compute_eq_variance(grouped_data)
-                    # raise ValueError(f"var_data_data object is neither BivariateData nor MultivariateData: {type(var_data)}")
 
     if eq_var[0] is None and eq_var[1] is None:
         import pdb; pdb.set_trace()
         # raise Exception("did not compute variance, this is a bug")
         return False
 
-    return (eq_var[1] > alpha)
+    return eq_var[1] > alpha
+
 
 def has_groups_normal_distribution(dataset, var_data, alpha):
     xs = []
@@ -474,8 +483,7 @@ def has_groups_normal_distribution(dataset, var_data, alpha):
                 xs.append(var)
             if var.role == dv_identifier or var.role == outcome_identifier:
                 ys.append(var)
-    
-    
+
     for x in xs: 
         if x.is_categorical(): 
             cat_xs.append(x)
@@ -494,16 +502,18 @@ def has_groups_normal_distribution(dataset, var_data, alpha):
 
                 for group in grouped_data:
                     result = compute_normal_distribution(group)
-                    if (result[1] <= alpha):
+                    if result[1] <= alpha:
                         return False, result
 
     return True, result
+
 
 def is_categorical_var(dataset, var_data, alpha):
     assert(len(var_data) == 1)
     assert(isinstance(var_data[0], VarData))
 
     return var_data[0].is_categorical()
+
 
 def has_two_categories(dataset, var_data, alpha): 
     assert(len(var_data) == 1)
@@ -513,6 +523,7 @@ def has_two_categories(dataset, var_data, alpha):
     assert(is_categorical_var(dataset, var_data, alpha))
     return len(var_data[0].metadata[categories].keys()) == 2
 
+
 def has_two_or_more_categories(dataset, var_data, alpha): 
     assert(len(var_data) == 1)
     assert(isinstance(var_data[0], VarData))
@@ -520,6 +531,7 @@ def has_two_or_more_categories(dataset, var_data, alpha):
     # First check that the variable is categorical
     assert(is_categorical_var(dataset, var_data, alpha))
     return len(var_data[0].metadata[categories].keys()) >= 2
+
 
 def has_three_or_more_categories(dataset, var_data, alpha): 
     assert(len(var_data) == 1)
@@ -529,17 +541,20 @@ def has_three_or_more_categories(dataset, var_data, alpha):
     assert(is_categorical_var(dataset, var_data, alpha))
     return len(var_data[0].metadata[categories].keys()) >= 3
 
+
 def is_continuous_var(dataset, var_data, alpha):
     assert(len(var_data) == 1)
     assert(isinstance(var_data[0], VarData))
 
     return var_data[0].is_continuous()
 
+
 def is_continuous_or_ordinal_var(dataset, var_data, alpha):
     assert(len(var_data) == 1)
     assert(isinstance(var_data[0], VarData))
 
     return is_continuous_var(dataset, var_data, alpha) or var_data[0].is_ordinal()
+
 
 def has_normal_distribution(dataset, var_data, alpha):
     assert(len(var_data) == 1)
@@ -552,6 +567,7 @@ def has_normal_distribution(dataset, var_data, alpha):
     norm_test_results = compute_normal_distribution(data)
 
     return (norm_test_results[1] > alpha), norm_test_results
+
 
 # Test properties
 bivariate = Property('is_bivariate', "Exactly two variables involved in analysis", is_bivariate)
@@ -636,6 +652,8 @@ def construct_axioms(variables):  # List[StatVar]
 
 bivariate_constructed = False
 multivariate_constructed = False
+
+
 # Constructs all the tests once
 # TODO: Move to a separate file/location
 def construct_all_tests(combined_data: CombinedData): 
@@ -652,6 +670,7 @@ def construct_all_tests(combined_data: CombinedData):
     construct_bivariate_tests(combined_data)
     construct_mutlivariate_tests(combined_data)
 
+
 # The generic StatisticalTests have specific predefined arity.
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
@@ -659,7 +678,10 @@ def construct_mutlivariate_tests(combined_data):
     construct_factorial_ANOVA(combined_data)
     # pass
 
+
 factorial_ANOVA = None
+
+
 def construct_factorial_ANOVA(combined_data: CombinedData): 
     global factorial_ANOVA
 
@@ -719,6 +741,8 @@ f_test = None
 rm_one_way_anova = None
 kruskall_wallis = None
 friedman = None
+
+
 def construct_bivariate_tests(combined_data: CombinedData): 
     global pearson_corr, kendalltau_corr, spearman_corr, pointbiserial_corr_a, pointbiserial_corr_b
     global students_t, paired_students_t, welchs_t, mannwhitney_u
@@ -729,7 +753,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
     # in combined_data
     if len(combined_data.vars) == 2: 
 
-        ### CORRELATIONS
+        # CORRELATIONS
         x0 = StatVar('x0')
         x1 = StatVar('x1')
 
@@ -755,8 +779,8 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                             continuous_or_ordinal: [[x0], [x1]]
                                         })
 
-        ## Need both? in case order of categortical and continuous differs? 
-        ## TODO: Could just sort before apply test? 
+        # Need both? in case order of categortical and continuous differs?
+        # TODO: Could just sort before apply test?
         pointbiserial_corr_a = StatisticalTest('pointbiserial_corr_a', [x0, x1],
                                         test_properties=
                                         [bivariate],
@@ -780,7 +804,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                             eq_variance: [[x1, x0]]
                                         })                                
 
-        ### T-TESTS
+        # T-TESTS
         x = StatVar('x')
         y = StatVar('y')
 
@@ -837,7 +861,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                         continuous: [[y]],
                                         })
 
-        ### CONTINGENCY TABLES (Categorical data)
+        # CONTINGENCY TABLES (Categorical data)
         chi_square = StatisticalTest('chi_square', [x, y],
                                         test_properties=
                                         [bivariate, independent_obs, greater_than_5_freq],
@@ -854,7 +878,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                             two_categories: [[x],[y]]
                                         })
 
-        ### ANOVAs
+        # ANOVAs
         f_test = StatisticalTest('f_test', [x, y], # Variable number of factors
                                     test_properties=
                                     [independent_obs, one_x_variable, one_y_variable],
@@ -910,11 +934,12 @@ chi_square_test = StatisticalTest('chi_square', [x, y],
                                    })
 """
 
+
 # Verify the property against data
 def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedProperty):
     global alpha
 
-    if (len(prop.vars) == len(combined_data.vars)):
+    if len(prop.vars) == len(combined_data.vars):
         kwargs = {'dataset': dataset, 'var_data': combined_data, 'alpha': alpha}
         # import pdb; pdb.set_trace()
         if __property_to_function__ == {}:
@@ -948,6 +973,7 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
         ret_val = prop_val
     
     return ret_val
+
 
 # Assumes properties to hold
 def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset, combined_data): 
@@ -1021,6 +1047,7 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
             pass
     # import pdb; pdb.set_trace()
     return assumed_props
+
 
 # Helper for synthesize tests
 def is_assumed_prop(assumed_props, prop):
@@ -1138,6 +1165,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
 
     reset_all_tests()
     return tests_to_conduct
+
 
 def which_props(tests_names: list, var_names: List[str]):
     stat_vars: List[StatVar] = []
