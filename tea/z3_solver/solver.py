@@ -415,14 +415,27 @@ def greater_than_5_frequency(dataset: Dataset, var_data: CombinedData, alpha):
             return False
 
 
-def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
-    xs = var_data.get_explanatory_variables()
-    ys = var_data.get_explained_variables()
+
+def has_equal_variance(dataset: Dataset, var_data: list, alpha):
+    xs = []
+    ys = []
     cat_xs = []
     cont_ys = []
     grouped_data = []
 
-    for x in xs:
+
+    if isinstance(var_data, CombinedData):
+        xs = var_data.get_explanatory_variables()
+        ys = var_data.get_explained_variables()
+
+    else: 
+        for var in var_data: 
+            if var.role == iv_identifier or var.role == contributor_identifier:
+                xs.append(var)
+            if var.role == dv_identifier or var.role == outcome_identifier:
+                ys.append(var)
+
+    for x in xs: 
         if x.is_categorical(): 
             cat_xs.append(x)
     
@@ -441,10 +454,8 @@ def has_equal_variance(dataset: Dataset, var_data: CombinedData, alpha):
                 if isinstance(var_data, BivariateData):
                     # Equal variance
                     eq_var = compute_eq_variance(grouped_data)
-                # elif isinstance(var_data, MultivariateData):
-                # var_data.properties[eq_variance + '::' + x.metadata[name] + ':' + y.metadata[name]] = compute_eq_variance(grouped_data)
                 else: 
-                    raise ValueError(f"var_data_data object is neither BivariateData nor MultivariateData: {type(var_data)}")
+                    eq_var = compute_eq_variance(grouped_data)
 
     if eq_var[0] is None and eq_var[1] is None:
         import pdb; pdb.set_trace()
@@ -460,6 +471,7 @@ def has_groups_normal_distribution(dataset, var_data, alpha):
     cat_xs = []
     cont_ys = []
     grouped_data = []
+    result = None
 
     if isinstance(var_data, CombinedData):
         xs = var_data.get_explanatory_variables()
@@ -662,7 +674,7 @@ def construct_all_tests(combined_data: CombinedData):
 # The generic StatisticalTests have specific predefined arity.
 # Some multivariate statistical tests, however, have various arities. 
 # Therefore, support the construction of muliple generic StatisticalTests. 
-def construct_mutlivariate_tests(combined_data): 
+def construct_mutlivariate_tests(combined_data):
     construct_factorial_ANOVA(combined_data)
     # pass
 
@@ -680,12 +692,15 @@ def construct_factorial_ANOVA(combined_data: CombinedData):
     all_vars = []
     for i in range(num_vars): 
         name = 'x' + str(i)
+        # combined_data.vars[i].get_name()
+        # import pdb; pdb.set_trace()
         if (i <= num_vars - 2): # All but the last var
             x = StatVar(name)
             x_vars.append(x)
             all_vars.append(x)
         else:
             assert(i == num_vars - 1)
+            name = 'y' + str(i)
             y = StatVar(name)
             y_vars.append(y) # last var
             all_vars.append(y)
@@ -926,11 +941,14 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
 
     if len(prop.vars) == len(combined_data.vars):
         kwargs = {'dataset': dataset, 'var_data': combined_data, 'alpha': alpha}
+        # import pdb; pdb.set_trace()
         if __property_to_function__ == {}:
+            # import pdb; pdb.set_trace()
             prop_val = prop.property.function(**kwargs)
         else: 
             prop_val = __property_to_function__[prop.__z3__](**kwargs)   
     else: 
+        # import pdb; pdb.set_trace()
         assert (len(prop.vars) < len(combined_data.vars))
         var_data = []
         # For each of the variables for which we are checking the current prop
@@ -997,7 +1015,8 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                                     log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
                                     log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
-                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                                
+                                solver.add(ap.__z3__ == z3.BoolVal(True))
                             else: 
                                 raise ValueError(f"Invalid MODE: {MODE}")
                         else: 
@@ -1021,7 +1040,7 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                                     log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
                                     log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
-                                solver.add(ap.__z3__ == z3.BoolVal(val))
+                                solver.add(ap.__z3__ == z3.BoolVal(True)) # override user
                             else: 
                                 raise ValueError(f"Invalid MODE: {MODE}")
         else:
@@ -1086,7 +1105,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         # Check the model 
         result = solver.check()
         if result == z3.unsat:
-            # import pdb; pdb.set_trace()
             log_debug("Test is unsat.\n")
             solver.pop() 
         elif result == z3.unknown:
@@ -1098,6 +1116,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         else:
             model = solver.model()
             test_invalid = False
+            val = False
             # Does the test apply?
             # Would this ever be false??
             if model and z3.is_true(model.evaluate(test.__z3__)):
@@ -1105,47 +1124,36 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                 for prop in test._properties:
                     if is_assumed_prop(assumed_props, prop):
                         log_debug(f"User asserted property: {prop._name}.")
+                        val = True
+                        solver.add(prop.__z3__ == z3.BoolVal(val))
+                        # import pdb; pdb.set_trace()
                     else: 
                         log_debug(f"Testing assumption: {prop._name}.")
                     
-                    # Does this property need to hold for the test to be valid?
-                    # If so, verify that the property does hold
-                    if model and z3.is_true(model.evaluate(prop.__z3__)):
-                        val = verify_prop(dataset, combined_data, prop)
-                        if val: 
-                            log_debug(f"Property holds.")
-                        if not val: 
-                            if not test_invalid: # The property does not check
-                                # if not is_assumed_prop(assumed_props, prop): 
-                                #     if MODE == 'strict': 
-                                #         log_debug(f"Running under STRICT mode.")
-                                #         log_debug(f"User asserted ({prop._name}) FAILS. Tea will override user assertion.")
-                                        
-                                #         # Remove the last test
-                                #         solver.pop() 
-                                #         test_invalid = True
-                                #         model = None
-                                #     elif MODE == 'relaxed': 
-                                #         log_debug(f"Running under RELAXED mode.")
-                                #         log_debug(f"User asserted ({prop._name}) FAILS. User assertion will be considered true.")
-                                #     else: 
-                                #         raise ValueError(f"Invalid MODE: {MODE}")
-                                # else: 
-                                    log_debug(f"Property FAILS")
-                                    solver.pop() # remove the last test
-                                    test_invalid = True
-                                    model = None
-                            else: # test is already invalid. Going here just for completeness of logging
-                                log_debug(f"EVER GET HERE?")
-                        solver.add(prop.__z3__ == z3.BoolVal(val))
+                        # Does this property need to hold for the test to be valid?
+                        # If so, verify that the property does hold
+                        if model and z3.is_true(model.evaluate(prop.__z3__)):
+                            val = verify_prop(dataset, combined_data, prop)
+                            if val: 
+                                log_debug(f"Property holds.")
+                            else: # The property does not verify
+                                assert (val == False)
+                                log_debug(f"Property FAILS")
+                                # if not test_invalid: 
+                                solver.pop() # remove the last test
+                                test_invalid = True
+                                model = None
+                                # else: # test is already invalid. Going here just for completeness of logging
+                                #     log_debug(f"EVER GET HERE?")
+                            solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
 
 
         
         
     solver.check()
-    model = solver.model() # final model
     # import pdb; pdb.set_trace()
+    model = solver.model() # final model
     tests_to_conduct = []
     # Could add all the test props first 
     # Then add all the tests 
@@ -1213,6 +1221,7 @@ def which_props(tests_names: list, var_names: List[str]):
 
     result = s.check()
     if result == z3.unsat:
+        import pdb; pdb.set_trace()
         print("no solution")
     elif result == z3.unknown:
         print("failed to solve")

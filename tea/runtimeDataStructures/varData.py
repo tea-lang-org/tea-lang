@@ -35,3 +35,8 @@ class VarData(Value):
     def get_number_categories(self): 
         if num_categories in self.properties: 
             return self.properties[num_categories]
+
+    def get_name(self): 
+        assert(self.metadata) # metadata is not empty
+        return self.metadata['var_name'] # hardcoded, my want to change this in the future
+        

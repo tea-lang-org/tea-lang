@@ -174,9 +174,11 @@ class Literal(Node):
 
 @attr.s(hash=True, cmp=False)
 class Relationship(Node):
-    var = attr.ib(type=Node)
+    var = attr.ib(type=Variable)
     
     def positive(self, other):
+        # import pdb; pdb.set_trace()
+        # return Relate([self.var, other.var])
         return PositiveRelationship(self, other)
 
     def negative(self, other):
@@ -185,8 +187,8 @@ class Relationship(Node):
 
 @attr.s(hash=True, cmp=False)
 class PositiveRelationship(Node):
-    lhs = attr.ib(type=Node)
-    rhs = attr.ib(type=Node)
+    lhs = attr.ib(type=Variable)
+    rhs = attr.ib(type=Variable)
 
 
 @attr.s(hash=True, cmp=False)
