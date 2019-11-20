@@ -1,16 +1,16 @@
 start: instruction+
 
-instruction: "data" data_file            -> movement
-           | "design" study_design          -> change_color
-           | "variables" list
-           | "assume" assumptions          -> fill
-           | "hypothesize" hypothesis -> repeat
+instruction: "data" data_file              -> data
+           | "design" study_design         -> design
+           | "variables" list              -> variables
+           | "assume" assumptions          -> assumptions
+           | "hypothesize" hypothesis      -> hypothesis
 
 data_file : STRING
 study_design :  STUDY_TYPE xs ys
 xs : list
 ys : list
-variable_name : STRING -> check_is_variable
+variable_name : STRING //-> check_is_variable
 list  : "[" [variable_name ("," variable_name)*] "]" // list of variable names
 category_list : "[" [STRING ("," STRING)*] "]" // list of category names 
 
@@ -18,12 +18,18 @@ assumptions: variable_name "is" PROPERTY
             | variable_name "has"  PROPERTY 
             | variable_name ":" PROPERTY
 PROPERTY: "normally distributed"
+
         //| name function (end user define property)
-hypothesis:  category ">" category
-           | category "<" category 
-           | category "!=" category 
-           | category "==" category  // should this even be a valid "Alternate" user hypothesis?
-category: variable ":" STRING -> check_is_category
+category: STRING ":" STRING //-> check_is_category
+hypothesis: STRING categorical_comparator STRING
+categorical_comparator: ">" | "<" | "!=" | "==" 
+numeric_operator :"~"
+
+// hypothesis: category ">" category
+//            | category "<" category 
+//            | category "!=" category 
+//            | category "==" category  // should this even be a valid "Alternate" user hypothesis?
+
 name: STRING -> check_in_header_of_df 
 variable: "(" name "," NUMERIC_TYPE ")"
         | "(" name "," CATEGORICAL_TYPE "," category_list ")"
@@ -34,12 +40,15 @@ NUMERIC_TYPE: "interval" | "ratio" | "numeric"
 CATEGORICAL_TYPE: "nominal" | "ordinal"
 
 DATA_TRANS: "log transform"
-STRING: /[a-zA-Z0-9_.-]{2,}/
+STRING: /[a-zA-Z0-9_.-]{1,}/
+// CSV: //TODO: write REGEX for detecting CSV file 
+// DF: //TODO: write REGEX for detecting df (???
 // code_block: "{" instruction+ "}"
 
 %import common.LETTER
 %import common.INT -> NUMBER
 %import common.WS
+%import common.CNAME -> CNAME
 %ignore WS
 
 
