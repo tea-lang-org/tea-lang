@@ -1,6 +1,6 @@
 from lark import Lark 
 
-tea_parser = Lark.open('tea_grammar.lark', parser='lalr')
+tea_parser = Lark.open('./tea/tea_grammar.lark', parser='lalr')
 tea_p = tea_parser.parse
 
 def run_tea_program(program): 
@@ -12,6 +12,8 @@ def test():
     text = """
         data data.csv
     """
+
+    run_tea_program(text)
 
 if __name__ == '__main__': 
     test()
