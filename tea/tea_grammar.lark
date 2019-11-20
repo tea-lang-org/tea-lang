@@ -1,0 +1,58 @@
+from lark import Lark 
+
+tea_grammar = 
+
+    start: instruction+
+
+    instruction: "data" data_file            -> movement
+               | "design" study_design          -> change_color
+               | "variables" list
+               | "assume" assumptions          -> fill
+               | "hypothesize" hypothesis -> repeat
+    
+    data_file = STRING
+
+    study_design = STUDY_TYPE xs ys
+    xs = list
+    ys = list
+
+    variable_name = STRING -> check_is_variable
+    list  : "[" [variable_name ("," variable_name)*] "]" // list of variable names
+    category_list : "[" [STRING ("," STRING)*] "]" // list of category names 
+    
+
+    assumptions: variable_name "is" PROPERTY
+                | variable_name "has"  PROPERTY 
+                | variable_name ":" PROPERTY
+    PROPERTY: "normally distributed"
+            //| name function (end user define property)
+
+    hypothesis:  category ">" category
+               | category "<" category 
+               | category "!=" category 
+               | category "==" category  // should this even be a valid "Alternate" user hypothesis?
+    category: variable ":" category_name
+    variable: "(" name "," NUMERIC_TYPE ")"
+            | "(" name "," CATEGORICAL_TYPE "," category_list ")"
+
+    transformations: variable_name ":" DATA_TRANS
+                    //| name function (end user define data transformation)
+
+
+    STUDY_TYPE: "experiment" | "observational study"
+    NUMERIC_TYPE: "interval" | "ratio" | "numeric"
+    CATEGORICAL_TYPE: "nominal" | "ordinal"
+    
+    DATA_TRANS: "log transform"
+
+    STRING: /[a-zA-Z0-9_.-]{2,}/
+
+    // code_block: "{" instruction+ "}"
+    
+    %import common.LETTER
+    %import common.INT -> NUMBER
+    %import common.WS
+    %ignore WS
+
+
+// How do we do static checks???
