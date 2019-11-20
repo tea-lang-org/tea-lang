@@ -1,12 +1,31 @@
-from lark import Lark 
+# from tea_eval import evaluate 
 
-tea_parser = Lark.open('./tea/tea_grammar.lark', parser='earley')
+from lark import Lark 
+from lark.tree import pydot__tree_to_png
+from lark.visitors import Interpreter
+
+tea_parser = Lark.open('./tea/tea_grammar.lark', parser='lalr')
 tea_p = tea_parser.parse
 
 def run_tea_program(program): 
     global tea_parser
     parse_tree = tea_parser.parse(program)
     print(parse_tree.pretty())
+    
+    # Draw parse tree out as a PNG
+    pydot__tree_to_png(parse_tree, 'lark_test.png')
+    
+    evaluate(parse_tree)
+
+def evaluate(parse_tree): 
+    print('Here')
+    intpr = Interpreter()
+    tree = intpr.visit(tree=parse_tree)
+    
+    for node in tree: 
+        print(node)
+        import pdb; pdb.set_trace()
+    
 
 def test(): 
     text = """
