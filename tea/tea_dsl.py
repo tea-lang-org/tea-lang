@@ -55,6 +55,9 @@ def test():
             variables=[Southern, Probability],
             comparisons=Southern:1>0
         ]
+        transformations [
+            log transform=Probability
+        ]
     """
 
     run_tea_program(text)
