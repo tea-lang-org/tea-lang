@@ -25,18 +25,37 @@ def evaluate(parse_tree):
     for node in tree: 
         print(node)
         import pdb; pdb.set_trace()
+        #token.type --> gives "STRING" etc.
     
 
 def test(): 
     text = """
         data data.csv
-        design experiment [col_x1, col_x2] [col_y1]
-        variables [col_x1, col_x2, col_y1]
-        assume col_x1 is normally distributed
-        hypothesize a >  b
-        
+        variables [
+            (
+                name=Southern, 
+                data type=nominal, 
+                categories=[0,1]
+            ), 
+            (
+                name=Probability, 
+                data type=ratio
+            )
+        ]
+        assumptions [
+                groups normally distributed=[[Southern, Probability]],
+                Type I (False Positive) Error Rate= .05
+        ]
+        design [
+            study type=observational study,
+            contributor variables=Southern,
+            outcome variables=Probability
+        ]
+        hypothesis [
+            variables=[Southern, Probability],
+            comparisons=Southern:1>0
+        ]
     """
-    # variables [col_x1, col_x2, co]_y1]
 
     run_tea_program(text)
 

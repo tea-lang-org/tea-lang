@@ -2,28 +2,35 @@ start: instruction+
 
 instruction: "data" data_file              -> data
            | "design" study_design         -> design
-           | "variables" list              -> variables
-           | "assume" assumptions          -> assumptions
-           | "hypothesize" hypothesis      -> hypothesis
+           | "variables" variable_declaration              -> variables
+           | "assumptions" assumptions          -> assumptions
+           | "hypothesis" hypothesis      -> hypothesis
 
 data_file : STRING
-study_design :  STUDY_TYPE xs ys
-xs : list
-ys : list
-variable_name : STRING //-> check_is_variable
-list  : "[" [variable_name ("," variable_name)*] "]" // list of variable names
+
+study_design :  "[" "study type=" STUDY_TYPE ("," study_variable)+ "]"
+study_variable : STUDY_VARIABLE_ASSIGNMENT "=" CNAME
+// WHAT ABOUT BETWEEN SUBJECTS, etC? 
+
+variable_declaration  : "[" "(" "name=" CNAME "," "data type=" DATA_TYPE (","  "categories=" category_list)* ")" ( "," "(" "name=" CNAME "," "data type=" DATA_TYPE ("," "categories=" category_list)* ")")*"]" // list of variable names
+variable_label : "variables="
+variable_list : "[" CNAME ("," CNAME)*"]"
 category_list : "[" [STRING ("," STRING)*] "]" // list of category names 
 
-assumptions: variable_name "is" PROPERTY
-            | variable_name "has"  PROPERTY 
-            | variable_name ":" PROPERTY
-PROPERTY: "normally distributed"
+assumptions:     "[" assumption ("," assumption)* "]" 
+assumption:   PROPERTY "=" "[[" CNAME ("," CNAME)* "]]"
+            | PROPERTY "=" FLOAT 
+PROPERTY: "groups normally distributed" | "Type I (False Positive) Error Rate"
+// HOW SHOULD NUMBER OF CNAMES AND PROPERTY EXPECTS MATCH? 
 
-        //| name function (end user define property)
-category: STRING ":" STRING //-> check_is_category
-hypothesis: STRING categorical_comparator STRING
+category: STRING ":" STRING 
+hypothesis: "[" "variables=" variable_list "," "comparisons=" comparison "]"
+comparison: comparison_statement ("," comparison_statement)* 
+comparison_label: "comparison="
+comparison_statement: CNAME ":" VALUE comparator VALUE
+comparator: categorical_comparator | numeric_comparator
 categorical_comparator: ">" | "<" | "!=" | "==" 
-numeric_operator :"~"
+numeric_comparator :"~"
 
 // hypothesis: category ">" category
 //            | category "<" category 
@@ -33,12 +40,16 @@ numeric_operator :"~"
 name: STRING -> check_in_header_of_df 
 variable: "(" name "," NUMERIC_TYPE ")"
         | "(" name "," CATEGORICAL_TYPE "," category_list ")"
-transformations: variable_name ":" DATA_TRANS
+transformations: CNAME ":" DATA_TRANS
                 //| name function (end user define data transformation)
 STUDY_TYPE: "experiment" | "observational study"
+STUDY_VARIABLE_ASSIGNMENT: IV | DV
+IV: "independent variables" | "contributor variables"
+DV: "dependent variables" | "outcome variables"
+DATA_TYPE: NUMERIC_TYPE | CATEGORICAL_TYPE
 NUMERIC_TYPE: "interval" | "ratio" | "numeric"
 CATEGORICAL_TYPE: "nominal" | "ordinal"
-
+VALUE: NUMBER | FLOAT | STRING
 DATA_TRANS: "log transform"
 STRING: /[a-zA-Z0-9_.-]{1,}/
 // CSV: //TODO: write REGEX for detecting CSV file 
@@ -47,6 +58,7 @@ STRING: /[a-zA-Z0-9_.-]{1,}/
 
 %import common.LETTER
 %import common.INT -> NUMBER
+%import common.FLOAT -> FLOAT
 %import common.WS
 %import common.CNAME -> CNAME
 %ignore WS
