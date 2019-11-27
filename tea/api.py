@@ -106,7 +106,7 @@ def define_variables(vars: Dict[str, str]):
     
     return variables
 
-def define_study_design(design: Dict[str, str]):
+def define_study_design_old(design: Dict[str, str]):
     global study_design, dataset_id, uid, alpha
     global btw_subj, within_subj
 
@@ -125,6 +125,9 @@ def define_study_design(design: Dict[str, str]):
     study_design = design
 
     # dataset_id = design[uid] if uid in design else None
+
+def define_study_design_(design: Dict[str, str]): 
+    pass
 
 
 def assume(user_assumptions: Dict[str, str], mode=None):
