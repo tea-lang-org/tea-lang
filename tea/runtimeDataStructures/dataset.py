@@ -13,7 +13,7 @@ def _dir_exists(path):
     return os.path.isdir(path) and os.path.exists(path)
 
 
-@attr.s(hash=True)
+@attr.s(init=False, hash=True)
 class Dataset(object): 
     dfile = attr.ib()  # path name
     variables = attr.ib()  # list of Variable objects <-- TODO: may not need this in new implementation....
@@ -21,6 +21,24 @@ class Dataset(object):
     row_pids = attr.ib(init=False)  # list of unique participant ids
     data = attr.ib(init=False)  # pandas DataFrame
     
+    def __init__(self, data):
+        
+        # Private method
+        def is_valid_csv(path):
+            # Is the path a valid path?
+            if os.path.exists(path):
+                # Is the path to a CSV file?
+                return os.path.abspath(path).endswith('.csv') 
+            return False
+        
+        if isinstance(data, pd.DataFrame):  
+            self.data = data # deep copy by default
+        elif is_valid_csv(data):  
+            self.data = pd.read_csv(data)
+        else: 
+            raise ValueError(f"{data} is neither a path to a valid CSV dataset nor a Pandas DataFrame")
+
+        
     @staticmethod
     def load(path: str, name):
         assert(isinstance(path, str))
