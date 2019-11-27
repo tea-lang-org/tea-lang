@@ -24,7 +24,7 @@ def test_load_data_df():
 
     assert(df.equals(data_obj.data))
 
-def test_df_identity(): 
+def test_df_copy(): 
     file_path = "./datasets/UScrime.csv"
 
     df = pd.read_csv(file_path)
