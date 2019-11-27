@@ -32,13 +32,14 @@ class Dataset(object):
             return False
         
         if isinstance(data, pd.DataFrame):  
-            self.data = data # deep copy by default
+            self.data = data # Pandas uses deep copy by default
         elif is_valid_csv(data):  
             self.data = pd.read_csv(data)
         else: 
             raise ValueError(f"{data} is neither a path to a valid CSV dataset nor a Pandas DataFrame")
 
         
+    # TODO this logic should probably exist outside of Dataset class? 
     @staticmethod
     def load(path: str, name):
         assert(isinstance(path, str))

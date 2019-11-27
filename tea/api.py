@@ -18,6 +18,7 @@ from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.z3_solver.solver import set_mode
 
 from tea.runtimeDataStructures.dataset import Dataset
+from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable, OrdinalVariable, NumericVariable
 
 from typing import Dict
 from .global_vals import *
@@ -68,8 +69,7 @@ def data_old(file, key=None):
 def data(file, key=None): 
     return Dataset(file)
 
-
-def define_variables(vars: Dict[str, str]):
+def define_variables_old(vars: Dict[str, str]):
     global vars_objs
 
     # reset the variables
@@ -96,6 +96,15 @@ def define_variables(vars: Dict[str, str]):
 
         vars_objs.append(v_obj)
 
+def define_variables(vars: Dict[str, str]): 
+    # List of Variables 
+    variables = []
+
+    for var in vars: 
+        var_obj = AbstractVariable.create(var)
+        variables.append(var_obj)
+    
+    return variables
 
 def define_study_design(design: Dict[str, str]):
     global study_design, dataset_id, uid, alpha

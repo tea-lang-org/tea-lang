@@ -1,5 +1,16 @@
 # Contains all the global values referenced throughout Tea
 
+NOMINAL= "nominal"
+ORDINAL = "ordinal"
+NUMERIC = "numeric"
+INTERVAL = "interval" # for backwards compatibility
+RATIO = "ratio" # for backwards compatibility
+
+VARIABLE_NAME = "name"
+VARIABLE_TYPE = "data type"
+VARIABLE_CATEGORIES = "categories"
+VARIABLE_ATTRS = [VARIABLE_NAME, VARIABLE_TYPE, VARIABLE_CATEGORIES]
+
 # For study design dictionary
 btw_subj = 'between subjects'
 within_subj = 'within subjects'
