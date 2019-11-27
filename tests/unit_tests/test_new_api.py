@@ -1,5 +1,5 @@
 import tea
-from tea.runtimeDataStructures.variable import NominalVariable
+from tea.runtimeDataStructures.variable import NominalVariable, OrdinalVariable, NumericVariable
 
 import pandas as pd 
 import copy 
@@ -46,3 +46,53 @@ def test_define_nominal_variable():
     vars_list = tea.define_variables(vars)
     var_0 = vars_list[0]
     assert(isinstance(var_0, NominalVariable))
+
+def test_define_ordinal_variable(): 
+    var = {
+        'name': 'Grade',
+        'data type': 'ordinal',
+        'categories': ['0', '1', '2']
+    }
+
+    vars = [var]
+
+    vars_list = tea.define_variables(vars)
+    var_0 = vars_list[0]
+    assert(isinstance(var_0, OrdinalVariable))
+
+
+def test_define_numeric_variable(): 
+    var = {
+        'name': 'Prob',
+        'data type': 'numeric'
+    }
+
+    vars = [var]
+
+    vars_list = tea.define_variables(vars)
+    var_0 = vars_list[0]
+    assert(isinstance(var_0, NumericVariable))
+
+def test_define_interval_variable(): 
+    var = {
+        'name': 'Prob',
+        'data type': 'interval'
+    }
+
+    vars = [var]
+
+    vars_list = tea.define_variables(vars)
+    var_0 = vars_list[0]
+    assert(isinstance(var_0, NumericVariable))
+
+def test_define_ratio_variable(): 
+    var = {
+        'name': 'Prob',
+        'data type': 'ratio'
+    }
+
+    vars = [var]
+
+    vars_list = tea.define_variables(vars)
+    var_0 = vars_list[0]
+    assert(isinstance(var_0, NumericVariable))
