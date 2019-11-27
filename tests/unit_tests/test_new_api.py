@@ -35,10 +35,12 @@ def test_df_copy():
     assert(df.equals(data_obj.data.applymap(lambda x: x **2)))
 
 def test_define_nominal_variable(): 
+    categories = ['0', '1']
+
     var = {
         'name': 'So',
         'data type': 'nominal',
-        'categories': ['0', '1']
+        'categories': categories
     }
 
     vars = [var]
@@ -46,6 +48,22 @@ def test_define_nominal_variable():
     vars_list = tea.define_variables(vars)
     var_0 = vars_list[0]
     assert(isinstance(var_0, NominalVariable))
+    assert(var_0.categories == categories)
+
+def test_define_nominal_variable_extract_categories(): 
+    categories = ['0', '1']
+
+    var = {
+        'name': 'So',
+        'data type': 'nominal'
+    }
+
+    vars = [var]
+
+    vars_list = tea.define_variables(vars)
+    var_0 = vars_list[0]
+    assert(isinstance(var_0, NominalVariable))
+    assert(var_0.categories == None)
 
 def test_define_ordinal_variable(): 
     var = {
@@ -60,6 +78,20 @@ def test_define_ordinal_variable():
     var_0 = vars_list[0]
     assert(isinstance(var_0, OrdinalVariable))
 
+def test_define_ordinal_variable_error(): 
+    var = {
+        'name': 'Grade',
+        'data type': 'ordinal'
+    }
+
+    vars = [var]
+
+    vars_list = None
+    try: 
+        vars_list = tea.define_variables(vars)
+    except:
+        pass
+    assert(vars_list == None)
 
 def test_define_numeric_variable(): 
     var = {
