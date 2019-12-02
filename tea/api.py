@@ -256,3 +256,36 @@ def divine_properties(vars: list, tests: list):
     pp.pprint(test_to_properties)
     print("\nProperties that could not be satisfied:")
     pp.pprint(test_to_broken_properties)
+
+def tea_time(data, variables, design, assumptions=None, hypothesis=None): 
+    return Tea(data, variables, design, assumptions, hypothesis)
+
+# TODO: This is a wrapper around the other API calls.
+# Public facing Tea object end-user can construct 
+class Tea(object): 
+    def __init__(self, variables: Dict[str, str], design: Dict[str, str], assumptions=None, hypothesis=None): 
+        self.variables = self.define_variables(variables)
+        self.design = self.define_study_design(design, self.variables)
+
+    def data(self, file, key=None): 
+        self.data = Dataset(file)
+
+        return self.data
+
+    def define_variables(self, vars: Dict[str, str]): 
+        # List of Variables 
+        variables = []
+
+        for var in vars: 
+            var_obj = AbstractVariable.create(var)
+            variables.append(var_obj)
+        
+        return variables
+    
+    def define_study_design(self, design: Dict[str, str], variables: list): 
+        design_obj = AbstractDesign.create(design, variables)
+    
+        return design_obj
+
+    def hypothesize(self, hypothesis): 
+        pass
