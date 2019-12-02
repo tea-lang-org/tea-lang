@@ -150,6 +150,31 @@ def test_define_obs_study_x():
     assert(not 'ys' in design_obj.__dict__)
     assert(vars_list[0] == design_obj.xs[0])
 
+def test_define_obs_study_xs(): 
+    var_0 = {
+        'name': 'Grade',
+        'data type': 'ordinal',
+        'categories': ['0', '1', '2']
+    }
+    var_1 = {
+        'name': 'So',
+        'data type': 'nominal',
+        'categories': ['0', '1']
+    }
+    design = {
+        'study type': 'observational study', 
+        'contributor variables': ['Grade', 'So']
+    }
+    
+    vars = [var_0, var_1]
+
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    assert(isinstance(design_obj, ObservationalDesign))
+    assert(isinstance(design_obj.xs, list))
+    assert(not 'ys' in design_obj.__dict__)
+    assert(vars_list == design_obj.xs)
+
 def test_define_obs_study_y(): 
     var = {
         'name': 'Prob',
@@ -168,6 +193,29 @@ def test_define_obs_study_y():
     assert(not 'xs' in design_obj.__dict__)
     assert(isinstance(design_obj.ys, list))
     assert(vars_list[0] == design_obj.ys[0])
+
+def test_define_obs_study_ys(): 
+    var_0 = {
+        'name': 'Prob',
+        'data type': 'ratio'
+    }
+    var_1 = {
+        'name': 'Income', 
+        'data type': 'numeric'
+    }
+    design = {
+        'study type': 'observational study', 
+        'outcome variables': ['Prob', 'Income']
+    }
+    
+    vars = [var_0, var_1]
+
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    assert(isinstance(design_obj, ObservationalDesign))
+    assert(not 'xs' in design_obj.__dict__)
+    assert(isinstance(design_obj.ys, list))
+    assert(vars_list == design_obj.ys)
 
 
     
