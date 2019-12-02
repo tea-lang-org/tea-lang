@@ -11,8 +11,8 @@ class AbstractVariable(object):
     
     @staticmethod
     def create(attributes):
-        var_type = attributes[VARIABLE_TYPE]
         if VARIABLE_TYPE in attributes.keys(): 
+            var_type = attributes[VARIABLE_TYPE]
             if var_type == NOMINAL: 
                 return NominalVariable(attributes)
             elif var_type == ORDINAL: 
@@ -28,6 +28,10 @@ class AbstractVariable(object):
         else: 
             raise ValueError(f"Missing type information for variable {attributes[VARIABLE_NAME]}! Type can be {NOMINAL}, {ORDINAL}, {NUMERIC} ({INTERVAL} or {RATIO}).")
 
+    @staticmethod
+    def get_name(var):
+        return  var.name
+
 class NominalVariable(AbstractVariable): 
     name: str
     categories: list
@@ -39,7 +43,7 @@ class NominalVariable(AbstractVariable):
             elif key == VARIABLE_CATEGORIES: 
                 self.categories = value
             elif key == VARIABLE_TYPE: 
-                pass # already handled to AbstractVariable
+                pass # already handled in AbstractVariable
             else:
                 print(f"Extra attribute not necessary for nominal variable:{key}, {value}")
         

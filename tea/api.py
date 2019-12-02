@@ -19,6 +19,7 @@ from tea.z3_solver.solver import set_mode
 
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable, OrdinalVariable, NumericVariable
+from tea.runtimeDataStructures.design import AbstractDesign, ObservationalDesign, ExperimentDesign
 
 from typing import Dict
 from .global_vals import *
@@ -126,8 +127,10 @@ def define_study_design_old(design: Dict[str, str]):
 
     # dataset_id = design[uid] if uid in design else None
 
-def define_study_design_(design: Dict[str, str]): 
-    pass
+def define_study_design(design: Dict[str, str], variables: list): 
+    design_obj = AbstractDesign.create(design, variables)
+    
+    return design_obj
 
 
 def assume(user_assumptions: Dict[str, str], mode=None):

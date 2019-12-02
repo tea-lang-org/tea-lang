@@ -11,6 +11,15 @@ VARIABLE_TYPE = "data type"
 VARIABLE_CATEGORIES = "categories"
 VARIABLE_ATTRS = [VARIABLE_NAME, VARIABLE_TYPE, VARIABLE_CATEGORIES]
 
+STUDY_TYPE = "study type"
+OBS_X = ["contributor variable", "contributor variables"]
+OBS_Y = ["outcome variable", "outcome variables"]
+EXP_X = ["independent variable", "independent variables"]
+EXP_Y = ["dependent variable", "dependent variables"]
+OBS_STUDY = "observational study"
+EXPERIMENT = "experiment"
+
+
 # For study design dictionary
 btw_subj = 'between subjects'
 within_subj = 'within subjects'

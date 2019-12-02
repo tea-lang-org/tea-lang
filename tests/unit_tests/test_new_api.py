@@ -1,5 +1,6 @@
 import tea
-from tea.runtimeDataStructures.variable import NominalVariable, OrdinalVariable, NumericVariable
+from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable, OrdinalVariable, NumericVariable
+from tea.runtimeDataStructures.design import AbstractDesign, ObservationalDesign, ExperimentDesign
 
 import pandas as pd 
 import copy 
@@ -128,3 +129,21 @@ def test_define_ratio_variable():
     vars_list = tea.define_variables(vars)
     var_0 = vars_list[0]
     assert(isinstance(var_0, NumericVariable))
+
+def test_define_obs_study(): 
+    var = {
+        'name': 'Prob',
+        'data type': 'ratio'
+    }
+    design = {
+        'study type': 'observational study', 
+        'outcome variable': 'Prob'
+    }
+    
+    vars = [var]
+
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    assert(isinstance(design_obj, ObservationalDesign))
+
+    
