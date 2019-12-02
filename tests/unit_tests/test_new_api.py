@@ -130,7 +130,7 @@ def test_define_ratio_variable():
     var_0 = vars_list[0]
     assert(isinstance(var_0, NumericVariable))
 
-def test_define_obs_study_xs(): 
+def test_define_obs_study_x(): 
     var = {
         'name': 'Grade',
         'data type': 'ordinal',
@@ -150,7 +150,7 @@ def test_define_obs_study_xs():
     assert(not 'ys' in design_obj.__dict__)
     assert(vars_list[0] == design_obj.xs[0])
 
-def test_define_obs_study_ys(): 
+def test_define_obs_study_y(): 
     var = {
         'name': 'Prob',
         'data type': 'ratio'
