@@ -257,8 +257,11 @@ def divine_properties(vars: list, tests: list):
     print("\nProperties that could not be satisfied:")
     pp.pprint(test_to_broken_properties)
 
-def tea_time(data, variables, design, assumptions=None, hypothesis=None): 
-    return Tea(data, variables, design, assumptions, hypothesis)
+# TODO change how the key is input. Maybe we want to move this to the variables block
+def tea_time(data, variables, design, assumptions=None, hypothesis=None, key=None): 
+    tea_obj = Tea(variables, design, assumptions, hypothesis)
+    tea_obj.load_data(data, key)
+
 
 # TODO: This is a wrapper around the other API calls.
 # Public facing Tea object end-user can construct 
@@ -267,7 +270,7 @@ class Tea(object):
         self.variables = self.define_variables(variables)
         self.design = self.define_study_design(design, self.variables)
 
-    def data(self, file, key=None): 
+    def load_data(self, file, key=None): 
         self.data = Dataset(file)
 
         return self.data

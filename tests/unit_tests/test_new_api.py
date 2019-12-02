@@ -304,3 +304,18 @@ def test_define_experiment_ys():
     assert(not 'xs' in design_obj.__dict__)
     assert(isinstance(design_obj.ys, list))
     assert(vars_list == design_obj.ys)    
+
+def test_tea_ctor(): 
+    file_path = "./datasets/UScrime.csv"
+    var = {
+        'name': 'Grade',
+        'data type': 'ordinal',
+        'categories': ['0', '1', '2']
+    }
+    vars = [var]
+    design = {
+        'study type': 'experiment', 
+        'independent variable': 'Grade'
+    }
+
+    tea_obj = tea.Tea(vars, design)
