@@ -102,6 +102,17 @@ class ExperimentDesign(AbstractDesign):
             else: 
                 print(f"Extra aspects of study design are not necessary and not considered:{key}, {value}")
 
+    def __eq__(self, other): 
+        if len(self.xs) == len(other.xs):
+            if len(self.ys) == len(other.ys):
+                xs_found = [x in other.xs for x in self.xs]
+                ys_found = [y in other.ys for y in self.ys]
+
+                return all(xs_found) and all(ys_found)
+                    
+        return False
+    
+
 
  
 

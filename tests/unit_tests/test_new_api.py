@@ -319,3 +319,10 @@ def test_tea_ctor():
     }
 
     tea_obj = tea.Tea(vars, design)
+    vars_list = tea.define_variables(vars)
+    assert(tea_obj.variables[0] == vars_list[0])
+    design_obj = tea.define_study_design(design, vars_list)
+    assert(tea_obj.design == design_obj)
+       
+# TODO: may want to add a helper function to determine if two designs are equivalent
+
