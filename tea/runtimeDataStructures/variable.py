@@ -1,12 +1,8 @@
 ## Abstract Factory pattern to create Variables
 # TODO: Probably want to make Variable a combination of VarData and MultivariateData? 
 
-import attr
-
 from tea.global_vals import *
 
-
-@attr.s(hash=True)
 class AbstractVariable(object):
     
     @staticmethod

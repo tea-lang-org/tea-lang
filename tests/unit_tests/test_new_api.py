@@ -130,7 +130,27 @@ def test_define_ratio_variable():
     var_0 = vars_list[0]
     assert(isinstance(var_0, NumericVariable))
 
-def test_define_obs_study(): 
+def test_define_obs_study_xs(): 
+    var = {
+        'name': 'Grade',
+        'data type': 'ordinal',
+        'categories': ['0', '1', '2']
+    }
+    design = {
+        'study type': 'observational study', 
+        'contributor variable': 'Grade'
+    }
+    
+    vars = [var]
+
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    assert(isinstance(design_obj, ObservationalDesign))
+    assert(isinstance(design_obj.xs, list))
+    # assert(isinstance(design_obj.ys, None))
+    assert(vars_list[0] == design_obj.xs[0])
+
+def test_define_obs_study_ys(): 
     var = {
         'name': 'Prob',
         'data type': 'ratio'
@@ -145,5 +165,9 @@ def test_define_obs_study():
     vars_list = tea.define_variables(vars)
     design_obj = tea.define_study_design(design, vars_list)
     assert(isinstance(design_obj, ObservationalDesign))
+    # assert(isinstance(design_obj.xs, None))
+    assert(isinstance(design_obj.ys, list))
+    assert(vars_list[0] == design_obj.ys[0])
+
 
     

@@ -1,10 +1,9 @@
-import attr
+from typing import Dict
 
 from tea.global_vals import *
 from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable, OrdinalVariable, NumericVariable
 
 
-@attr.s(hash=True)
 class AbstractDesign(object):
     
     @staticmethod
@@ -20,7 +19,6 @@ class AbstractDesign(object):
         else: 
             raise ValueError(f"Missing study type information! Study can be {OBS_STUDY} or {EXPERIMENT}.")
 
-
 class ObservationalDesign(AbstractDesign): 
     xs : list # list of Variables
     ys : list # list of Variables
@@ -35,7 +33,7 @@ class ObservationalDesign(AbstractDesign):
                 if AbstractVariable.get_name(var) == name: 
                     return var
 
-        for key, value in attributes.items(): 
+        for key, value in attributes.items():
             if key in OBS_X: 
                 # Assign observational x variable, must be a list first
                 if isinstance(value, list): 
@@ -54,7 +52,6 @@ class ObservationalDesign(AbstractDesign):
                     raise ValueError(f"{value} for {key} is neither a list nor a string.")
             else: 
                 print(f"Extra aspects of study design are not necessary and not considered:{key}, {value}")
-
             
 
 class ExperimentDesign(AbstractDesign):
