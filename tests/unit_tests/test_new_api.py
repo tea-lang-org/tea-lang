@@ -147,7 +147,7 @@ def test_define_obs_study_xs():
     design_obj = tea.define_study_design(design, vars_list)
     assert(isinstance(design_obj, ObservationalDesign))
     assert(isinstance(design_obj.xs, list))
-    # assert(isinstance(design_obj.ys, None))
+    assert(not 'ys' in design_obj.__dict__)
     assert(vars_list[0] == design_obj.xs[0])
 
 def test_define_obs_study_ys(): 
@@ -165,7 +165,7 @@ def test_define_obs_study_ys():
     vars_list = tea.define_variables(vars)
     design_obj = tea.define_study_design(design, vars_list)
     assert(isinstance(design_obj, ObservationalDesign))
-    # assert(isinstance(design_obj.xs, None))
+    assert(not 'xs' in design_obj.__dict__)
     assert(isinstance(design_obj.ys, list))
     assert(vars_list[0] == design_obj.ys[0])
 

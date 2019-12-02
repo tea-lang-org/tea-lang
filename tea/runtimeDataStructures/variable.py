@@ -1,5 +1,6 @@
 ## Abstract Factory pattern to create Variables
 # TODO: Probably want to make Variable a combination of VarData and MultivariateData? 
+import attr
 
 from tea.global_vals import *
 
@@ -28,6 +29,7 @@ class AbstractVariable(object):
     def get_name(var):
         return  var.name
 
+@attr.s(init=False)
 class NominalVariable(AbstractVariable): 
     name: str
     categories: list
@@ -49,6 +51,7 @@ class NominalVariable(AbstractVariable):
     def extract_categories(self): 
         self.categories = None
 
+@attr.s(init=False)
 class OrdinalVariable(AbstractVariable): 
     name: str
     categories: list
@@ -66,6 +69,7 @@ class OrdinalVariable(AbstractVariable):
         
         assert(self.categories) # Cannot extract categories with ordinal data. Need to have user provide order
 
+@attr.s(init=False)
 class NumericVariable(AbstractVariable): 
     name: str
 

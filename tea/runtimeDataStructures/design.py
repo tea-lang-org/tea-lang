@@ -1,3 +1,4 @@
+import attr
 from typing import Dict
 
 from tea.global_vals import *
@@ -19,6 +20,7 @@ class AbstractDesign(object):
         else: 
             raise ValueError(f"Missing study type information! Study can be {OBS_STUDY} or {EXPERIMENT}.")
 
+@attr.s(init=False)
 class ObservationalDesign(AbstractDesign): 
     xs : list # list of Variables
     ys : list # list of Variables
@@ -53,7 +55,7 @@ class ObservationalDesign(AbstractDesign):
             else: 
                 print(f"Extra aspects of study design are not necessary and not considered:{key}, {value}")
             
-
+@attr.s(init=False)
 class ExperimentDesign(AbstractDesign):
     
     def __init(self, attributes): 
