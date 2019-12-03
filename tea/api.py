@@ -57,46 +57,8 @@ study_type_determiner = StudyTypeDeterminer()
 def download_data(url, file_name):
     return load_data_from_url(url, file_name)
 
-
-# @sets global dataset_path and dataaset_obj (of type Dataset)
-def data_old(file, key=None):
-    global dataset_path, dataset_obj, dataset_id
-
-    # Require that the path to the data must be a string or a Path object
-    assert isinstance(file, (str, Path, pd.DataFrame))
-    dataset_path = file
-    dataset_id = key
-
-
 def data(file, key=None): 
     return Dataset(file)
-
-def define_variables_old(vars: Dict[str, str]):
-    global vars_objs
-
-    # reset the variables
-    vars_objs = []
-
-    for var in vars:
-        name = var['name']
-        
-        if (var[var_dtype] == 'nominal'):
-            categories = var[var_categories]
-            v_obj = nominal(name, categories)
-        elif (var[var_dtype] == 'ordinal'):
-            categories = var[var_categories]
-            v_obj = ordinal(name, categories)
-        elif (var[var_dtype] == 'interval'):
-            drange = None
-            if var_drange in var:
-                drange = var[var_drange]
-            v_obj = interval(name, drange)
-        else:
-            assert (var[var_dtype] == 'ratio')
-            drange = var[var_drange] if var_drange in var else None
-            v_obj = ratio(name, drange)
-
-        vars_objs.append(v_obj)
 
 def define_variables(vars: Dict[str, str]): 
     # List of Variables 
@@ -108,35 +70,12 @@ def define_variables(vars: Dict[str, str]):
     
     return variables
 
-def define_study_design_old(design: Dict[str, str]):
-    global study_design, dataset_id, uid, alpha
-    global btw_subj, within_subj
-
-    # Check that variables are only assigned EITHER between OR within but NOT BOTH: 
-    btw_vars = design[btw_subj] if btw_subj in design else None
-    within_vars = design[within_subj] if within_subj in design else None
-
-    if btw_vars:
-        for b in btw_vars:
-            if within_vars:
-                for w in within_vars:
-                    if b == w:
-                        raise ValueError(
-                            f"{b} CANNOT be a between subjects variable AND a within subjects variable. Can only be one or the other.")
-
-    study_design = design
-
-    # dataset_id = design[uid] if uid in design else None
-
 def define_study_design(design: Dict[str, str], variables: list): 
     design_obj = AbstractDesign.create(design, variables)
     
     return design_obj
 
-
-def assume(user_assumptions: Dict[str, str], mode=None):
-    
-    tea_logger = TeaLogger.get_logger()
+def assume_old(user_assumptions: Dict[str, str], mode=None):
     global alpha, alpha_keywords
     global assumptions
     global MODE
@@ -164,8 +103,39 @@ def assume(user_assumptions: Dict[str, str], mode=None):
         tea_logger.log_info(f"\nRunning under {MODE.upper()} mode.\n")
         tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
+def assume(assumptions: Dict[str, str], vars_list: list): 
+    # private function for getting variable by @param name from list of @param variables
+    def get_variable(variables: list, name: str):  
+        # Assume that name is a str
+        assert(isinstance(name, str))
+        for var in variables: 
+            assert(isinstance(var, AbstractVariable))
+            if AbstractVariable.get_name(var) == name: 
+                return var
+        return None # no Variable in the @param variables list has the @param name
 
-def hypothesize(vars: list, prediction: list = None):
+    for key, value in assumptions.items(): 
+        if isinstance(value, list): 
+            for v in value: 
+                var = get_variable(vars_list, v)
+                if var: 
+                    var.assume(key)
+        else: 
+            var = get_variable(vars_list, value)
+            if var: 
+                var.assume(key)
+                
+def set_mode(mode=INFER_MODE): 
+    if mode in MODES: 
+        pass
+    else: 
+        #TODO: More descriptive
+        raise ValueError(f"Invalid Mode: Should be one of {MODES}")
+
+def hypothesize(mode=None): 
+    pass
+
+def hypothesize_old(vars: list, prediction: list = None):
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
     global assumptions, all_results
     global MODE

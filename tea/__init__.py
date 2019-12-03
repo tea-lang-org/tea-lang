@@ -5,6 +5,5 @@ from tea.api import (
                     assume,
                     hypothesize,
                     download_data,
-                    divine_properties,
                     Tea
                 )

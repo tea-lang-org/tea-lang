@@ -19,6 +19,26 @@ EXP_Y = ["dependent variable", "dependent variables"]
 OBS_STUDY = "observational study"
 EXPERIMENT = "experiment"
 
+STRICT_MODE = "strict" # Check user assumptions, if fail to validate, terminate program/analysis
+RELAXED_MODE = "relaxed" # Check user assumptions, if fail to validate, proceed with user assumptions (as if they passed)
+INFER_MODE = "infer" # DEFAULT: Infer all properties about data, not require user assumptions
+MODES = [STRICT_MODE, RELAXED_MODE, INFER_MODE]
+
+NORMAL_DIST = ["normal distribution", "normally distributed", "gaussian", "Gaussian"]
+LOG_NORMAL_DIST = ["log normal distribution"]
+GROUPS_NORMAL = ["groups normally distributed"]
+EQUAL_VARIANCE = ["equal variance", "variance equal"]
+
+# TO SUPPORT
+variance = 'variance'
+sample_size = 'sample size'
+num_categories = 'number of categories'
+paired = 'paired'
+cat_distribution = 'category distributions'
+
+NOMINAL_DATA_PROPS = []
+ORDINAL_DATA_PROPS = NORMAL_DIST + LOG_NORMAL_DIST + GROUPS_NORMAL + EQUAL_VARIANCE
+NUMERIC_DATA_PROPS = NORMAL_DIST + LOG_NORMAL_DIST + GROUPS_NORMAL + EQUAL_VARIANCE
 
 # For study design dictionary
 btw_subj = 'between subjects'

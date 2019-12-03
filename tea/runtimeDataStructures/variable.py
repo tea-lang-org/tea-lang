@@ -1,6 +1,7 @@
 ## Abstract Factory pattern to create Variables
 # TODO: Probably want to make Variable a combination of VarData and MultivariateData? 
 import attr
+from abc import abstractmethod
 
 from tea.global_vals import *
 
@@ -28,11 +29,16 @@ class AbstractVariable(object):
     @staticmethod
     def get_name(var):
         return  var.name
+    
+    @abstractmethod
+    def assume(self, prop):
+        pass
 
 @attr.s(init=False)
 class NominalVariable(AbstractVariable): 
     name: str
     categories: list
+    properties: list
 
     def __init__(self, attributes): 
         for key, value in attributes.items(): 
@@ -47,14 +53,22 @@ class NominalVariable(AbstractVariable):
         
         if not hasattr(self, categories):
             self.extract_categories()
+        self.properties = [] # empty list of properties that are assumed/validated
 
     def extract_categories(self): 
         self.categories = None
+
+    def assume(self, prop):
+        if prop in NOMINAL_DATA_PROPS: 
+            self.properties.append(prop)
+        else: 
+            raise ValueError(f"{prop} is not a data property that is supported. Did you mean one of {NOMINAL_DATA_PROPS}?")
 
 @attr.s(init=False)
 class OrdinalVariable(AbstractVariable): 
     name: str
     categories: list
+    properties: list
 
     def __init__(self, attributes): 
         for key, value in attributes.items(): 
@@ -68,10 +82,19 @@ class OrdinalVariable(AbstractVariable):
                 print(f"Extra attribute not necessary for ordinal variable:{key}, {value}")
         
         assert(self.categories) # Cannot extract categories with ordinal data. Need to have user provide order
+        
+        self.properties = [] # empty list of properties that are assumed/validated
+
+    def assume(self, prop):
+        if prop in ORDINAL_DATA_PROPS: 
+            self.properties.append(prop)
+        else: 
+            raise ValueError(f"{prop} is not a data property that is supported. Did you mean one of {ORDINAL_DATA_PROPS}?")
 
 @attr.s(init=False)
 class NumericVariable(AbstractVariable): 
     name: str
+    properties: list
 
     def __init__(self, attributes): 
         for key, value in attributes.items(): 
@@ -81,3 +104,11 @@ class NumericVariable(AbstractVariable):
                 pass # already handled to AbstractVariable
             else:
                 print(f"Extra attribute not necessary for numeric variable:{key}, {value}")
+        
+        self.properties = [] # empty list of properties that are assumed/validated
+    
+    def assume(self, prop):
+        if prop in NUMERIC_DATA_PROPS: 
+            self.properties.append(prop)
+        else: 
+            raise ValueError(f"{prop} is not a data property that is supported. Did you mean one of {NUMERIC_DATA_PROPS}?")

@@ -305,6 +305,22 @@ def test_define_experiment_ys():
     assert(isinstance(design_obj.ys, list))
     assert(vars_list == design_obj.ys)    
 
+def test_assume_numeric_var(): 
+    var = {
+        'name': 'Prob',
+        'data type': 'ratio'
+    }
+    prop = "normally distributed"
+    assumptions = {
+        prop: 'Prob'
+    }
+    
+    vars = [var]
+    vars_list = tea.define_variables(vars)
+    tea.assume(assumptions, vars_list)
+    assert(vars_list[0].properties[0] == prop)
+
+
 def test_tea_ctor(): 
     file_path = "./datasets/UScrime.csv"
     var = {

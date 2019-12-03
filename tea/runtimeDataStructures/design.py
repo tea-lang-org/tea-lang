@@ -75,6 +75,7 @@ class ExperimentDesign(AbstractDesign):
                 assert(isinstance(var, AbstractVariable))
                 if AbstractVariable.get_name(var) == name: 
                     return var
+            return None # no Variable in the @param variables list has the @param name
 
         for key, value in attributes.items():
             if key in EXP_X: 
