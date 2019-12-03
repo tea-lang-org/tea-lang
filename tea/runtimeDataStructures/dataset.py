@@ -15,11 +15,17 @@ def _dir_exists(path):
 
 @attr.s(init=False, hash=True)
 class Dataset(object): 
-    dfile = attr.ib()  # path name
-    variables = attr.ib()  # list of Variable objects <-- TODO: may not need this in new implementation....
-    pid_col_name = attr.ib()  # name of column in pandas DataFrame that has participant ids
-    row_pids = attr.ib(init=False)  # list of unique participant ids
-    data = attr.ib(init=False)  # pandas DataFrame
+    # dfile = attr.ib()  # path name
+    # variables = attr.ib()  # list of Variable objects <-- TODO: may not need this in new implementation....
+    # pid_col_name = attr.ib()  # name of column in pandas DataFrame that has participant ids
+    # row_pids = attr.ib(init=False)  # list of unique participant ids
+    # data = attr.ib(init=False)  # pandas DataFrame
+
+    dfile : str 
+    variables : list
+    pid_col_name : str 
+    row_pids: list
+    data : None
     
     def __init__(self, data):
         
@@ -33,8 +39,9 @@ class Dataset(object):
         
         if isinstance(data, pd.DataFrame):  
             self.data = data # Pandas uses deep copy by default
-        elif is_valid_csv(data):  
+        elif is_valid_csv(data):
             self.data = pd.read_csv(data)
+            self.dfile = data
         else: 
             raise ValueError(f"{data} is neither a path to a valid CSV dataset nor a Pandas DataFrame")
 

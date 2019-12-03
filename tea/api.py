@@ -271,7 +271,7 @@ class Tea(object):
         self.variables = self.define_variables(variables)
         self.design = self.define_study_design(design, self.variables)
 
-    def data(self, file, key=None): 
+    def load_data(self, file, key=None): 
         self.data = Dataset(file)
 
         return self.data
