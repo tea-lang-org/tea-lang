@@ -336,6 +336,29 @@ def test_assume_numeric_var():
     tea.assume(assumptions, vars_list)
     assert(vars_list[0].properties[0] == prop)
 
+def test_tea_ctor(): 
+    file_path = "./datasets/UScrime.csv"
+    var = {
+        'name': 'Grade',
+        'data type': 'ordinal',
+        'categories': ['0', '1', '2']
+    }
+    vars = [var]
+    design = {
+        'study type': 'experiment', 
+        'independent variable': 'Grade'
+    }
+
+    tea_obj = tea.Tea(vars, design)
+    vars_list = tea.define_variables(vars)
+    assert(tea_obj.variables[0] == vars_list[0])
+    design_obj = tea.define_study_design(design, vars_list)
+    assert(tea_obj.design == design_obj)
+    tea_obj.load_data(file_path)
+    data_obj = tea.data(file_path)
+    assert(tea_obj.data == data_obj)
+    assert(tea_obj.mode == "infer") # Would be better to use globals?
+
 def test_assume_tea_obj(): 
     file_path = "./datasets/UScrime.csv"
     var = {
@@ -365,28 +388,6 @@ def test_assume_tea_obj():
     tea_obj.assume(assumptions)
     assert(tea_obj.variables[0].properties == vars_list[0].properties)
 
-
-def test_tea_ctor(): 
-    file_path = "./datasets/UScrime.csv"
-    var = {
-        'name': 'Grade',
-        'data type': 'ordinal',
-        'categories': ['0', '1', '2']
-    }
-    vars = [var]
-    design = {
-        'study type': 'experiment', 
-        'independent variable': 'Grade'
-    }
-
-    tea_obj = tea.Tea(vars, design)
-    vars_list = tea.define_variables(vars)
-    assert(tea_obj.variables[0] == vars_list[0])
-    design_obj = tea.define_study_design(design, vars_list)
-    assert(tea_obj.design == design_obj)
-    tea_obj.load_data(file_path)
-    data_obj = tea.data(file_path)
-    assert(tea_obj.data == data_obj)
 
 # TODO: may want to add a helper function to determine if two designs are equivalent
 

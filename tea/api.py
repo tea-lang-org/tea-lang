@@ -104,8 +104,8 @@ def set_mode(mode=INFER_MODE):
         #TODO: More descriptive
         raise ValueError(f"Invalid Mode: Should be one of {MODES}")
 
-def hypothesize(mode=None): 
-    pass
+def hypothesize(variables, design, assumptions, mode=None): 
+    pass    
 
 def hypothesize_old(vars: list, prediction: list = None):
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
@@ -159,9 +159,23 @@ def tea_time(data, variables, design, assumptions=None, hypothesis=None, key=Non
 # TODO: This is a wrapper around the other API calls.
 # Public facing Tea object end-user can construct 
 class Tea(object): 
+    data: None
+    mode: str
+    variables: list
+    design: AbstractDesign
+    # hypothesis: str
+
     def __init__(self, variables: Dict[str, str], design: Dict[str, str], assumptions=None, hypothesis=None): 
         self.variables = self.define_variables(variables)
         self.design = self.define_study_design(design, self.variables)
+        self.mode = INFER_MODE
+
+    def set_mode(mode=INFER_MODE): 
+        if mode in MODES: 
+            pass
+        else: 
+            #TODO: More descriptive
+            raise ValueError(f"Invalid Mode: Should be one of {MODES}")
 
     def load_data(self, file, key=None): 
         self.data = Dataset(file)
