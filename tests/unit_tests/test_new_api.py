@@ -305,6 +305,22 @@ def test_define_experiment_ys():
     assert(isinstance(design_obj.ys, list))
     assert(vars_list == design_obj.ys)    
 
+def test_assume_ordinal_var(): 
+    var = {
+        'name': 'Grade',
+        'data type': 'ordinal',
+        'categories': ['0', '1', '2']
+    }
+    prop_0 = "log normal"
+    assumptions = {
+        prop_0: 'Grade'
+    }
+    
+    vars = [var]
+    vars_list = tea.define_variables(vars)
+    tea.assume(assumptions, vars_list)
+    assert(vars_list[0].properties[0] == prop_0)
+
 def test_assume_numeric_var(): 
     var = {
         'name': 'Prob',

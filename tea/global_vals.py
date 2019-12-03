@@ -25,7 +25,7 @@ INFER_MODE = "infer" # DEFAULT: Infer all properties about data, not require use
 MODES = [STRICT_MODE, RELAXED_MODE, INFER_MODE]
 
 NORMAL_DIST = ["normal distribution", "normally distributed", "gaussian", "Gaussian"]
-LOG_NORMAL_DIST = ["log normal distribution"]
+LOG_NORMAL_DIST = ["log normal distribution", "log normal", "log normally distributed"]
 GROUPS_NORMAL = ["groups normally distributed"]
 EQUAL_VARIANCE = ["equal variance", "variance equal"]
 
