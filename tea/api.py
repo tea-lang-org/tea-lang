@@ -25,6 +25,7 @@ from typing import Dict
 from .global_vals import *
 from pathlib import Path
 
+
 # Set at start of programs
 # Used across functions
 dataset_path = ''
@@ -270,7 +271,7 @@ class Tea(object):
         self.variables = self.define_variables(variables)
         self.design = self.define_study_design(design, self.variables)
 
-    def load_data(self, file, key=None): 
+    def data(self, file, key=None): 
         self.data = Dataset(file)
 
         return self.data

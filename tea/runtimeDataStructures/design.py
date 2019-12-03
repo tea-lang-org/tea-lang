@@ -102,6 +102,7 @@ class ExperimentDesign(AbstractDesign):
             else: 
                 print(f"Extra aspects of study design are not necessary and not considered:{key}, {value}")
 
+    # TODO Do we want this?
     def __eq__(self, other): 
         if len(self.xs) == len(other.xs):
             if len(self.ys) == len(other.ys):
