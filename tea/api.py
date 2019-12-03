@@ -75,34 +75,6 @@ def define_study_design(design: Dict[str, str], variables: list):
     
     return design_obj
 
-def assume_old(user_assumptions: Dict[str, str], mode=None):
-    global alpha, alpha_keywords
-    global assumptions
-    global MODE
-
-    if alpha_keywords[0] in user_assumptions:
-        if alpha_keywords[1] in user_assumptions:
-            assert (float(user_assumptions[alpha_keywords[0]]) == float(user_assumptions[alpha_keywords[1]]))
-
-    for keyword in alpha_keywords:
-        if keyword in user_assumptions:
-            alpha = float(user_assumptions[keyword])
-
-    assumptions = user_assumptions
-    assumptions[alpha_keywords[1]] = alpha
-
-    # Set MODE for dealing with assumptions
-    if mode and mode == 'relaxed':
-        MODE = mode
-        tea_logger.log_info(f"\nRunning under {MODE.upper()} mode.\n")
-        tea_logger.log_info(
-            f"This means that user assertions will be checked. Should they fail, Tea will issue a warning but proceed as if user's assertions were true.")
-    else:
-        assert (mode == None or mode == 'strict')
-        MODE = 'strict'
-        tea_logger.log_info(f"\nRunning under {MODE.upper()} mode.\n")
-        tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
-
 def assume(assumptions: Dict[str, str], vars_list: list): 
     # private function for getting variable by @param name from list of @param variables
     def get_variable(variables: list, name: str):  
@@ -124,7 +96,7 @@ def assume(assumptions: Dict[str, str], vars_list: list):
             var = get_variable(vars_list, value)
             if var: 
                 var.assume(key)
-                
+
 def set_mode(mode=INFER_MODE): 
     if mode in MODES: 
         pass
@@ -210,6 +182,29 @@ class Tea(object):
         design_obj = AbstractDesign.create(design, variables)
     
         return design_obj
+
+    def assume(self, assumptions: Dict[str, str]): 
+        vars_list = self.variables
+        # private function for getting variable by @param name from list of @param variables
+        def get_variable(variables: list, name: str):  
+            # Assume that name is a str
+            assert(isinstance(name, str))
+            for var in variables: 
+                assert(isinstance(var, AbstractVariable))
+                if AbstractVariable.get_name(var) == name: 
+                    return var
+            return None # no Variable in the @param variables list has the @param name
+
+        for key, value in assumptions.items(): 
+            if isinstance(value, list): 
+                for v in value: 
+                    var = get_variable(vars_list, v)
+                    if var: 
+                        var.assume(key)
+            else: 
+                var = get_variable(vars_list, value)
+                if var: 
+                    var.assume(key)
 
     def hypothesize(self, hypothesis): 
         pass
