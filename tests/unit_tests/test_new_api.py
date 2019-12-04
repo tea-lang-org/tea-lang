@@ -7,9 +7,10 @@ import copy
 
 def test_load_data_csv(): 
     
-    file_path = f"./datasets/UScrime.csv"
+    file_path = "./datasets/UScrime.csv"
+    file_path_b = file_path.encode('utf-8')
 
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path_b.decode('utf-8'))
     
     data_obj = tea.data(file_path)
 
