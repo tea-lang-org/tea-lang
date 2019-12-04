@@ -6,9 +6,9 @@ import pandas as pd
 import copy 
 
 def test_load_data_csv(): 
-    file_path = "./datasets/UScrime.csv"
+    file_path = './datasets/UScrime.csv'
 
-    df = pd.read_csv(file_path, encoding='utf-8')
+    df = pd.read_csv(file_path)
     
     data_obj = tea.data(file_path)
 
@@ -18,7 +18,7 @@ def test_load_data_csv():
 def test_load_data_df(): 
     file_path = "./datasets/UScrime.csv"
 
-    df = pd.read_csv(file_path, encoding='utf-8')
+    df = pd.read_csv("./datasets/UScrime.csv")
     df2 = copy.deepcopy(df)
     
     data_obj = tea.data(df2)
