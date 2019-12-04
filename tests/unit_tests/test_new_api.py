@@ -7,10 +7,9 @@ import copy
 
 def test_load_data_csv(): 
     
-    file_path = "./datasets/UScrime.csv"
+    file_path = f"./datasets/UScrime.csv"
 
-    assert(str(file_path) == file_path)
-    df = pd.read_csv(str(file_path))
+    df = pd.read_csv(file_path)
     
     data_obj = tea.data(file_path)
 
