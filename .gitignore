@@ -1,5 +1,4 @@
 # Tea-specifics to ignore: 
-datasets/
 priv_*
 
 # Byte-compiled / optimized / DLL files
