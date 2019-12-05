@@ -6,6 +6,9 @@ class AbstractHypothesis(object):
     def create(hypothesis: str): 
         pass
 
+        # TODO Need some way to parse a string the end-user writes. (maybe some unique keywords or something for the different kinds of hypotheses?)
+        # TODO Then construct/return the appropriately typed Hypothesis object
+
 class LinearHypothesis(AbstractHypothesis): 
     pass
 
