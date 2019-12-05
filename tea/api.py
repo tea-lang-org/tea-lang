@@ -97,7 +97,7 @@ def assume(assumptions: Dict[str, str], vars_list: list):
             if var: 
                 var.assume(key)
 
-def set_mode(mode=INFER_MODE): 
+def set_analysis_mode(mode=INFER_MODE): 
     if mode in MODES: 
         pass
     else: 
