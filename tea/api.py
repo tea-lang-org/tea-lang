@@ -172,7 +172,9 @@ class Tea(object):
 
     def set_mode(self, mode=INFER_MODE): 
         if mode in MODES: 
-            pass
+            old_mode = self.mode
+            self.mode = mode
+            print(f"Mode changed from {old_mode} to {self.mode}.") # Update user
         else: 
             #TODO: More descriptive
             raise ValueError(f"Invalid Mode: Should be one of {MODES}")
