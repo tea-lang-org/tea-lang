@@ -170,7 +170,7 @@ class Tea(object):
         self.design = self.define_study_design(design, self.variables)
         self.mode = INFER_MODE
 
-    def set_mode(mode=INFER_MODE): 
+    def set_mode(self, mode=INFER_MODE): 
         if mode in MODES: 
             pass
         else: 
