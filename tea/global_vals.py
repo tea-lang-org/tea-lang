@@ -29,7 +29,7 @@ LOG_NORMAL_DIST = ["log normal distribution", "log normal", "log normally distri
 GROUPS_NORMAL = ["groups normally distributed"]
 EQUAL_VARIANCE = ["equal variance", "variance equal"]
 
-# TO SUPPORT
+# TODO: TO SUPPORT
 variance = 'variance'
 sample_size = 'sample size'
 num_categories = 'number of categories'
@@ -39,6 +39,12 @@ cat_distribution = 'category distributions'
 NOMINAL_DATA_PROPS = []
 ORDINAL_DATA_PROPS = NORMAL_DIST + LOG_NORMAL_DIST + GROUPS_NORMAL + EQUAL_VARIANCE
 NUMERIC_DATA_PROPS = NORMAL_DIST + LOG_NORMAL_DIST + GROUPS_NORMAL + EQUAL_VARIANCE
+
+# Not sure that it makes sense to distinguish between GREATER/LESSER because then rely on order when order does not matter?
+# For now: don't matter if Greater than OR Less than
+GREATER = [">"]
+LESSER = ["<"]
+GROUP_COMPARISONS = GREATER + LESSER
 
 # For study design dictionary
 btw_subj = 'between subjects'
