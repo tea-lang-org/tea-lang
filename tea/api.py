@@ -201,24 +201,15 @@ class Tea(object):
 
     def assume(self, assumptions: Dict[str, str]): 
         vars_list = self.variables
-        # private function for getting variable by @param name from list of @param variables
-        def get_variable(variables: list, name: str):  
-            # Assume that name is a str
-            assert(isinstance(name, str))
-            for var in variables: 
-                assert(isinstance(var, AbstractVariable))
-                if AbstractVariable.get_name(var) == name: 
-                    return var
-            return None # no Variable in the @param variables list has the @param name
 
         for key, value in assumptions.items(): 
             if isinstance(value, list): 
                 for v in value: 
-                    var = get_variable(vars_list, v)
+                    var = AbstractVariable.get_variable(vars_list, v)
                     if var: 
                         var.assume(key)
             else: 
-                var = get_variable(vars_list, value)
+                var = AbstractVariable.get_variable(vars_list, value)
                 if var: 
                     var.assume(key)
 
