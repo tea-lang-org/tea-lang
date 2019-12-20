@@ -29,6 +29,16 @@ class AbstractVariable(object):
     @staticmethod
     def get_name(var):
         return  var.name
+
+    @classmethod
+    def get_variable(cls, variables: list, name: str):  
+            # Assume that name is a str
+            assert(isinstance(name, str))
+            for var in variables: 
+                assert(isinstance(var, AbstractVariable))
+                if AbstractVariable.get_name(var) == name: 
+                    return var
+            return None #no Variable in the @param variables list has the @param name
     
     @abstractmethod
     def assume(self, prop):

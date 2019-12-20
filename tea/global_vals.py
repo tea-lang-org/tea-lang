@@ -46,6 +46,13 @@ GREATER = [">"]
 LESSER = ["<"]
 GROUP_COMPARISONS = GREATER + LESSER
 
+LINEAR_RELATIONSHIP = ["~"]  # TODO may want to collapse into/relate to the LM module under development
+POSITIVE = "+"
+NEGATIVE = "-"
+
+HYPOTHESIS_SYNTAX = GROUP_COMPARISONS + LINEAR_RELATIONSHIP
+
+
 # For study design dictionary
 btw_subj = 'between subjects'
 within_subj = 'within subjects'

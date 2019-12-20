@@ -1,19 +1,42 @@
+## Abstract Factory pattern to create Hypotheses
+
+import attr
+
 from tea.global_vals import *
+from tea.runtimeDataStructures.variable import AbstractVariable
 
 class AbstractHypothesis(object): 
     
     @staticmethod
     def create(hypothesis: str): 
-        pass
+        # First, make sure that hypothesis fits one of the supported templates
+        if HYPOTHESIS_SYNTAX in hypothesis: 
+            # Second, determine which template was used, create appropriate Hypothesis object for provided hypothesis
+            if GROUP_COMPARISONS in hypothesis: 
+                return GroupComparisons.create(hypothesis) # TODO: May just want one GroupComparisons (not Bivariate vs. Multivariate) class/object
+            elif LINEAR_RELATIONSHIP in hypothesis: 
+                return LinearHypothesis(hypothesis)
+            else: 
+                raise ValueError(f"Unknown hypothesis form: {hypothesis}")
+        else: 
+            raise ValueError(f"Unknown hypothesis form: {hypothesis}")
 
-        # TODO Need some way to parse a string the end-user writes. (maybe some unique keywords or something for the different kinds of hypotheses?)
-        # TODO Then construct/return the appropriately typed Hypothesis object
-
+@attr.s(init=False)
 class LinearHypothesis(AbstractHypothesis): 
-    pass
+    original_hypothesis : str # original string hypothesis that the end-user writes
+    xs : list # list of x variables (of type AbstractVariable)
+    y: list # list of y variable, assert that the length is one/only one y variable (of type AbstractVariable)
 
 class GroupComparisons(AbstractHypothesis): 
-    pass
+    @staticmethod
+    def create(hypothesis: str):
+        assert(GROUP_COMPARISONS in hypothesis)
+        
+        # #TODO: If there are 2 groups
+        # return BivariateComparisons(groups, hypothesis)
+
+        # #TODO: If there are 3 groups
+        # return MultipleComparisons(groups, hypothesis)
 
 class BivariateComparisons(GroupComparisons):
     pass
