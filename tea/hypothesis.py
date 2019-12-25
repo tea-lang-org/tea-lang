@@ -27,10 +27,15 @@ class LinearHypothesis(AbstractHypothesis):
     xs : list # list of x variables (of type AbstractVariable)
     y: list # list of y variable, assert that the length is one/only one y variable (of type AbstractVariable)
 
+    def __init__(self, hypo, variables):
+        # TODO: get the variables
+        pass
+
 class GroupComparisons(AbstractHypothesis): 
     @staticmethod
     def create(hypothesis: str):
-        assert(GROUP_COMPARISONS in hypothesis)
+        assert(GROUP_COMPARISONS in hypothesis):
+
         
         # #TODO: If there are 2 groups
         # return BivariateComparisons(groups, hypothesis)
