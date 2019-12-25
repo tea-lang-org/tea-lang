@@ -7,8 +7,8 @@ from tea.global_vals import *
 
 class AbstractVariable(object):
     
-    @staticmethod
-    def create(attributes):
+    @classmethod
+    def create(cls, attributes):
         if VARIABLE_TYPE in attributes.keys(): 
             var_type = attributes[VARIABLE_TYPE]
             if var_type == NOMINAL: 

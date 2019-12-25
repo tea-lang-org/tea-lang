@@ -7,8 +7,8 @@ from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable
 
 class AbstractDesign(object):
     
-    @staticmethod
-    def create(attributes, variables):
+    @classmethod
+    def create(cls, attributes, variables):
         if STUDY_TYPE in attributes: 
             study = attributes[STUDY_TYPE]
             if study == OBS_STUDY: 

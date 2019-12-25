@@ -7,8 +7,8 @@ from tea.runtimeDataStructures.variable import AbstractVariable
 
 class AbstractHypothesis(object): 
     
-    @staticmethod
-    def create(hypothesis: str): 
+    @classmethod
+    def create(cls, hypothesis: str): 
         # First, make sure that hypothesis fits one of the supported templates
         if HYPOTHESIS_SYNTAX in hypothesis: 
             # Second, determine which template was used, create appropriate Hypothesis object for provided hypothesis
@@ -32,8 +32,8 @@ class LinearHypothesis(AbstractHypothesis):
         pass
 
 class GroupComparisons(AbstractHypothesis): 
-    @staticmethod
-    def create(hypothesis: str):
+    @classmethod
+    def create(cls, hypothesis: str):
         assert(GROUP_COMPARISONS in hypothesis):
 
         
