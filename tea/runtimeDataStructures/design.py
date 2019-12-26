@@ -52,6 +52,20 @@ class ObservationalDesign(AbstractDesign):
                 raise ValueError(f"{key} is not available in an {OBS_STUDY}. Did you mean to say the study is an {EXPERIMENT} or that the variable/s are one of {OBS_Y}?")
             else: 
                 print(f"Extra aspects of study design are not necessary and not considered:{key}, {value}")
+
+    def which_role(self, variable):
+        if self.has_x(variable):
+            return 'X'
+        elif self.has_y(variable):
+            return 'Y'
+        else: 
+            raise ValueError(f"Variable {AbstractVariable.get_name(variable)} does not have a role in this design: {self}")
+
+    def has_x(self, variable): 
+        return variable in self.xs
+    
+    def has_y(self, variable): 
+        return variable in self.ys
             
 @attr.s(init=False)
 class ExperimentDesign(AbstractDesign):
