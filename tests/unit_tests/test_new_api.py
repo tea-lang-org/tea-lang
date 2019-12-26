@@ -421,6 +421,26 @@ def test_assume_tea_obj():
     tea_obj.assume(assumptions)
     assert(tea_obj.variables[0].properties == vars_list[0].properties)
 
-
+def test_linearHypothesis_ctor(): 
+    var_0 = {
+        'name': 'Grade',
+        'data type': 'ordinal',
+        'categories': ['0', '1', '2']
+    }
+    var_1 = {
+        'name': 'So',
+        'data type': 'nominal',
+        'categories': ['0', '1']
+    }
+    design = {
+        'study type': 'experiment', 
+        'independent variables': ['Grade', 'So']
+    }
+    
+    vars = [var_0, var_1]
+    tea_obj = tea.Tea(vars, design)
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    
 # TODO: may want to add a helper function to determine if two designs are equivalent
 

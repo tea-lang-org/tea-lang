@@ -35,7 +35,8 @@ class AbstractHypothesis(object):
         rhs = self.original_hypothesis[:delimiter_ind].strip()
         lhs = self.original_hypothesis[delimiter_ind+len(delimiter):].strip()
 
-        return (rhs, lhs)
+        # TODO: What format are the rhs and lhs? Even before return as lists?
+        return ([rhs], [lhs])
 
 @attr.s(init=False)
 class LinearHypothesis(AbstractHypothesis): 
@@ -50,31 +51,26 @@ class LinearHypothesis(AbstractHypothesis):
         self.xs = []
         self.y = []
         
-        rhs_name, lhs_name = self.parse_hypothesis(LINEAR_RELATIONSHIP)
+        rhs_names, lhs_names = self.parse_hypothesis(LINEAR_RELATIONSHIP)
         
-        # First, assume that only return one variable
-        # handle case where there are multiple variables
+        # [DONE] First, assume that only return one variable
+        # NOW handle case where there are multiple variables -- get list as rhs and list as lhs
         # Then expand to the case where have + and - 
         
-        rhs_var = AbstractVariable.get_variable(variables, rhs_name)
-        lhs_var = AbstractVariable.get_variable(variables, lhs_name)
+        rhs_vars = [AbstractVariable.get_variable(variables, name) for name in rhs_names]
+        lhs_vars = [AbstractVariable.get_variable(variables, name) for name in lhs_names]
+        all_vars = rhs_vars + lhs_vars # all vars 
 
         # Based on Design, figure out which role the Variables in the Hypothesis play
-        rhs_role = design.which_role(rhs_var)
-        lhs_role = design.which_role(rhs_var)
-
-        # Assign Variables to appropriate Hypothesis fields
-        if rhs_role == 'X':
-            self.xs.append(rhs_var)
-        else: 
-            assert(rhs_role == 'Y')
-            self.y.append(rhs_var)
-    
-        if lhs_role == 'X':
-            self.xs.append(lhs_var)
-        else: 
-            assert(lhs_role == 'Y')
-            self.y.append(lhs_var)
+        for var in all_vars: 
+            assert(isinstance(var, AbstractVariable))
+            role = design.which_role(var)
+            # Assign Variables to appropriate Hypothesis fields
+            if role == 'X':
+                self.xs.append(var)
+            else: 
+                assert(role == 'Y')
+                self.y.append(var)
 
 class GroupComparisons(AbstractHypothesis): 
     @classmethod
