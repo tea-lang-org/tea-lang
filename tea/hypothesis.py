@@ -47,6 +47,8 @@ class LinearHypothesis(AbstractHypothesis):
     def __init__(self, hypothesis, variables: list, design: AbstractDesign):
         
         super.__init__(hypothesis) # store the original string the end user wrote
+        self.xs = []
+        self.y = []
         
         rhs_name, lhs_name = self.parse_hypothesis(LINEAR_RELATIONSHIP)
         
@@ -57,17 +59,22 @@ class LinearHypothesis(AbstractHypothesis):
         rhs_var = AbstractVariable.get_variable(variables, rhs_name)
         lhs_var = AbstractVariable.get_variable(variables, lhs_name)
 
-        which_role(rhs_var)
-        # START HERE: Which role does each variable have, to assign to Xs or Y 
+        # Based on Design, figure out which role the Variables in the Hypothesis play
+        rhs_role = design.which_role(rhs_var)
+        lhs_role = design.which_role(rhs_var)
 
-        if isinstance(design, ObservationalDesign):
-            pass
-        elif isinstance(design, ExperimentDesign):
-            pass
+        # Assign Variables to appropriate Hypothesis fields
+        if rhs_role == 'X':
+            self.xs.append(rhs_var)
         else: 
-            raise ValueError(f"Design is neither an ObservationalDesign nor an ExperimentDesign: {design}")
-
-        # decide on Ys based on experimental design? 
+            assert(rhs_role == 'Y')
+            self.y.append(rhs_var)
+    
+        if lhs_role == 'X':
+            self.xs.append(lhs_var)
+        else: 
+            assert(lhs_role == 'Y')
+            self.y.append(lhs_var)
 
 class GroupComparisons(AbstractHypothesis): 
     @classmethod
