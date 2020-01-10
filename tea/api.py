@@ -1,3 +1,5 @@
+import pandas as pd
+
 from .build import (load_data, load_data_from_url, const,
                     ordinal, isordinal,
                     nominal, isnominal,
@@ -51,7 +53,7 @@ def data(file, key=None):
     global dataset_path, dataset_obj, dataset_id
 
     # Require that the path to the data must be a string or a Path object
-    assert (isinstance(file, str) or isinstance(file, Path))
+    assert isinstance(file, (str, Path, pd.DataFrame))
     dataset_path = file
     dataset_id = key
 
@@ -139,7 +141,12 @@ def hypothesize(vars: list, prediction: list = None):
     global assumptions, all_results
     global MODE
 
-    assert (dataset_path)
+    if isinstance(dataset_path, (str, Path)):
+        assert (dataset_path)
+    elif isinstance(dataset_path, pd.DataFrame):
+        assert not dataset_path.empty
+    else:
+        raise ValueError(f"dataset_path must be DataFrame, str, or Path. Not: {type(dataset_path)}")
     assert (vars_objs)
     assert (study_design)
 

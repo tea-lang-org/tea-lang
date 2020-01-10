@@ -58,8 +58,12 @@ class Dataset(object):
         return csv_path
 
     def __attrs_post_init__(self):
-        if self.dfile: 
+        if isinstance(self.dfile, (str, Path)):
             self.data = pd.read_csv(self.dfile)
+        elif isinstance(self.dfile, pd.DataFrame):
+            self.data = self.dfile
+        else:
+            raise ValueError(f"Dataset expected DataFrame, str, or Path. Received: {self.dfile}")
 
         # if self.pid_col_name:
         #     # Reindex DataFrame indices to be pids
