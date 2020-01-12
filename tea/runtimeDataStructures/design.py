@@ -6,6 +6,8 @@ from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable
 
 
 class AbstractDesign(object):
+    xs : list # list of Variables
+    ys : list # list of Variables
     
     @classmethod
     def create(cls, attributes, variables):
@@ -36,8 +38,6 @@ class AbstractDesign(object):
 
 @attr.s(init=False)
 class ObservationalDesign(AbstractDesign): 
-    xs : list # list of Variables
-    ys : list # list of Variables
 
     def __init__(self, attributes, variables): 
 
@@ -69,9 +69,7 @@ class ObservationalDesign(AbstractDesign):
             
 @attr.s(init=False)
 class ExperimentDesign(AbstractDesign):
-    xs : list # list of Variables
-    ys : list # list of Variables
-
+    
     def __init__(self, attributes, variables): 
     
         for key, value in attributes.items():
