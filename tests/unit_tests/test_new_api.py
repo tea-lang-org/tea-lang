@@ -441,6 +441,10 @@ def test_linearHypothesis_ctor():
     tea_obj = tea.Tea(vars, design)
     vars_list = tea.define_variables(vars)
     design_obj = tea.define_study_design(design, vars_list)
-    
+    hypo_obj = tea_obj.hypothesize("So~Grade")
+    import pdb; pdb.set_trace()
+
+    # TODO: Check that the hypotheses are well-formed (valid)
+
 # TODO: may want to add a helper function to determine if two designs are equivalent
 

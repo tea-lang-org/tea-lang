@@ -20,6 +20,7 @@ from tea.z3_solver.solver import set_mode
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable, OrdinalVariable, NumericVariable
 from tea.runtimeDataStructures.design import AbstractDesign, ObservationalDesign, ExperimentDesign
+from tea.runtimeDataStructures.hypothesis import AbstractHypothesis, LinearHypothesis, GroupComparisons
 
 from typing import Dict
 from .global_vals import *
@@ -214,6 +215,8 @@ class Tea(object):
                     var.assume(key)
 
     def hypothesize(self, hypothesis): 
-        pass
+        hypothesis_obj = AbstractHypothesis.create(hypothesis, self.variables, self.design)
+
+        return hypothesis_obj
         
         # return Hypothesis(hypothesis, self.variables) -- call to the AbstractHypothesis class
