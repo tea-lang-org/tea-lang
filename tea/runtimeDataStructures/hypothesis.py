@@ -84,7 +84,6 @@ class LinearHypothesis(AbstractHypothesis):
             else: 
                 assert(role == 'Y')
                 self.y.append(var)
-        import pdb; pdb.set_trace()
 
 class GroupComparisons(AbstractHypothesis): 
     @classmethod

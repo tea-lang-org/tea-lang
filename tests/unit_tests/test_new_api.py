@@ -423,9 +423,8 @@ def test_assume_tea_obj():
 
 def test_linearHypothesis_ctor(): 
     var_0 = {
-        'name': 'Grade',
-        'data type': 'ordinal',
-        'categories': ['0', '1', '2']
+        'name': 'Prob',
+        'data type': 'ratio'
     }
     var_1 = {
         'name': 'So',
@@ -434,15 +433,21 @@ def test_linearHypothesis_ctor():
     }
     design = {
         'study type': 'experiment', 
-        'independent variables': ['Grade', 'So']
+        'independent variables': 'So',
+        'dependent variable': 'Prob'
     }
     
     vars = [var_0, var_1]
     tea_obj = tea.Tea(vars, design)
     vars_list = tea.define_variables(vars)
     design_obj = tea.define_study_design(design, vars_list)
-    hypo_obj = tea_obj.hypothesize("So~Grade")
-    import pdb; pdb.set_trace()
+    hypo_obj = tea_obj.hypothesize("Prob~So")
+    assert(vars_list[0] in design_obj.ys)
+    # assert(vars_list[0] not in design_obj.ys)
+    assert(vars_list[1] in design_obj.xs)
+    # assert(vars_list[1] not in design_obj.xs)
+    assert(hypo_obj.xs == design_obj.xs)
+    assert(hypo_obj.y == design_obj.ys)
 
     # TODO: Check that the hypotheses are well-formed (valid)
 
