@@ -4,7 +4,7 @@ import attr
 
 from tea.global_vals import *
 from tea.runtimeDataStructures.design import AbstractDesign, ObservationalDesign, ExperimentDesign
-from tea.runtimeDataStructures.variable import AbstractVariable
+from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable, OrdinalVariable, NumericVariable
 
 class AbstractHypothesis(object): 
 
@@ -88,10 +88,20 @@ class LinearHypothesis(AbstractHypothesis):
             rhs_dir = POSITIVE
             rhs_var = AbstractVariable.get_variable(variables, rhs_name)
 
-        if lhs_dir == rhs_dir:  # handles +lhs, +rhs and -lhs,
-            return PositiveLinear(hypothesis, design, lhs_var, rhs_var)
-        else:  # handles +lhs, -rhs and -lhs, +rhs
-            return NegativeLinear(hypothesis, design, lhs_var, rhs_var)
+        # Check that a LinearRelationship is possible/makes sense
+        if (isinstance(lhs_var, OrdinalVariable) or isinstance(lhs_var, NumericVariable)): 
+            if (isinstance(rhs_var, OrdinalVariable) or isinstance(rhs_var, NumericVariable)): 
+                    if lhs_dir == rhs_dir:  # handles +lhs, +rhs and -lhs,
+                        return PositiveLinear(hypothesis, design, lhs_var, rhs_var)
+                    else:  # handles +lhs, -rhs and -lhs, +rhs
+                        return NegativeLinear(hypothesis, design, lhs_var, rhs_var)
+            else: 
+                assert(isinstance(rhs_var, NominalVariable))
+                raise ValueError(f"Linear relationship malformed. Both variables (LHS and RHS) must be Ordinal or Numeric. RHS is {type(rhs_var)}")
+        else: 
+            raise ValueError(f"Linear relationship malformed. Both variables (LHS and RHS) must be Ordinal or Numeric. LHS is {type(lhs_var)}")
+
+        
 
 class PositiveLinear(LinearHypothesis):
 
@@ -152,6 +162,7 @@ class NegativeLinear(LinearHypothesis):
 class GroupComparisons(AbstractHypothesis): 
     @classmethod
     def create(cls, hypothesis: str, variables: list, design: AbstractDesign):
+        import pdb; pdb.set_trace()
         assert(GROUP_COMPARISONS in hypothesis)
         # #TODO: If there are 2 groups
         # return BivariateComparisons(groups, hypothesis)

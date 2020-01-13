@@ -422,7 +422,7 @@ def test_assume_tea_obj():
     tea_obj.assume(assumptions)
     assert(tea_obj.variables[0].properties == vars_list[0].properties)
 
-def test_linearHypothesis_pos_signed_ctor(): 
+def test_linearHypothesis_malformed(): 
     var_0 = {
         'name': 'Prob',
         'data type': 'ratio'
@@ -442,12 +442,65 @@ def test_linearHypothesis_pos_signed_ctor():
     tea_obj = tea.Tea(vars, design)
     vars_list = tea.define_variables(vars)
     design_obj = tea.define_study_design(design, vars_list)
-    hypo_obj = tea_obj.hypothesize("+Prob~+So")
-    assert(isinstance(hypo_obj, PositiveLinear))
+    hypo_obj = None
+    try: 
+        hypo_obj = tea_obj.hypothesize("+Prob~+So")
+    except ValueError: 
+        assert(hypo_obj is None)
+
+def test_linearHypothesis_pos_signed_ctor(): 
+    var_0 = {
+        'name': 'Prob',
+        'data type': 'ratio'
+    }
+    var_1 = {
+        'name': 'Income',
+        'data type': 'numeric'
+    }
+    design = {
+        'study type': 'experiment', 
+        'independent variables': 'Income',
+        'dependent variable': 'Prob'
+    }
+    
+    vars = [var_0, var_1]
+    tea_obj = tea.Tea(vars, design)
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    hypo_obj_0 = tea_obj.hypothesize("Income~Prob")
+    
+    assert(isinstance(hypo_obj_0, PositiveLinear))
     assert(vars_list[0] in design_obj.ys)
     assert(vars_list[1] in design_obj.xs)
-    assert(hypo_obj.xs == design_obj.xs)
-    assert(hypo_obj.y == design_obj.ys)
+    import pdb; pdb.set_trace()
+    assert(hypo_obj_0.xs == design_obj.xs)
+    assert(hypo_obj_0.y == design_obj.ys)
+
+def test_linearHypothesis_default_ctor(): 
+    var_0 = {
+        'name': 'Prob',
+        'data type': 'ratio'
+    }
+    var_1 = {
+        'name': 'Income',
+        'data type': 'numeric'
+    }
+    design = {
+        'study type': 'experiment', 
+        'independent variables': 'Income',
+        'dependent variable': 'Prob'
+    }
+    
+    vars = [var_0, var_1]
+    tea_obj = tea.Tea(vars, design)
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    hypo_obj_0 = tea_obj.hypothesize("Income~Prob")
+    hypo_obj_1 = tea_obj.hypothesize("Income~+Prob")
+    hypo_obj_2 = tea_obj.hypothesize("+Income~Prob")
+    hypo_obj_3 = tea_obj.hypothesize("+Income~+Prob")
+    
+    assert(hypo_obj_0 == hypo_obj_1 == hypo_obj_2 == hypo_obj_3)
 
 def test_linearHypothesis_neg_signed_ctor(): 
     var_0 = {
@@ -455,13 +508,12 @@ def test_linearHypothesis_neg_signed_ctor():
         'data type': 'ratio'
     }
     var_1 = {
-        'name': 'So',
-        'data type': 'nominal',
-        'categories': ['0', '1']
+        'name': 'Income',
+        'data type': 'numeric'
     }
     design = {
         'study type': 'experiment', 
-        'independent variables': 'So',
+        'independent variables': 'Income',
         'dependent variable': 'Prob'
     }
     
@@ -469,13 +521,40 @@ def test_linearHypothesis_neg_signed_ctor():
     tea_obj = tea.Tea(vars, design)
     vars_list = tea.define_variables(vars)
     design_obj = tea.define_study_design(design, vars_list)
-    hypo_obj = tea_obj.hypothesize("-Prob~+So")
+    hypo_obj_0 = tea_obj.hypothesize("-Income~Prob")
+    
     assert(isinstance(hypo_obj, NegativeLinear))
     assert(vars_list[0] in design_obj.ys)
     assert(vars_list[1] in design_obj.xs)
     assert(hypo_obj.xs == design_obj.xs)
     assert(hypo_obj.y == design_obj.ys)
 
+# def test_groupComparisons_ctor():
+#     var_0 = {
+#         'name': 'Prob',
+#         'data type': 'ratio'
+#     }
+#     var_1 = {
+#         'name': 'So',
+#         'data type': 'nominal',
+#         'categories': ['0', '1']
+#     }
+#     design = {
+#         'study type': 'experiment', 
+#         'independent variables': 'So',
+#         'dependent variable': 'Prob'
+#     }
+    
+#     vars = [var_0, var_1]
+#     tea_obj = tea.Tea(vars, design)
+#     vars_list = tea.define_variables(vars)
+#     design_obj = tea.define_study_design(design, vars_list)
+#     hypo_obj = tea_obj.hypothesize("-Prob~+So")
+#     assert(isinstance(hypo_obj, NegativeLinear))
+#     assert(vars_list[0] in design_obj.ys)
+#     assert(vars_list[1] in design_obj.xs)
+#     assert(hypo_obj.xs == design_obj.xs)
+#     assert(hypo_obj.y == design_obj.ys)
 
 # FIRST FOCUS ON Y ~ X
 # TODO: HOW about when X ~ X ??
