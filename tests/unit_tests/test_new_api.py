@@ -1,6 +1,7 @@
 import tea
 from tea.runtimeDataStructures.variable import AbstractVariable, NominalVariable, OrdinalVariable, NumericVariable
 from tea.runtimeDataStructures.design import AbstractDesign, ObservationalDesign, ExperimentDesign
+from tea.runtimeDataStructures.hypothesis import PositiveLinear, NegativeLinear
 
 import pandas as pd 
 import copy 
@@ -421,7 +422,7 @@ def test_assume_tea_obj():
     tea_obj.assume(assumptions)
     assert(tea_obj.variables[0].properties == vars_list[0].properties)
 
-def test_linearHypothesis_ctor(): 
+def test_linearHypothesis_pos_signed_ctor(): 
     var_0 = {
         'name': 'Prob',
         'data type': 'ratio'
@@ -441,15 +442,49 @@ def test_linearHypothesis_ctor():
     tea_obj = tea.Tea(vars, design)
     vars_list = tea.define_variables(vars)
     design_obj = tea.define_study_design(design, vars_list)
-    hypo_obj = tea_obj.hypothesize("Prob~So")
+    hypo_obj = tea_obj.hypothesize("+Prob~+So")
+    assert(isinstance(hypo_obj, PositiveLinear))
     assert(vars_list[0] in design_obj.ys)
-    # assert(vars_list[0] not in design_obj.ys)
     assert(vars_list[1] in design_obj.xs)
-    # assert(vars_list[1] not in design_obj.xs)
     assert(hypo_obj.xs == design_obj.xs)
     assert(hypo_obj.y == design_obj.ys)
 
-    # TODO: Check that the hypotheses are well-formed (valid)
+def test_linearHypothesis_neg_signed_ctor(): 
+    var_0 = {
+        'name': 'Prob',
+        'data type': 'ratio'
+    }
+    var_1 = {
+        'name': 'So',
+        'data type': 'nominal',
+        'categories': ['0', '1']
+    }
+    design = {
+        'study type': 'experiment', 
+        'independent variables': 'So',
+        'dependent variable': 'Prob'
+    }
+    
+    vars = [var_0, var_1]
+    tea_obj = tea.Tea(vars, design)
+    vars_list = tea.define_variables(vars)
+    design_obj = tea.define_study_design(design, vars_list)
+    hypo_obj = tea_obj.hypothesize("-Prob~+So")
+    assert(isinstance(hypo_obj, NegativeLinear))
+    assert(vars_list[0] in design_obj.ys)
+    assert(vars_list[1] in design_obj.xs)
+    assert(hypo_obj.xs == design_obj.xs)
+    assert(hypo_obj.y == design_obj.ys)
+
+
+# FIRST FOCUS ON Y ~ X
+# TODO: HOW about when X ~ X ??
+
+# make test where so ~ grade == grade ~ so (does not matter which direction, as long as keep y on one side and x on the other side)
+
+# for var in all_vars:
+# >           assert(isinstance(var, AbstractVariable))
 
 # TODO: may want to add a helper function to determine if two designs are equivalent
+
 
