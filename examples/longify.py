@@ -1,7 +1,7 @@
 '''
 Author: Eunice Jun (@emjun)
-Date created: November, 4, 2019 
-Purpose: Transform a wide format dataset into long format
+Last updated: Feb 4, 2020
+Purpose: Transform a wide format dataset into long format for AR_TV/ar_tv.csv; Could be adapted for future datasets
 Use: python3 longify.py <data_in_wide_format.csv>
 '''
 import sys
@@ -15,12 +15,12 @@ if __name__ == "__main__":
         print("Data file must be a CSV file!")
     else:
         wide_csv = sys.argv[1]
-        wide_df = pd.read_csv(wide_csv)
-        # long_df = pd.wide_to_long(wide_df, stubnames='Score', i=None, j='ID')
-        cols_to_collapse = ['AR', 'TV']
-        result_col = 'Score'
-        
-        import pdb; pdb.set_trace()
-        long_df.to_csv()
+        wide_df = pd.read_csv(wide_csv, header=0)
+        long_df = pd.DataFrame(columns =  ['ID', 'Condition', 'Score'])
+    
 
+        for label, val in wide_df.iterrows():
+            long_df = long_df.append({'ID': val['ID'], 'Condition': 'AR', 'Score': val['AR']}, ignore_index=True)
+            long_df = long_df.append({'ID': val['ID'], 'Condition': 'TV', 'Score': val['TV']}, ignore_index = True)
 
+        long_df.to_csv('ar_tv_long.csv')
