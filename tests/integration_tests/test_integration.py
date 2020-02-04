@@ -1,3 +1,5 @@
+import pandas as pd
+
 import tea
 import os
 
@@ -572,6 +574,43 @@ def test_chi_square():
     }
 
     tea.data(data_path)
+    tea.define_variables(variables)
+    tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    tea.assume(assumptions)
+
+    tea.hypothesize(['Training', 'Dance'])
+    # print('Chi square')
+    print('++++++++++++')
+
+
+def test_chi_square_with_dataframe():
+    data_path = get_data_path('catsData.csv')
+
+    data_frame = pd.read_csv(data_path)
+
+    # Declare and annotate the variables of interest
+    variables = [
+        {
+            'name' : 'Training',
+            'data type' : 'nominal',
+            'categories' : ['Food as Reward', 'Affection as Reward']
+        },
+        {
+            'name' : 'Dance',
+            'data type' : 'nominal',
+            'categories' : ['Yes', 'No']
+        }
+    ]
+    experimental_design = {
+                            'study type': 'observational study',
+                            'contributor variables': 'Training',
+                            'outcome variables': 'Dance'
+                        }
+    assumptions = {
+        'Type I (False Positive) Error Rate': 0.05,
+    }
+
+    tea.data(data_frame)  # Passes data_frame instead of data_path
     tea.define_variables(variables)
     tea.define_study_design(experimental_design) # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.assume(assumptions)

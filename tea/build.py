@@ -1,3 +1,7 @@
+from typing import Union
+
+import pandas as pd
+
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.ast import (Variable, DataType, Literal, Relate, Relationship)
 
@@ -70,7 +74,7 @@ def iscategorical(var: Variable):
 
 
 # @param pid is the name of the column with participant ids
-def load_data(source_name: str, vars: list, pid: str):
+def load_data(source_name: Union[str, pd.DataFrame], vars: list, pid: str):
     return Dataset(source_name, vars, pid)
 
 
