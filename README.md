@@ -28,10 +28,13 @@ Testing (NHST).
 *We are actively working on expanding the kinds of analyses Tea can support. Some ideas we have: linear modeling and Bayesian inference.*
 
 ## How can I use Tea?
-Tea is available on pip! 
+<a href='https://pypi.org/project/tealang/'>Tea is available on pip!</a>
+```
+pip install tealang
+```
 
 ## How can I cite Tea?
-For now, please cite it!: 
+For now, please cite: 
 ```  
 article{JunEtAl2019:Tea,
   title={Tea: A High-level Language and Runtime System for Automating Statistical Analysis},
@@ -63,6 +66,10 @@ Please find more information at <a href='https://www.tea-lang.org'>our website</
 Please reach out! We are nice :) Email Eunice at emjun [at] cs.washington.edu!
 
 
+## FAQs
 ### By the way, why Python?
 Python is a common language for data science. We hope Tea can easily integrate
 into user workflows. 
+
+### What format should my data be in?
+Tea accepts data either as a CSV or a Pandas DataFrame. Tea asumes data is in <a href='http://www.cookbook-r.com/Manipulating_data/Converting_data_between_wide_and_long_format/'>"long format."</a> 
