@@ -105,7 +105,6 @@ class LinearHypothesis(AbstractHypothesis):
 
 class PositiveLinear(LinearHypothesis):
 
-    # TODO: Rename to RHS and LHS?
     xs: list # list of RHS variables (of type AbstractVariable)
     y: list # list of LHS variable, assert that the length is one/only one y variable (of type AbstractVariable)
 
