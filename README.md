@@ -33,6 +33,8 @@ Testing (NHST).
 pip install tealang
 ```
 
+See community examples <a href='https://github.com/emjun/tea-lang/tree/master/examples'>here</a>. If you have trouble using Tea with your use case, feel free to open an issue, and we'll try to help. 
+
 ## How can I cite Tea?
 For now, please cite: 
 ```  
