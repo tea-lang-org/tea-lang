@@ -67,26 +67,39 @@ nominal_var = VarData(metadata=nominal_metadata,
                       properties=categorical_properties,
                       role=null_identifier)
 
-cont_not_specified = CombinedData(vars=[normal_continuous_var, normal_continuous_var])
-cont_diff_sample_size = CombinedData(vars=[normal_continuous_var, normal_continuous_large_sample])
-cont_iv_dv = CombinedData(vars=[normal_continuous_dependent, normal_continuous_independent])
-nominal_iv_cont_dv = CombinedData(vars=[normal_continuous_dependent, nominal_independent])
-ordinal_iv_cont_dv = CombinedData(vars=[normal_continuous_dependent, ordinal_independent])
-cont_iv_nominal_dv = CombinedData(vars=[nominal_dependent, normal_continuous_independent])
-cont_iv_ordinal_dv = CombinedData(vars=[ordinal_dependent, normal_continuous_independent])
+cont_not_specified = CombinedData(
+    vars=[normal_continuous_var, normal_continuous_var])
+cont_diff_sample_size = CombinedData(
+    vars=[normal_continuous_var, normal_continuous_large_sample])
+cont_iv_dv = CombinedData(
+    vars=[normal_continuous_dependent, normal_continuous_independent])
+nominal_iv_cont_dv = CombinedData(
+    vars=[normal_continuous_dependent, nominal_independent])
+ordinal_iv_cont_dv = CombinedData(
+    vars=[normal_continuous_dependent, ordinal_independent])
+cont_iv_nominal_dv = CombinedData(
+    vars=[nominal_dependent, normal_continuous_independent])
+cont_iv_ordinal_dv = CombinedData(
+    vars=[ordinal_dependent, normal_continuous_independent])
 ordinal_not_specified = CombinedData(vars=[ordinal_var, ordinal_var])
 nominal_not_specified = CombinedData(vars=[nominal_var, nominal_var])
 ordinal_nominal_not_specified = CombinedData(vars=[ordinal_var, nominal_var])
-nominal_iv_cont_not_normal_dv = CombinedData(vars=[continuous_dependent, nominal_independent])
-nominal_iv_cont_not_specified = CombinedData(vars=[nominal_independent, normal_continuous_var])
-nominal_not_specified_cont_dv = CombinedData(vars=[nominal_var, normal_continuous_dependent])
+nominal_iv_cont_not_normal_dv = CombinedData(
+    vars=[continuous_dependent, nominal_independent])
+nominal_iv_cont_not_specified = CombinedData(
+    vars=[nominal_independent, normal_continuous_var])
+nominal_not_specified_cont_dv = CombinedData(
+    vars=[nominal_var, normal_continuous_dependent])
+
 
 def test_get_dv_and_iv():
     # Check that getting independent/dependent var fails if none is specified.
     assert get_dependent_variable(cont_not_specified) is None
     assert get_independent_variable(cont_not_specified) is None
     assert get_dependent_variable(cont_iv_dv) == normal_continuous_dependent
-    assert get_independent_variable(cont_iv_dv) == normal_continuous_independent
+    assert get_independent_variable(
+        cont_iv_dv) == normal_continuous_independent
+
 
 def test_iv_properties():
     # Check all of methods on independent variable.
@@ -99,12 +112,17 @@ def test_iv_properties():
     assert independent_variable_is_categorical(ordinal_iv_cont_dv)
 
     assert independent_variable_has_number_of_categories(nominal_iv_cont_dv, 2)
-    assert not independent_variable_has_number_of_categories(nominal_iv_cont_dv, 0)
-    assert not independent_variable_has_number_of_categories(nominal_iv_cont_dv, 3)
+    assert not independent_variable_has_number_of_categories(
+        nominal_iv_cont_dv, 0)
+    assert not independent_variable_has_number_of_categories(
+        nominal_iv_cont_dv, 3)
 
     assert independent_variable_has_number_of_categories(ordinal_iv_cont_dv, 2)
-    assert not independent_variable_has_number_of_categories(ordinal_iv_cont_dv, 0)
-    assert not independent_variable_has_number_of_categories(ordinal_iv_cont_dv, 3)
+    assert not independent_variable_has_number_of_categories(
+        ordinal_iv_cont_dv, 0)
+    assert not independent_variable_has_number_of_categories(
+        ordinal_iv_cont_dv, 3)
+
 
 def test_dv_properties():
     # Check all methods on dependent variable.
@@ -117,12 +135,16 @@ def test_dv_properties():
     assert dependent_variable_is_categorical(cont_iv_ordinal_dv)
 
     assert dependent_variable_has_number_of_categories(cont_iv_nominal_dv, 2)
-    assert not dependent_variable_has_number_of_categories(cont_iv_nominal_dv, 0)
-    assert not dependent_variable_has_number_of_categories(cont_iv_nominal_dv, 3)
+    assert not dependent_variable_has_number_of_categories(
+        cont_iv_nominal_dv, 0)
+    assert not dependent_variable_has_number_of_categories(
+        cont_iv_nominal_dv, 3)
 
     assert dependent_variable_has_number_of_categories(cont_iv_ordinal_dv, 2)
-    assert not dependent_variable_has_number_of_categories(cont_iv_ordinal_dv, 0)
-    assert not dependent_variable_has_number_of_categories(cont_iv_ordinal_dv, 3)
+    assert not dependent_variable_has_number_of_categories(
+        cont_iv_ordinal_dv, 0)
+    assert not dependent_variable_has_number_of_categories(
+        cont_iv_ordinal_dv, 3)
 
     assert not dependent_variable_is_ordinal(cont_iv_dv)
     assert not dependent_variable_is_ordinal(cont_iv_nominal_dv)
@@ -134,6 +156,7 @@ def test_dv_properties():
     assert not dependent_variable_is_normal(cont_not_specified)
     assert not dependent_variable_is_normal(cont_iv_nominal_dv)
     assert not dependent_variable_is_normal(ordinal_nominal_not_specified)
+
 
 def test_all_variables_methods():
     # Test all_variables_... methods.
@@ -155,10 +178,12 @@ def test_all_variables_methods():
     assert not all_variables_have_enough_categories(nominal_iv_cont_dv, 2)
     assert all_variables_have_enough_categories(ordinal_not_specified, 2)
     assert all_variables_have_enough_categories(nominal_not_specified, 2)
-    assert all_variables_have_enough_categories(ordinal_nominal_not_specified, 2)
+    assert all_variables_have_enough_categories(
+        ordinal_nominal_not_specified, 2)
     assert not all_variables_have_enough_categories(ordinal_not_specified, 3)
     assert not all_variables_have_enough_categories(nominal_not_specified, 3)
-    assert not all_variables_have_enough_categories(ordinal_nominal_not_specified, 3)
+    assert not all_variables_have_enough_categories(
+        ordinal_nominal_not_specified, 3)
 
     assert all_variables_have_enough_samples(cont_iv_dv)
     assert all_variables_have_enough_samples(cont_iv_ordinal_dv)
@@ -175,11 +200,13 @@ def test_all_variables_methods():
     assert not all_variables_have_enough_samples(ordinal_iv_cont_dv, 50)
     assert not all_variables_have_enough_samples(ordinal_not_specified, 50)
     assert not all_variables_have_enough_samples(nominal_not_specified, 50)
-    assert not all_variables_have_enough_samples(ordinal_nominal_not_specified, 50)
+    assert not all_variables_have_enough_samples(
+        ordinal_nominal_not_specified, 50)
 
     assert all_variables_have_same_number_of_samples(cont_iv_dv)
     assert all_variables_have_same_number_of_samples(cont_iv_ordinal_dv)
-    assert all_variables_have_same_number_of_samples(ordinal_nominal_not_specified)
+    assert all_variables_have_same_number_of_samples(
+        ordinal_nominal_not_specified)
     assert not all_variables_have_same_number_of_samples(cont_diff_sample_size)
 
 
@@ -202,13 +229,15 @@ def test_studentst_and_utest():
 
     # Return both parametric and non-parametric tests if dv samples are normal.
     tests_and_assumptions = find_applicable_bivariate_tests(ordinal_iv_cont_dv)
-    assert combine_keys(tests_and_assumptions.keys()) == Tests.STUDENTST | Tests.UTEST | Tests.SPEARMAN_CORRELATION
+    assert combine_keys(tests_and_assumptions.keys(
+    )) == Tests.STUDENTST | Tests.UTEST | Tests.SPEARMAN_CORRELATION
 
     # Return both parametric and non-parametric tests if dv samples are normal.
     # Spearman's correlation requires ordinal or continuous variables, so it shouldn't
     # be considered for a nominal iv.
     tests_and_assumptions = find_applicable_bivariate_tests(nominal_iv_cont_dv)
-    assert combine_keys(tests_and_assumptions.keys()) == Tests.STUDENTST | Tests.UTEST
+    assert combine_keys(tests_and_assumptions.keys()
+                        ) == Tests.STUDENTST | Tests.UTEST
 
     # However, if equal variance requirement isn't met, then no test should be returned.
     nominal_iv_cont_dv.properties = {variance: [1.0, 0.1]}
@@ -216,12 +245,15 @@ def test_studentst_and_utest():
     assert combine_keys(tests_and_assumptions.keys()) == Tests.NONE
 
     # Verify that only non-parametric test is returned if dv is not normal.
-    tests_and_assumptions = find_applicable_bivariate_tests(nominal_iv_cont_not_normal_dv)
+    tests_and_assumptions = find_applicable_bivariate_tests(
+        nominal_iv_cont_not_normal_dv)
     assert combine_keys(tests_and_assumptions.keys()) == Tests.UTEST
 
     # Verify that both independent and dependent variables are specified.
-    tests_and_assumptions = find_applicable_bivariate_tests(nominal_iv_cont_not_specified)
+    tests_and_assumptions = find_applicable_bivariate_tests(
+        nominal_iv_cont_not_specified)
     assert combine_keys(tests_and_assumptions.keys()) == Tests.NONE
 
-    tests_and_assumptions = find_applicable_bivariate_tests(nominal_not_specified_cont_dv)
+    tests_and_assumptions = find_applicable_bivariate_tests(
+        nominal_not_specified_cont_dv)
     assert combine_keys(tests_and_assumptions.keys()) == Tests.NONE
