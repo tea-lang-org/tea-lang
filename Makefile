@@ -3,4 +3,4 @@ init:
 	pipenv install --dev
 
 test:
-	pipenv run pytest ./tests/integration_tests/test_integration.py
+	pipenv run pytest ./tests/test_integration.py
