@@ -62,7 +62,7 @@ If you want to use Tea for a
 project, talk about Tea's design, or anything else, please get in touch: emjun [at] cs.washington.edu!
 
 ## Where can I learn more about Tea?
-Please find more information at <a href='https://www.tea-lang.org'>our website</a>. 
+Please find more information at <a href='https://tea-lang.org'>our website</a>. 
 
 ## I have ideas. I want to chat. 
 Please reach out! We are nice :) Email Eunice at emjun [at] cs.washington.edu!
