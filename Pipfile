@@ -6,6 +6,8 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 parameterized = "*"
+pytest-cov ="*"
+coveralls = "*"
 
 [packages]
 attrs = "*"
