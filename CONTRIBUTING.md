@@ -17,4 +17,7 @@ The main code base is written in Python and lives in the `tea` directory. The `t
 `tea/evaluate_data_structures.py` contains the data structuers used in `evaluate.py` and `evaluate_helper_methods.py`.
 `tea/errors.py` is empty. It will contain some code for providing helpful error messages.
 
+## Can I use external datasets to create additional tests, documentation, and examples?
+Yes! Try and use Tea with real data, that's what we hope for. :) If you do decide to include external datasets in Tea tests, documentation, and examples, please make sure to attribute credit to the sources in your files and add them to the list in [`CREDIT.md`](./CREDIT.MD).
+
 **All of the above are still changing!**
