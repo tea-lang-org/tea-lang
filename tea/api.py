@@ -81,7 +81,7 @@ def define_variables(vars: Dict[str, str]):
         else:
             assert (var[var_dtype] == 'ratio')
             drange = var[var_drange] if var_drange in var else None
-            v_obj = interval(name, drange)
+            v_obj = ratio(name, drange)
 
         vars_objs.append(v_obj)
 
