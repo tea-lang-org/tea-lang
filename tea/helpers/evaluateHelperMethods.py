@@ -1,5 +1,6 @@
 # Tea
 from tea.global_vals import *
+from tea.helpers.constants.test_names import *
 from tea.ast import DataType, LessThan, GreaterThan
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
@@ -356,7 +357,7 @@ def students_t(dataset, predictions, combined_data: BivariateData):
 
     dof = len(lhs) + len(rhs) - 2 # Group1 + Group2 - 2
     test_result = TestResult(
-                        name = students_t_name,
+                        name = STUDENTS_T_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -394,7 +395,7 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.ttest_rel(data[0], data[1])
     dof = (len(data[0]) + len(data[1]))/2. - 1 # (Group1 + Group2)/2 - 1
     test_result = TestResult(
-                        name = paired_students_name,
+                        name = PAIRED_STUDENTS_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -443,7 +444,7 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
     else:
         dof = len(data[1]) - 1
     test_result = TestResult(
-                        name = welchs_t_name,
+                        name = WELCHS_T_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -484,7 +485,7 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
-                        name = mann_whitney_name,
+                        name = MANN_WHITNEY_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -520,7 +521,7 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     t_stat, p_val = stats.wilcoxon(data[0], data[1])
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
-                        name = wilcoxon_signed_rank_name,
+                        name = WILCOXON_SIGNED_RANK_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -554,7 +555,7 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.pearsonr(data[0], data[1])
     dof = None
     test_result = TestResult(
-                        name = pearson_name,
+                        name = PEARSON_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -592,7 +593,7 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.spearmanr(data[0], data[1])
     dof = None
     test_result = TestResult(
-                        name = spearman_name,
+                        name = SPEARMAN_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -621,7 +622,7 @@ def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.kendalltau(data[0], data[1])
     dof = None
     test_result = TestResult(
-                        name = kendalltau_name,
+                        name = KENDALLTAU_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -655,7 +656,7 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.pointbiserialr(data[0], data[1])
     dof = None
     test_result = TestResult(
-                        name = pointbiserial_name,
+                        name = POINTBISERIAL_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
@@ -718,7 +719,7 @@ def chi_square(dataset: Dataset, predictions, combined_data: CombinedData):
     test_statistic, p_val, dof, ex = stats.chi2_contingency(contingency_table, correction=False)
     dof = None
     test_result = TestResult(
-                        name = chi_square_name,
+                        name = CHI_SQUARE_NAME,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
@@ -781,7 +782,7 @@ def fishers_exact(dataset: Dataset, predictions, combined_data: CombinedData):
     odds_ratio, p_val = stats.fisher_exact(contingency_table, alternative='two-sided')
     dof = None
     test_result = TestResult(
-                        name = fisher_exact_name,
+                        name = FISHER_EXACT_NAME,
                         test_statistic = odds_ratio,
                         p_value = p_val,
                         prediction = prediction,
@@ -824,7 +825,7 @@ def f_test(dataset: Dataset, predictions, combined_data: CombinedData):
             dof = row_data['df']
 
     test_result = TestResult(
-                        name = f_test_name,
+                        name = F_TEST_NAME,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
@@ -902,7 +903,7 @@ def factorial_ANOVA(dataset: Dataset, predictions, combined_data: CombinedData):
             dof = row_data['df']
 
     test_result = TestResult(
-                        name = factorial_anova_name,
+                        name = FACTORIAL_ANOVA_NAME,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
@@ -952,7 +953,7 @@ def rm_one_way_anova(dataset: Dataset, predictions, design, combined_data: Combi
             dof = (row_data['Num DF'], row_data['Den DF'])
 
     test_result = TestResult(
-                        name = rm_one_way_anova_name,
+                        name = RM_ONE_WAY_ANOVA_NAME,
                         test_statistic = test_statistic,
                         p_value = p_val,
                         prediction = prediction,
@@ -990,7 +991,7 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
     t_stat, p_val = stats.kruskal(*data)
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
-                        name = kruskall_wallis_name,
+                        name = KRUSKALL_WALLIS_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
                         prediction = prediction,
