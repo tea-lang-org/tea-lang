@@ -12,7 +12,7 @@ from tea.helpers.evaluateHelperMethods import determine_study_type, assign_roles
 from tea.z3_solver.solver import synthesize_tests
 
 import attr
-from typing import Any
+from typing import Any, Optional
 from types import SimpleNamespace # allows for dot notation access for dictionaries
 from typing import Dict
 
@@ -24,7 +24,7 @@ import pandas as pd
 
 
 # TODO: Pass participant_id as part of experimental design, not load_data
-def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: Dict[str, str]=None):
+def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: Dict[str, str]=None) -> Optional[VarData]:
     if isinstance(expr, Variable):
         # dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
         # then use query to get raw data later....(for user, not interpreter?)
@@ -42,7 +42,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         metadata['var_name'] = '' # because not a var in the dataset 
         metadata['query'] = ''
         metadata['value'] = expr.value
-        return VarData(data, metadata)
+        return VarData(metadata, data)
 
     elif isinstance(expr, Equal):
         lhs = evaluate(dataset, expr.lhs)
