@@ -1,7 +1,7 @@
 import tea
 
 
-data_path = "./examples/AR_TV/ar_tv_long.csv"
+data_path = "./ar_tv_long.csv"
 
 # Declare and annotate the variables of interest
 variables = [
@@ -16,6 +16,7 @@ variables = [
     },
     {
         'name' : 'Score',
+        # 'data type' : 'ratio'
         'data type' : 'ordinal',
         'categories' : [1,2,3,4,5]
     }
