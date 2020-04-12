@@ -27,7 +27,7 @@ experimental_design = {
                         'dependent variables': 'Score'
                     }
 assumptions = {
-    'Type I (False Positive) Error Rate': 0.05,
+    'Type I (False Positive) Error Rate': 0.01969
 }
 
 tea.data(data_path, key='ID')
