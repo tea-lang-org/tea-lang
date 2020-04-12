@@ -137,7 +137,7 @@ experimental_design = {
 tea.define_study_design(study_design)
 ```
 
-##### Specifying an experiment
+##### Specifying an experiment:
 For an experiment, you should describe *independent variables* and *dependent variables*.
 ``` 
 study_design = {
@@ -147,7 +147,7 @@ study_design = {
 }
 tea.define_study_design(study_design)
 ```
-##### Including multiple variables
+##### Including multiple variables:
 If you'd like, multiple variables can be specified as a list. For example: 
 ``` 
 experimental_design = {
@@ -160,30 +160,59 @@ tea.define_study_design(study_design)
 This can be useful if you're planning to test several hypotheses using different attributes.
 
 ### Assumptions
-Domain knowledge can be provided to Tea explicitly via the `assume()` function.
-These assumptions are optional and are not required for a valid Tea program.
+If you have domain knowledge that would be relevant to testing your hypothesis 
+(e.g., a variable is normally distributed), this information can be provided to 
+Tea explicitly via the `assume()` function.
 
-First, users can describe assumptions about variables' statistical properties (e.g.,
-a variable is normally distributed). Tea checks these assumptions and issues warnings 
+Note: This step is optional! You don't have to include any assumptions in order 
+for Tea to run.
+
+##### Describing a variable's statistical properties:
+First, users can describe assumptions about variables' statistical properties. Tea checks these assumptions and issues warnings 
 for those that are not verified by statistical testing. 
 To specify how Tea should handle these cases, users can select one of two modes: *strict* (default) or *relaxed*. In *strict* mode, 
 Tea will override user assumptions if they are determined unverifiable. In *relaxed* 
 mode, Tea will proceed with all user assumptions regardless of whether or not they
 are verified.
+```
+assumptions = {
+    'groups normally distributed': [['So', 'Prob']]
+}
+```
+tea.assume(assumptions)
 
-As part of the assumptions, users can also specify the *Type I (False Positive) Error 
-Rate*, or the alpha value, which represents the threshold p-value at which the null 
-hypothesis should be rejected. The default alpha value is 0.05.
-
+##### Specifying applicable data transformations:
 The assumptions can also include any known data transformations (i.e., log 
 transformation) that apply to a variable.
+
+##### Providing an alpha value: 
+As part of the assumptions, users can also specify the *Type I (False Positive) Error 
+Rate* (a.k.a. "significance threshold", or *alpha*), which represents the largest p-value at which the null 
+hypothesis should be rejected. The default alpha value is 0.05.
+``` 
+assumptions = {
+    'Type I (False Positive) Error Rate': 0.01
+}
+```
+In the above example, the resulting p-value must be *less* than 0.01 in order to 
+reject the null hypothesis.
+
+##### Passing assumptions to Tea:
+You can declare all assumptions together before passing them to Tea, as shown below:
+```
+assumptions = {
+    'groups normally distributed': [['So', 'Prob']],
+    'Type I (False Positive) Error Rate': 0.05,
+}
+tea.assume(assumptions)
+```  
 
 ### Hypothesis
 
 You can write hypotheses in Tea by specifying the variables of interest, 
 then formulating the hypothesized relationship between those variables.
 
-##### Describing different hypothesis types
+##### Describing different hypothesis types:
 Tea currently allows you to express the following range of hypotheses:
 * One-sided comparison between groups
 ```
@@ -216,7 +245,7 @@ relationship by default.
 tea.hypothesize(['Region', 'Imprisonment'], ['Imprisonment ~ -Region']) 
 ```
 
-##### Providing multiple hypotheses
+##### Providing multiple hypotheses:
 As long as all variables of interest are defined and included in the study design,
 you can specify as many hypotheses as you'd like:
 ``` 
@@ -224,7 +253,7 @@ results_1 = tea.hypothesize(['Sport', 'Weight'], ['Sport:Wrestling < Swimming'])
 results_2 = tea.hypothesize(['Sex', 'Weight'], ['Sex:F < M'])
 ```
 
-##### Testing against the Null Hypothesis
+##### Testing against the Null Hypothesis:
 Tea currently supports Null Hypothesis Significance Testing (NHST), which tests *your* 
 hypothesis&mdash;that there is some relationship between certain variables in your dataset&mdash;
 against a *null hypothesis*.
@@ -241,7 +270,7 @@ between the variables specified in your hypothesis.
 At runtime, Tea "compiles" the above 5 pieces of information into logical constraints, 
 which it uses to select and execute a set of valid statistical tests for testing your hypothesis.
 
-##### Selecting valid tests
+##### Selecting valid tests:
 A test is considered valid if and only if *all* the assumptions it makes about 
 the data (e.g., normal distribution, equal variance between groups, etc.) hold.
 
@@ -282,43 +311,66 @@ Testing assumption: is_continuous_or_ordinal.
 Property holds.
 ```
 
-##### Executing valid tests
-The moment you've been waiting for... once Tea has found a set of valid statistical tests,
-it will execute each one to test your hypothesis!
+##### Executing valid tests:
+The moment you've been waiting for... Tea will execute each valid statistical test
+to test your hypothesis!
 
 These results are displayed as output as well as returned by Tea's `hypothesize()` function. For each test, the 
 results include the name of the test, its assumptions about the variables, and the 
 calculated statistics.
 
-For example, the results of executing the Mann Whitney U Test would look something 
+For example, the results of executing the Student's T Test would look something 
 like this:
 ``` 
+Test: students_t
+***Test assumptions:
+Exactly two variables involved in analysis: So, Prob
+Exactly one explanatory variable: So
+Exactly one explained variable: Prob
+Independent (not paired) observations: So
+Variable is categorical: So
+Variable has two categories: So
+Continuous (not categorical) data: Prob
+Equal variance: So, Prob
+Groups are normally distributed: So, Prob
+
 ***Test results:
-name = Mann Whitney U Test
-test_statistic = 75231500.50000
-p_value = 0.00000
-adjusted_p_value = 0.00000
+name = Student's T Test
+test_statistic = 4.20213
+p_value = 0.00012
+adjusted_p_value = 0.00006
 alpha = 0.05
-dof = 23195
+dof = 45
 Effect size:
-A12 = 0.55642
-Null hypothesis = There is no difference in medians between Sport = Swimming and Sport = Wrestling on Weight.
-Interpretation = t(23195) = 75231500.50000, p = 0.00000. Fail to reject the null hypothesis at alpha = 0.05. There is no difference in medians between Sport = Swimming and Sport = Wrestling on Weight.The effect size is A12 = 0.55642. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+Cohen's d = 1.24262
+A12 = 0.83669
+Null hypothesis = There is no difference in means between So = 0 and So = 1 on Prob.
+Interpretation = t(45) = 4.20213, p = 0.00006. Reject the null hypothesis at alpha = 0.05. The mean of Prob for So = 1 (M=0.06371, SD=0.02251) is significantly greater than the mean for So = 0 (M=0.03851, SD=0.01778). The effect size is Cohen's d = 1.24262, A12 = 0.83669. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
 [1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
 ```
 
-Depending on the particular test, the calculated values may include:
+Depending on the particular test, here are some of the calculated values that you'll see:
 * test statistic:
 * p-value: the probability of obtaining the given test results under the null hypothesis 
 (i.e., if there is no relationship between the variables) 
 * adjusted p-value:
 * alpha: the level of significance for the p-value, or the threshold for accepting/rejecting 
 the null hypothesis 
-* degrees of freedom (dof): 
+* degrees of freedom (dof):
 * Effect size (A12): the magnitude of the difference, which gives a holistic view of the results 
 
 Tea then states whether or not the null hypothesis should be rejected based 
-on the results from that particular test execution.
+on the results for that particular test execution.
+
+## Examples
+
+We've provided some example Tea programs with their respective datasets: 
+
+* [`ar_tv_tea.py`](./examples/AR_TV/ar_tv_tea.py) (dataset: [`ar_tv_long.csv`](./examples/AR_TV/ar_tv_long.csv))
+
+* [`crime_tea.py`](./examples/US_Crime/crime_tea.py) (dataset: [`USCrime.csv`](./examples/US_Crime/UScrime.csv))
+
+* [`olympics_tea.py`](./examples/Olympics/olympics_tea.py) (dataset: [`athlete_events.csv`](./examples/Olympics/athlete_events.csv))
  
 
 ## How does Tea decide which statistical analysis tests to run?
