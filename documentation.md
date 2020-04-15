@@ -70,7 +70,8 @@ for the attributes of interest; it's fine to have columns in the dataset that ar
 actually used in your Tea program.
  
 You can describe a variable by including its column *name* and its *data type*.
-Depending on the data type, you'll also need to include additional information.
+Depending on the data type, you'll also need to include additional information 
+(detailed below).
 
 ##### Defining data types:
 
@@ -160,33 +161,60 @@ tea.define_study_design(study_design)
 This can be useful if you're planning to test several hypotheses using different attributes.
 
 ### Assumptions
-If you have domain knowledge that would be relevant to testing your hypothesis 
-(e.g., a variable is normally distributed), this information can be provided to 
-Tea explicitly via the `assume()` function.
+If you have domain knowledge that would be relevant to testing your hypothesis, 
+you can provide this information to Tea explicitly.
 
 Note: This step is optional! You don't have to include any assumptions in order 
 for Tea to run.
 
 ##### Describing a variable's statistical properties:
-First, users can describe assumptions about variables' statistical properties. Tea checks these assumptions and issues warnings 
-for those that are not verified by statistical testing. 
-To specify how Tea should handle these cases, users can select one of two modes: *strict* (default) or *relaxed*. In *strict* mode, 
-Tea will override user assumptions if they are determined unverifiable. In *relaxed* 
-mode, Tea will proceed with all user assumptions regardless of whether or not they
-are verified.
+
+A *numeric* variable could be normally distributed across all entries:
+```
+assumptions = {
+    'normal distribution': [['Prob']]
+}
+```
+You could also assume a variable's normal distribution within the categories of 
+another variable, as shown below.
 ```
 assumptions = {
     'groups normally distributed': [['So', 'Prob']]
 }
 ```
-tea.assume(assumptions)
+Here, `So` is a nominal variable indicating 
+whether a state is Southern or non-Southern. `Prob` is assumed to be normally 
+distributed within the group of Southern states, as well as within the non-Southern 
+group.
+
+Additionally, a *numeric* variable (e.g., `Ineq`) can be assumed to have equal variance across
+the categories of another variable (e.g., `So`). Below, we assume that the variance of 
+`Ineq` within the group of Southern states is equal to its variance within the non-Southern 
+states. 
+```
+assumptions = {
+    'equal variance': [['So', 'Ineq']]
+}
+```
+Multiple assumptions of the same type can be entered as a list:
+```
+assumptions = {
+    'normal distribution': [['Prob'], ['Ineq']]
+    'equal variance': [['So', 'Prob'], ['So', 'Ineq']]
+}
+```
 
 ##### Specifying applicable data transformations:
-The assumptions can also include any known data transformations (i.e., log 
-transformation) that apply to a variable.
+Assumptions could also include any known data transformations that can 
+be applied to a variable. Tea currently supports log transformations on a *numeric* variable.
+```
+assumptions = {
+    'log normal distribution': [['Ineq']]
+}
+```
 
 ##### Providing an alpha value: 
-As part of the assumptions, users can also specify the *Type I (False Positive) Error 
+As part of the assumptions, you can also specify the *Type I (False Positive) Error 
 Rate* (a.k.a. "significance threshold", or *alpha*), which represents the largest p-value at which the null 
 hypothesis should be rejected. The default alpha value is 0.05.
 ``` 
@@ -204,13 +232,24 @@ assumptions = {
     'groups normally distributed': [['So', 'Prob']],
     'Type I (False Positive) Error Rate': 0.05,
 }
-tea.assume(assumptions)
+tea.assume(assumptions)     # strict mode by default
 ```  
+Note: Tea checks your assumptions about variables' properties and will issue warnings 
+for those that are not verified by statistical testing. To specify how Tea should handle 
+these cases, you can select one of two modes: *strict* (default) or *relaxed*. In *strict* mode, 
+Tea will override user assumptions if they are determined unverifiable. In *relaxed* 
+mode, Tea will proceed with all user assumptions regardless of whether or not they
+are verified.
+
+This mode can be set as shown:
+```
+tea.assume(assumptions, 'relaxed')     # select relaxed mode
+```
 
 ### Hypothesis
 
-You can write hypotheses in Tea by specifying the variables of interest, 
-then formulating the hypothesized relationship between those variables.
+Hypotheses in Tea include the variables of interest, as well as a
+formulation of the hypothesized relationship between those variables.
 
 ##### Describing different hypothesis types:
 Tea currently allows you to express the following range of hypotheses:
@@ -220,30 +259,47 @@ tea.hypothesize(['Region', 'Imprisonment'], ['Region: Southern > Northern'])
 ```
 Here, `Region` is the name of a *nominal* or *ordinal* variable that has `Southern` 
 and `Northern` as *categories*. This hypothesis describes a higher rate of `Imprisonment` 
-(an *ordinal* or *numeric*) variable in the `Southern` category compared to the `Northern`
+(an *ordinal* or *numeric* variable) in the `Southern` category compared to the `Northern`
 category.
 
 * Partial orders
 ```
 tea.hypothesize(['Region', 'Imprisonment'], ['Region: Southern > Southwest, Region: Northeast > Midwest']) 
 ```
+Tea also allows your hypothesis to include multiple comparisons, which can be useful if 
+you are analyzing multiple independent variables (e.g., `Region` has several distinct categories) 
+and one dependent variable (e.g., `Imprisonment`).
+
+When you provide these comparisons as a single hypothesis, Tea will take them into consideration 
+for performing corrections, such as adjusting the p-value, in order to minimize a false 
+discovery rate.
 
 * Two-sided comparisons
 ```
 tea.hypothesize(['Region', 'Imprisonment'], ['Region: Southern != Northern']) 
 ```
+A two-sided comparison allows for directionality in two ways: in order for this 
+hypothesis to hold, `Imprisonment` could be such that either `Southern > Northern` 
+or `Southern < Northern`. 
 
 * Positive linear relationships
 ```
+tea.hypothesize(['Region', 'Imprisonment'], ['Imprisonment ~ Region'])  # positive by default 
 tea.hypothesize(['Region', 'Imprisonment'], ['Imprisonment ~ +Region']) 
 ```
-If no +/- sign is included, Tea will treat the hypothesis as a positive linear 
-relationship by default.
+Here, both `Region` and `Imprisonment` are *ordinal* or *numeric* variables. 
+This hypothesis describes a positive correlation between the two&mdash;i.e. 
+`Imprisonment` increases as the `Region` increases.
 
 * Negative linear relationships
 ```
 tea.hypothesize(['Region', 'Imprisonment'], ['Imprisonment ~ -Region']) 
 ```
+Similarly, you could describe a negative relationship between two *ordinal* or 
+*numeric* variables.
+
+Note: for linear relationships, it does not matter which variable is declared as
+independent vs. dependent in `tea.define_study_design()`.
 
 ##### Providing multiple hypotheses:
 As long as all variables of interest are defined and included in the study design,
@@ -254,15 +310,12 @@ results_2 = tea.hypothesize(['Sex', 'Weight'], ['Sex:F < M'])
 ```
 
 ##### Testing against the Null Hypothesis:
-Tea currently supports Null Hypothesis Significance Testing (NHST), which tests *your* 
-hypothesis&mdash;that there is some relationship between certain variables in your dataset&mdash;
-against a *null hypothesis*.
-
-By default, Tea uses the null hypothesis that there is no relationship between variables, i.e. 
-the data in your dataset occurred by random chance.
+Tea currently supports Null Hypothesis Significance Testing (NHST), which tests your 
+hypothesis against the *null hypothesis* that the entries in your dataset occurred by 
+random chance.
 
 The statistical tests selected by Tea will determine whether the null hypothesis should 
-be accepted or rejected, i.e. whether you can conclude that there is indeed a relationship   
+be accepted or rejected&mdash;i.e., whether you can conclude that there is indeed a relationship   
 between the variables specified in your hypothesis.
 
 ## How do I interpret the output of my Tea program?
@@ -349,22 +402,13 @@ Interpretation = t(45) = 4.20213, p = 0.00006. Reject the null hypothesis at alp
 [1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
 ```
 
-Depending on the particular test, here are some of the calculated values that you'll see:
-* test statistic:
-* p-value: the probability of obtaining the given test results under the null hypothesis 
-(i.e., if there is no relationship between the variables) 
-* adjusted p-value:
-* alpha: the level of significance for the p-value, or the threshold for accepting/rejecting 
-the null hypothesis 
-* degrees of freedom (dof):
-* Effect size (A12): the magnitude of the difference, which gives a holistic view of the results 
-
 Tea then states whether or not the null hypothesis should be rejected based 
 on the results for that particular test execution.
 
 ## Examples
 
-We've provided some example Tea programs with their respective datasets: 
+To help you become more familiar with Tea, we've 
+provided some sample Tea programs with their respective datasets: 
 
 * [`ar_tv_tea.py`](./examples/AR_TV/ar_tv_tea.py) (dataset: [`ar_tv_long.csv`](./examples/AR_TV/ar_tv_long.csv))
 
