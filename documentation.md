@@ -1,12 +1,11 @@
 # [WIP] Tea Documentation
 
 Tea is a domain specific programming language that automates statistical test
-selection and execution. Tea is currently written as an open-source Python library
+selection and execution. It's currently written as an open-source Python library
 for integration into data analysis workflows using Python (3.6 or higher). 
 
 Tea is designed for non-statistical experts who want to perform statistical analyses 
-within their specific domain of expertise. If this is you, you're in the right
-place :) Let's get started!
+within their specific domain of expertise. If this is you, you're in the right place :)
 
 <a href='https://pypi.org/project/tealang/'>Tea is available on pip!</a> You can
 install Tea by typing the following terminal command into your console:
@@ -44,7 +43,7 @@ data_path = "./athlete_events.csv"
 tea.data(data_path)
 ```
 
-##### Designating a key:
+#### Designating a key:
 
 Optionally, you may want a column in the dataset to serve as a relational (a.k.a. primary) key. 
 This key should be an attribute that acts as a row identifier.
@@ -73,7 +72,7 @@ You can describe a variable by including its column *name* and its *data type*.
 Depending on the data type, you'll also need to include additional information 
 (detailed below).
 
-##### Defining data types:
+#### Defining data types:
 
 Tea recognizes three data types: *nominal*, *ordinal*, and *numeric*.
 
@@ -101,7 +100,7 @@ included.
     'range' : [0,1]             # optional
 }
 ```
-##### Describing variables for Tea:
+#### Describing variables for Tea:
 You'll want to define your variables as a list, which you can then pass to Tea:
 ``` 
 variables = [
@@ -126,7 +125,7 @@ relevant variables of interest.
 
 Tea supports 2 kinds of studies: *observational study* and *experiment*.
 
-##### Specifying an observational study:
+#### Specifying an observational study:
 For an observational study, you should describe *contributor variables* and 
 *outcome variables*. 
 ``` 
@@ -138,7 +137,7 @@ experimental_design = {
 tea.define_study_design(study_design)
 ```
 
-##### Specifying an experiment:
+#### Specifying an experiment:
 For an experiment, you should describe *independent variables* and *dependent variables*.
 ``` 
 study_design = {
@@ -148,7 +147,7 @@ study_design = {
 }
 tea.define_study_design(study_design)
 ```
-##### Including multiple variables:
+#### Including multiple variables:
 If you'd like, multiple variables can be specified as a list. For example: 
 ``` 
 experimental_design = {
@@ -164,10 +163,10 @@ This can be useful if you're planning to test several hypotheses using different
 If you have domain knowledge that would be relevant to testing your hypothesis, 
 you can provide this information to Tea explicitly.
 
-Note: This step is optional! You don't have to include any assumptions in order 
-for Tea to run.
+*Note: This step is optional! You don't have to include any assumptions in order 
+for Tea to run.*
 
-##### Describing a variable's statistical properties:
+#### Describing a variable's statistical properties:
 
 A *numeric* variable could be normally distributed across all entries:
 ```
@@ -187,13 +186,13 @@ whether a state is Southern or non-Southern. `Prob` is assumed to be normally
 distributed within the group of Southern states, as well as within the non-Southern 
 group.
 
-Additionally, a *numeric* variable (e.g., `Ineq`) can be assumed to have equal variance across
-the categories of another variable (e.g., `So`). Below, we assume that the variance of 
-`Ineq` within the group of Southern states is equal to its variance within the non-Southern 
+Additionally, a *numeric* variable can be assumed to have equal variance across
+the categories of another variable. Below, we assume that the variance of 
+`Prob` within the group of Southern states is equal to its variance within the non-Southern 
 states. 
 ```
 assumptions = {
-    'equal variance': [['So', 'Ineq']]
+    'equal variance': [['So', 'Prob']]
 }
 ```
 Multiple assumptions of the same type can be entered as a list:
@@ -204,7 +203,7 @@ assumptions = {
 }
 ```
 
-##### Specifying applicable data transformations:
+#### Specifying applicable data transformations:
 Assumptions could also include any known data transformations that can 
 be applied to a variable. Tea currently supports log transformations on a *numeric* variable.
 ```
@@ -213,7 +212,7 @@ assumptions = {
 }
 ```
 
-##### Providing an alpha value: 
+#### Providing an alpha value: 
 As part of the assumptions, you can also specify the *Type I (False Positive) Error 
 Rate* (a.k.a. "significance threshold", or *alpha*), which represents the largest p-value at which the null 
 hypothesis should be rejected. The default alpha value is 0.05.
@@ -225,7 +224,7 @@ assumptions = {
 In the above example, the resulting p-value must be *less* than 0.01 in order to 
 reject the null hypothesis.
 
-##### Passing assumptions to Tea:
+#### Passing assumptions to Tea:
 You can declare all assumptions together before passing them to Tea, as shown below:
 ```
 assumptions = {
@@ -248,10 +247,9 @@ tea.assume(assumptions, 'relaxed')     # select relaxed mode
 
 ### Hypothesis
 
-Hypotheses in Tea include the variables of interest, as well as a
-formulation of the hypothesized relationship between those variables.
+Hypotheses in Tea include the variables of interest, as well as the hypothesized relationship between them.
 
-##### Describing different hypothesis types:
+#### Describing different hypothesis types:
 Tea currently allows you to express the following range of hypotheses:
 * One-sided comparison between groups
 ```
@@ -262,9 +260,9 @@ and `Northern` as *categories*. This hypothesis describes a higher rate of `Impr
 (an *ordinal* or *numeric* variable) in the `Southern` category compared to the `Northern`
 category.
 
-* Partial orders
+##### Partial orders
 ```
-tea.hypothesize(['Region', 'Imprisonment'], ['Region: Southern > Southwest, Region: Northeast > Midwest']) 
+tea.hypothesize(['Region', 'Imprisonment'], ['Region: Southern > Southwest', 'Region: Northeast > Midwest']) 
 ```
 Tea also allows your hypothesis to include multiple comparisons, which can be useful if 
 you are analyzing multiple independent variables (e.g., `Region` has several distinct categories) 
@@ -274,7 +272,7 @@ When you provide these comparisons as a single hypothesis, Tea will take them in
 for performing corrections, such as adjusting the p-value, in order to minimize a false 
 discovery rate.
 
-* Two-sided comparisons
+##### Two-sided comparisons
 ```
 tea.hypothesize(['Region', 'Imprisonment'], ['Region: Southern != Northern']) 
 ```
@@ -282,16 +280,16 @@ A two-sided comparison allows for directionality in two ways: in order for this
 hypothesis to hold, `Imprisonment` could be such that either `Southern > Northern` 
 or `Southern < Northern`. 
 
-* Positive linear relationships
+##### Positive linear relationships
 ```
 tea.hypothesize(['Region', 'Imprisonment'], ['Imprisonment ~ Region'])  # positive by default 
 tea.hypothesize(['Region', 'Imprisonment'], ['Imprisonment ~ +Region']) 
 ```
 Here, both `Region` and `Imprisonment` are *ordinal* or *numeric* variables. 
-This hypothesis describes a positive correlation between the two&mdash;i.e. 
+This hypothesis describes a positive correlation between the two&mdash;i.e., 
 `Imprisonment` increases as the `Region` increases.
 
-* Negative linear relationships
+##### Negative linear relationships
 ```
 tea.hypothesize(['Region', 'Imprisonment'], ['Imprisonment ~ -Region']) 
 ```
@@ -299,9 +297,9 @@ Similarly, you could describe a negative relationship between two *ordinal* or
 *numeric* variables.
 
 Note: for linear relationships, it does not matter which variable is declared as
-independent vs. dependent in `tea.define_study_design()`.
+independent vs. dependent when defining the study design.
 
-##### Providing multiple hypotheses:
+#### Providing multiple hypotheses:
 As long as all variables of interest are defined and included in the study design,
 you can specify as many hypotheses as you'd like:
 ``` 
@@ -309,7 +307,7 @@ results_1 = tea.hypothesize(['Sport', 'Weight'], ['Sport:Wrestling < Swimming'])
 results_2 = tea.hypothesize(['Sex', 'Weight'], ['Sex:F < M'])
 ```
 
-##### Testing against the Null Hypothesis:
+#### Testing against the Null Hypothesis:
 Tea currently supports Null Hypothesis Significance Testing (NHST), which tests your 
 hypothesis against the *null hypothesis* that the entries in your dataset occurred by 
 random chance.
@@ -323,7 +321,7 @@ between the variables specified in your hypothesis.
 At runtime, Tea "compiles" the above 5 pieces of information into logical constraints, 
 which it uses to select and execute a set of valid statistical tests for testing your hypothesis.
 
-##### Selecting valid tests:
+#### Selecting valid tests:
 A test is considered valid if and only if *all* the assumptions it makes about 
 the data (e.g., normal distribution, equal variance between groups, etc.) hold.
 
@@ -364,11 +362,11 @@ Testing assumption: is_continuous_or_ordinal.
 Property holds.
 ```
 
-##### Executing valid tests:
+#### Executing valid tests:
 The moment you've been waiting for... Tea will execute each valid statistical test
 to test your hypothesis!
 
-These results are displayed as output as well as returned by Tea's `hypothesize()` function. For each test, the 
+These results are displayed as output and also returned by Tea's `hypothesize()` function. For each test, the 
 results include the name of the test, its assumptions about the variables, and the 
 calculated statistics.
 
@@ -415,8 +413,11 @@ provided some sample Tea programs with their respective datasets:
 * [`crime_tea.py`](./examples/US_Crime/crime_tea.py) (dataset: [`USCrime.csv`](./examples/US_Crime/UScrime.csv))
 
 * [`olympics_tea.py`](./examples/Olympics/olympics_tea.py) (dataset: [`athlete_events.csv`](./examples/Olympics/athlete_events.csv))
+
+* [`drug_small_tea.py`](./examples/Drugs/drug_small_tea.py) (Pandas DataFrame using a subset of this dataset: [`drug.csv`](./examples/Drugs/drug.csv))
+
+* [`co2_tea.py`](./examples/Co2/co2_tea.py) (dataset: [`co2.csv`](./examples/Co2/co2.csv))
  
 
 ## How does Tea decide which statistical analysis tests to run?
-Diagram of the internals. Flow chart? Table format? Dynamic vs. static?
-This may be tricky because the exact process is data-dependent.
+[TODO]
