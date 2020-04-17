@@ -1,6 +1,7 @@
 import tea
 
 tea.data("https://homes.cs.washington.edu/~emjun/tea-lang/datasets/UScrime.csv")
+
 variables = [
     {
         'name' : 'So',
@@ -21,21 +22,20 @@ variables = [
 tea.define_variables(variables)
 
 assumptions = {
-    # 'log normal distribution': [['Ineq']],
     # 'equal variance': [['So', 'Ineq']],
-    # 'groups normally distributed': [['So', 'Ineq']],
+    # 'groups normally distributed': [['So', 'Prob']],
     'Type I (False Positive) Error Rate': 0.05,
 }
 
 tea.assume(assumptions)
 
-experimental_design = {
-                        'study type': 'observational study',   # 'study type' could be 'experiment'
-                        'contributor variables': 'Prob',   # 'experiment's have 'independent variables'
-                        'outcome variables': 'Ineq',   # 'experiment's have 'dependent variables'
-                    }
-tea.define_study_design(experimental_design)
+study_design = {
+                        'study type': 'observational study',
+                        'contributor variables': ['So', 'Prob'],
+                        'outcome variables': ['Prob', 'Ineq']
+                }
+tea.define_study_design(study_design)
 
-# tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])
 # tea.hypothesize(['So', 'Ineq'], ['So:1 > 0'])
-tea.hypothesize(['Ineq', 'Prob'], ['Ineq ~ +Prob'])
+# tea.hypothesize(['So', 'Prob'], ['So:1 > 0'])
+tea.hypothesize(['Ineq', 'Prob'], ['Ineq ~ -Prob'])

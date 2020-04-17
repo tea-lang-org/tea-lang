@@ -1,6 +1,5 @@
 import tea
 
-
 data_path = "./ar_tv_long.csv"
 
 # Declare and annotate the variables of interest
