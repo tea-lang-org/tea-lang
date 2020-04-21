@@ -1,3 +1,4 @@
+from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.global_vals import *
 from tea.ast import *
 import attr
@@ -9,7 +10,7 @@ class CombinedData(Value):
     vars = attr.ib(default=[]) # list of VarData objects 
     study_type = attr.ib(default=observational_identifier)
     # set of characteristics about the groups that are used to determine statistical test
-    alpha = attr.ib(type=float, default=0.05)
+    alpha = attr.ib(type=float, default=DEFAULT_ALPHA_PARAMETER)
     properties = attr.ib(default=dict())
     
 
