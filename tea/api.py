@@ -8,7 +8,7 @@ from .build import (load_data, load_data_from_url, const,
                     select, compare, relate, predict,
                     get_var_from_list
                     )
-from .evaluate import evaluate
+from .vardata_factory import VarDataFactory
 import tea.helpers
 import tea.runtimeDataStructures
 import tea.z3_solver
@@ -163,7 +163,8 @@ def hypothesize(vars: list, prediction: list = None):
     # Interpret AST node, Returns ResultData object <-- this may need to change
     set_mode(MODE)
     num_comparisons = 1
-    result = evaluate(dataset_obj, relationship, assumptions, study_design)
+    vardata_factory = VarDataFactory()
+    result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
 
     # Make multiple comparison correction
     result.bonferroni_correction(num_comparisons)
