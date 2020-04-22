@@ -1,3 +1,4 @@
+from tea.helpers.study_type_determiner import StudyTypeDeterminer
 import pandas as pd
 
 from .build import (load_data, load_data_from_url, const,
@@ -42,6 +43,7 @@ all_results = {}  # Used for multiple comparison correction
 # For solver
 MODE = 'strict'
 
+study_type_determiner = StudyTypeDeterminer()
 
 # For testing purposes
 def download_data(url, file_name):
@@ -195,7 +197,7 @@ def divine_properties(vars: list, tests: list):
     relationship = relate(v_objs)
 
     # What kind of study are we analyzing?
-    study_type = determine_study_type(vars, study_design)
+    study_type = study_type_determiner.determine_study_type(vars, study_design)
 
     combined_data = None
     # Do we have a Bivariate analysis?
