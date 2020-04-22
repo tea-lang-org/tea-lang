@@ -32,7 +32,7 @@ variables = [
 study_design = {
     'study type': 'observational study',
     'contributor variables': ['drug', 'sundayBDI'],
-    'outcome variables': 'BDIchange'
+    'outcome variables': ['BDIchange', 'wedsBDI']
 }
 
 assumptions = {
@@ -43,7 +43,7 @@ tea.data(df)
 tea.define_variables(variables)
 tea.define_study_design(study_design)
 tea.assume(assumptions)
-# tea.hypothesize(['drug', 'BDIchange'], ['drug:Ecstasy > Alcohol'])
+# tea.hypothesize(['drug', 'wedsBDI'], ['drug:Ecstasy > Alcohol'])
 tea.hypothesize(['sundayBDI', 'BDIchange'], ['sundayBDI ~ BDIchange'])
 
 '''
