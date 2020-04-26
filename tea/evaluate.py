@@ -1,3 +1,4 @@
+from tea.helpers.study_type_determiner import StudyTypeDeterminer
 from tea.ast import (   Node, Variable, Literal, 
                         Equal, NotEqual, LessThan, 
                         LessThanEqual, GreaterThan, GreaterThanEqual,
@@ -22,6 +23,9 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np # Use some stats from numpy instead
 import pandas as pd
+
+
+study_type_determiner = StudyTypeDeterminer()
 
 # TODO: Pass participant_id as part of experimental design, not load_data
 def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: Dict[str, str]=None) -> Optional[VarData]:
@@ -346,7 +350,7 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
             vars.append(eval_v)
 
         # What kind of study are we analyzing?
-        study_type = determine_study_type(vars, design)
+        study_type = study_type_determiner.determine_study_type(vars, design)
 
         # Assign roles to variables we are analyzing
         vars = assign_roles(vars, study_type, design)
