@@ -1,4 +1,5 @@
 from tea.global_vals import *
+from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
@@ -10,7 +11,7 @@ import z3
 from typing import Dict, List
 
 # Prog -> List[StatisticalTest] -> Query
-alpha = 0.01 # Default
+alpha = DEFAULT_ALPHA_PARAMETER
 MODE = 'strict' # Default
 
 # Contains a map from z3 variables representing tests

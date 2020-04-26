@@ -1,13 +1,15 @@
-from tea.ast import (Node, Variable, Literal,
-                     Equal, NotEqual, LessThan,
-                     LessThanEqual, GreaterThan, GreaterThanEqual,
-                     Relate, PositiveRelationship
-                     )
+from tea.helpers.study_type_determiner import StudyTypeDeterminer
+from tea.ast import (   Node, Variable, Literal, 
+                        Equal, NotEqual, LessThan, 
+                        LessThanEqual, GreaterThan, GreaterThanEqual,
+                        Relate, PositiveRelationship
+                    )
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
+from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.helpers.evaluateHelperMethods import determine_study_type, assign_roles, add_paired_property, execute_test
 from tea.z3_solver.solver import synthesize_tests
 
@@ -16,7 +18,6 @@ from typing import Dict
 
 import numpy as np  # Use some stats from numpy instead
 import pandas as pd
-
 
 class VarDataFactory:
 
@@ -65,6 +66,7 @@ class VarDataFactory:
         #     raise Exception('Not implemented Mean')
 
     def __create_variable_vardata(self, dataset: Dataset, expr: Variable) -> VarData:
+        study_type_determiner = StudyTypeDeterminer()
         # dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
         # then use query to get raw data later....(for user, not interpreter?)
         metadata = dataset.get_variable_data(expr.name)  # (dtype, categories)
@@ -371,17 +373,19 @@ class VarDataFactory:
             vars.append(eval_v)
 
         # What kind of study are we analyzing?
-        study_type = determine_study_type(vars, design)
+        study_type = study_type_determiner.determine_study_type(vars, design)
 
         # Assign roles to variables we are analyzing
         vars = assign_roles(vars, study_type, design)
 
         combined_data = None
+        assumed_alpha = float(assumptions['alpha']) if 'alpha' in assumptions else attr.fields(CombinedData).alpha.default
+
         # Do we have a Bivariate analysis?
         if len(vars) == 2:
-            combined_data = BivariateData(vars, study_type, alpha=float(assumptions['alpha']))
-        else:  # Do we have a Multivariate analysis?
-            combined_data = MultivariateData(vars, study_type, alpha=float(assumptions['alpha']))
+            combined_data = BivariateData(vars, study_type, alpha=assumed_alpha) 
+        else: # Do we have a Multivariate analysis?
+            combined_data = MultivariateData(vars, study_type, alpha=assumed_alpha)
 
         # Add paired property
         add_paired_property(dataset, combined_data, study_type, design)  # check sample sizes are identical

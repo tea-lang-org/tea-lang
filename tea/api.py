@@ -1,3 +1,4 @@
+from tea.helpers.study_type_determiner import StudyTypeDeterminer
 import pandas as pd
 
 from .build import (load_data, load_data_from_url, const,
@@ -12,6 +13,7 @@ from .vardata_factory import VarDataFactory
 import tea.helpers
 import tea.runtimeDataStructures
 import tea.z3_solver
+from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.z3_solver.solver import set_mode
 
 from typing import Dict
@@ -35,13 +37,14 @@ var_drange = 'range'
 # Assumptions
 # Stats properties
 assumptions = {}
-alpha = 0.01
+alpha = DEFAULT_ALPHA_PARAMETER
 
 all_results = {}  # Used for multiple comparison correction
 
 # For solver
 MODE = 'strict'
 
+study_type_determiner = StudyTypeDeterminer()
 
 # For testing purposes
 def download_data(url, file_name):
@@ -196,7 +199,7 @@ def divine_properties(vars: list, tests: list):
     relationship = relate(v_objs)
 
     # What kind of study are we analyzing?
-    study_type = determine_study_type(vars, study_design)
+    study_type = study_type_determiner.determine_study_type(vars, study_design)
 
     combined_data = None
     # Do we have a Bivariate analysis?

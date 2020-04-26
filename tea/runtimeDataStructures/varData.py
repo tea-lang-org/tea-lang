@@ -1,4 +1,5 @@
 from tea.global_vals import *
+from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from .value import Value
 from tea.ast import DataType
 
@@ -12,7 +13,7 @@ class VarData(Value):
     properties = attr.ib(default=dict())
     role = attr.ib(default=None)
 
-    def is_normal(self, alpha=0.05):
+    def is_normal(self, alpha=DEFAULT_ALPHA_PARAMETER):
         global normal_distribution
 
         return self.properties[distribution][1] >= alpha
