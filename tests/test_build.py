@@ -2,36 +2,36 @@ from tea.ast import NegativeRelationship, PositiveRelationship
 import unittest
 from unittest.mock import Mock
 from tea.build import create_prediction
+from parameterized import parameterized
 
 
 class CreatePredictionTests(unittest.TestCase):
-    def test_positive_continuous_prediction_should_produce_correct_positive_relationship(self):
+
+    @parameterized.expand([
+        [' ~ +', PositiveRelationship],  # Var_1 ~ +Var_2
+        [' ~ ', PositiveRelationship],  # Var_1 ~ Var_2
+        [' ~ +', PositiveRelationship, '+'],  # +Var_1 ~ +Var_2
+        [' ~ ', PositiveRelationship, '+'],  # +Var_1 ~ +Var_2
+
+        [' ~ -', NegativeRelationship],  # Var_1 ~ -Var_2
+        [' ~ ', NegativeRelationship, '-'],  # -Var_1 ~ Var_2
+        [' ~ -', NegativeRelationship, '+'],  # +Var_1 ~ -Var_2
+        [' ~ +', NegativeRelationship, '-'],  # -Var_1 ~ +Var_2
+    ])
+    def test_continuous_prediction_should_produce_correct_relationship(self, relation, expected_relationship_type, first_variable_prefix=''):
         prediction_type = 'continuous prediction'
+        variable_1_name = 'Var_1'
+        variable_2_name = 'Var_2'
+
         var_mock1 = Mock()
-        var_mock1.name = 'Ineq'
+        var_mock1.name = variable_1_name
 
         var_mock2 = Mock()
-        var_mock2.name = 'Prob'
+        var_mock2.name = variable_2_name
 
         vars = [var_mock1, var_mock2]
-        prediction = 'Ineq ~ +Prob'
+        prediction = f'{first_variable_prefix}{variable_1_name}{relation}{variable_2_name}'
         z = create_prediction(prediction_type, vars, prediction)
-        self.assertIsInstance(z, PositiveRelationship)
+        self.assertIsInstance(z, expected_relationship_type)
         self.assertEqual(z.lhs.var, var_mock1)
         self.assertEqual(z.rhs.var, var_mock2)
-
-    def test_negative_continuous_prediction_should_produce_correct_negative_relationship(self):
-        prediction_type = 'continuous prediction'
-        var_mock1 = Mock()
-        var_mock1.name = 'Ineq'
-
-        var_mock2 = Mock()
-        var_mock2.name = 'Prob'
-
-        vars = [var_mock1, var_mock2]
-        prediction = 'Ineq ~ -Prob'
-        z = create_prediction(prediction_type, vars, prediction)
-        self.assertIsInstance(z, NegativeRelationship)
-        self.assertEqual(z.lhs.var, var_mock1)
-        self.assertEqual(z.rhs.var, var_mock2)
-

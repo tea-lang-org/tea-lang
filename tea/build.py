@@ -280,18 +280,17 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
             lhs_dir = '+'  # Positive relationship/change in variable is the default
             rhs_dir = '+'  # Positive relationship/change in variable is the default
 
-            if lhs.startswith(continuous_negative_relationship):  # "as LHS decreases,..."
+            if lhs.startswith(continuous_negative_relationship) or lhs.startswith(continuous_positive_relationship):  # "as LHS decreases,..."
+                lhs_dir = lhs[0]
                 lhs = lhs[1:]
-                lhs_dir = '-'
                 lhs_var = get_var_from_list(lhs, vars)
             else:
                 # do nothing to lhs, lhs_dir
                 lhs_var = get_var_from_list(lhs, vars)
 
             if rhs.startswith(continuous_negative_relationship) or rhs.startswith(continuous_positive_relationship):
-                relationship = rhs[0]
+                rhs_dir = rhs[0]
                 rhs = rhs[1:]
-                rhs_dir = relationship
                 rhs_var = get_var_from_list(rhs, vars)
             else:
                 # do nothing to rhs, rhs_dir
