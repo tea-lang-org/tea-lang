@@ -1,8 +1,9 @@
+from tea.helpers.study_type_determiner import StudyTypeDeterminer
 from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.runtimeDataStructures.resultData import ResultData
 from tea.global_vals import observational_identifier
 from tea.runtimeDataStructures.varData import VarData
-from tea.ast import Literal, Relate, Variable
+from tea.ast import Literal, Node, Relate, Variable
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.dataset import Dataset
 import unittest
@@ -10,7 +11,6 @@ from unittest import mock
 from unittest.mock import Mock
 import pandas as pd
 from tea.vardata_factory import VarDataFactory
-from tea.evaluate import evaluate
 from unittest.mock import ANY
 
 
@@ -40,7 +40,8 @@ def create_synthesize_tests(value_to_return=None):
 
 class VarDataFactoryTests(unittest.TestCase):
     def setUp(self):
-        self.varadata_factory = VarDataFactory()
+        self.study_type_determiner_mock = Mock(spec=StudyTypeDeterminer)
+        self.varadata_factory = VarDataFactory(self.study_type_determiner_mock)
 
     def test_vardata_created_for_variable(self):
         dataset = Mock(spec=Dataset)
@@ -99,7 +100,7 @@ class VarDataFactoryTests(unittest.TestCase):
 
         # ASSERT
         self.assertIsNone(returned_value)
-        
+
     def test_bivariate_analysis_should_use_default_alpha_without_assumptions_called(self):
         data_for_dataset = [1, 2, 3]
         dataset = Mock(spec=Dataset)
@@ -114,13 +115,14 @@ class VarDataFactoryTests(unittest.TestCase):
         mocked_role_2.role = 'x'
 
         result_data_mock = Mock(spec=ResultData)
-        with mock.patch('tea.evaluate.synthesize_tests', side_effect=create_synthesize_tests([])), \
-                mock.patch('tea.evaluate.determine_study_type', side_effect=create_mocked_study_function(observational_identifier)),\
-                mock.patch('tea.evaluate.assign_roles', side_effect=create_assign_roles([mocked_role_1, mocked_role_2])), \
-                mock.patch('tea.evaluate.ResultData', side_effect=lambda x, y: result_data_mock),\
-                mock.patch('tea.evaluate.execute_test', side_effects=lambda x, y, z, a, b: []),\
-                mock.patch('tea.evaluate.add_paired_property', side_effect=create_add_paired_property(None)) as mocked_add_paired_property:
-            evaluate(dataset, expression, {})
+        self.study_type_determiner_mock.determine_study_type = create_mocked_study_function(observational_identifier)
+
+        with mock.patch('tea.vardata_factory.synthesize_tests', side_effect=create_synthesize_tests([])), \
+                mock.patch('tea.vardata_factory.assign_roles', side_effect=create_assign_roles([mocked_role_1, mocked_role_2])), \
+                mock.patch('tea.vardata_factory.ResultData', side_effect=lambda x, y: result_data_mock),\
+                mock.patch('tea.vardata_factory.execute_test', side_effects=lambda x, y, z, a, b: []),\
+                mock.patch('tea.vardata_factory.add_paired_property', side_effect=create_add_paired_property(None)) as mocked_add_paired_property:
+            self.varadata_factory.create_vardata(dataset, expression, {})
 
             mocked_add_paired_property.assert_called_with(ANY, ANY, ANY, ANY)
             called_with = {type(arg): arg for arg in mocked_add_paired_property.call_args[0]}
