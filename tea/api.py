@@ -13,6 +13,7 @@ from .evaluate import evaluate
 import tea.helpers
 import tea.runtimeDataStructures
 import tea.z3_solver
+from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.z3_solver.solver import set_mode
 
 from typing import Dict
@@ -36,7 +37,7 @@ var_drange = 'range'
 # Assumptions
 # Stats properties
 assumptions = {}
-alpha = 0.01
+alpha = DEFAULT_ALPHA_PARAMETER
 
 all_results = {}  # Used for multiple comparison correction
 

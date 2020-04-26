@@ -9,7 +9,8 @@ from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
-from tea.helpers.evaluateHelperMethods import assign_roles, add_paired_property, execute_test
+from tea.runtimeDataStructures.combinedData import CombinedData
+from tea.helpers.evaluateHelperMethods import determine_study_type, assign_roles, add_paired_property, execute_test
 from tea.z3_solver.solver import synthesize_tests
 
 import attr
@@ -22,6 +23,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 import numpy as np # Use some stats from numpy instead
 import pandas as pd
+
 
 study_type_determiner = StudyTypeDeterminer()
 
@@ -354,12 +356,14 @@ def evaluate(dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: 
         vars = assign_roles(vars, study_type, design)
         
         combined_data = None
+        assumed_alpha = float(assumptions['alpha']) if 'alpha' in assumptions else attr.fields(CombinedData).alpha.default
+
         # Do we have a Bivariate analysis?
-        if len(vars) == 2: 
-            combined_data = BivariateData(vars, study_type, alpha=float(assumptions['alpha'])) 
+        if len(vars) == 2:
+            combined_data = BivariateData(vars, study_type, alpha=assumed_alpha) 
         else: # Do we have a Multivariate analysis?
-            combined_data = MultivariateData(vars, study_type, alpha=float(assumptions['alpha']))
-        
+            combined_data = MultivariateData(vars, study_type, alpha=assumed_alpha)
+
         # Add paired property
         add_paired_property(dataset, combined_data, study_type, design) # check sample sizes are identical
 

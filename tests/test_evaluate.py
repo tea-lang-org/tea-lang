@@ -1,10 +1,40 @@
+from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
+from tea.runtimeDataStructures.resultData import ResultData
+from tea.global_vals import observational_identifier
 from tea.runtimeDataStructures.varData import VarData
-from tea.ast import Literal, Variable
+from tea.ast import Literal, Relate, Variable
+from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.dataset import Dataset
 import unittest
+from unittest import mock
 from unittest.mock import Mock
 import pandas as pd
 from tea.evaluate import evaluate
+from unittest.mock import ANY
+
+
+def create_mocked_study_function(value_to_return=None):
+    def mocked_study_function(vars, design):
+        return value_to_return
+    return mocked_study_function
+
+
+def create_assign_roles(value_to_return=None):
+    def mocked_assign_roles(vars, study_type, design):
+        return value_to_return
+    return mocked_assign_roles
+
+
+def create_add_paired_property(value_to_return=None):
+    def mocked_add_paired_property(dataset, combined_data, study_type, design):
+        return value_to_return
+    return mocked_add_paired_property
+
+
+def create_synthesize_tests(value_to_return=None):
+    def mocked_synthesize_tests(dataset, assumptions, combined_data):
+        return value_to_return
+    return mocked_synthesize_tests
 
 
 class EvaluateTests(unittest.TestCase):
@@ -56,3 +86,30 @@ class EvaluateTests(unittest.TestCase):
         self.assertTrue('value' in returned_value.metadata)
         self.assertEqual(returned_value.metadata['value'], mocked_expression_value)
         self.assertEqual(len(returned_value.properties), len(data_for_dataset))
+
+    def test_bivariate_analysis_should_use_default_alpha_without_assumptions_called(self):
+        data_for_dataset = [1, 2, 3]
+        dataset = Mock(spec=Dataset)
+        dataset.data = pd.Series(data_for_dataset)
+
+        expression = Mock(spec=Relate)
+        expression.vars = []
+        expression.predictions = None
+        mocked_role_1 = Mock()
+        mocked_role_1.role = 'x'
+        mocked_role_2 = Mock()
+        mocked_role_2.role = 'x'
+
+        result_data_mock = Mock(spec=ResultData)
+        with mock.patch('tea.evaluate.synthesize_tests', side_effect=create_synthesize_tests([])), \
+                mock.patch('tea.evaluate.determine_study_type', side_effect=create_mocked_study_function(observational_identifier)),\
+                mock.patch('tea.evaluate.assign_roles', side_effect=create_assign_roles([mocked_role_1, mocked_role_2])), \
+                mock.patch('tea.evaluate.ResultData', side_effect=lambda x, y: result_data_mock),\
+                mock.patch('tea.evaluate.execute_test', side_effects=lambda x, y, z, a, b: []),\
+                mock.patch('tea.evaluate.add_paired_property', side_effect=create_add_paired_property(None)) as mocked_add_paired_property:
+            evaluate(dataset, expression, {})
+
+            mocked_add_paired_property.assert_called_with(ANY, ANY, ANY, ANY)
+            called_with = {type(arg): arg for arg in mocked_add_paired_property.call_args[0]}
+            self.assertTrue(BivariateData in called_with)
+            self.assertEqual(DEFAULT_ALPHA_PARAMETER, called_with[BivariateData].alpha)
