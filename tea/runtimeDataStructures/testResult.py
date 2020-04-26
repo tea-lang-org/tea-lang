@@ -1,4 +1,5 @@
 from tea.global_vals import *
+from tea.helpers.constants.test_names import *
 from enum import Enum
 from .value import Value
 from tea.ast import DataType, LessThan, GreaterThan, Literal, Relationship
@@ -13,70 +14,70 @@ group2 = None
 outcome = None
 
 __test_to_statistic_of_interest__ = {
-    students_t_name: "mean",
-    welchs_t_name: "mean",
-    mann_whitney_name: "median",
-    paired_students_name: "mean",
-    wilcoxon_signed_rank_name: "median",
-    kruskall_wallis_name: "median",
-    factorial_anova_name: "mean",
+    STUDENTS_T_NAME: "mean",
+    WELCHS_T_NAME: "mean",
+    MANN_WHITNEY_NAME: "median",
+    PAIRED_STUDENTS_NAME: "mean",
+    WILCOXON_SIGNED_RANK_NAME: "median",
+    KRUSKALL_WALLIS_NAME: "median",
+    FACTORIAL_ANOVA_NAME: "mean",
 }
 
 __stats_tests_to_null_hypotheses__ = {
-    pearson_name:  'There is no relationship between {} and {}.',
-    kendalltau_name: 'There is no relationship between {} and {}.',
-    spearman_name: 'There is no monotonic relationship between {} and {}.',
-    pointbiserial_name: 'There is no association between {} and {}.',
+    PEARSON_NAME:  'There is no relationship between {} and {}.',
+    KENDALLTAU_NAME: 'There is no relationship between {} and {}.',
+    SPEARMAN_NAME: 'There is no monotonic relationship between {} and {}.',
+    POINTBISERIAL_NAME: 'There is no association between {} and {}.',
 
-    students_t_name : 'There is no difference in {}s between {} and {} on {}.',
-    welchs_t_name : 'There is no difference in {}s between {} and {} on {}.',
-    mann_whitney_name : 'There is no difference in {}s between {} and {} on {}.',
-    paired_students_name : 'There is no difference in {}s between {} and {} on {}.',
-    wilcoxon_signed_rank_name : 'There is no difference in {}s between {} and {} on {}.',
+    STUDENTS_T_NAME : 'There is no difference in {}s between {} and {} on {}.',
+    WELCHS_T_NAME : 'There is no difference in {}s between {} and {} on {}.',
+    MANN_WHITNEY_NAME : 'There is no difference in {}s between {} and {} on {}.',
+    PAIRED_STUDENTS_NAME : 'There is no difference in {}s between {} and {} on {}.',
+    WILCOXON_SIGNED_RANK_NAME : 'There is no difference in {}s between {} and {} on {}.',
 
-    chi_square_name : 'There is no association between {} and {} on {}.',
-    fisher_exact_name : 'There is no association between {} and {} on {}.',
+    CHI_SQUARE_NAME : 'There is no association between {} and {} on {}.',
+    FISHER_EXACT_NAME : 'There is no association between {} and {} on {}.',
 
     # Regression or anova?
-    f_test_name : 'The variances of the groups ({}) are{}equal.',
-    kruskall_wallis_name : 'There is no difference in {}s between {} on {}.',
+    F_TEST_NAME : 'The variances of the groups ({}) are{}equal.',
+    KRUSKALL_WALLIS_NAME : 'There is no difference in {}s between {} on {}.',
     # This isn't very descriptive…
     "Friedman" : f'There is no difference between the groups',
-    factorial_anova_name : 'There is no difference in {}s between {} on {}.',
-    rm_one_way_anova_name : 'The means of all groups/conditions ({}) are{}equal.',
+    FACTORIAL_ANOVA_NAME : 'There is no difference in {}s between {} on {}.',
+    RM_ONE_WAY_ANOVA_NAME : 'The means of all groups/conditions ({}) are{}equal.',
 
     # Does this depend on the statistic being calculated?
     "Bootstrap" : f''
 }
 
 __two_group_tests__ = {
-    pearson_name,
-    kendalltau_name,
-    spearman_name,
-    pointbiserial_name,
+    PEARSON_NAME,
+    KENDALLTAU_NAME,
+    SPEARMAN_NAME,
+    POINTBISERIAL_NAME,
 }
 
 __two_group_outcome_tests__ = {
-    students_t_name,
-    welchs_t_name,
-    mann_whitney_name,
-    paired_students_name,
-    wilcoxon_signed_rank_name,
+    STUDENTS_T_NAME,
+    WELCHS_T_NAME,
+    MANN_WHITNEY_NAME,
+    PAIRED_STUDENTS_NAME,
+    WILCOXON_SIGNED_RANK_NAME,
 }
 
 __categorical_tests__ = {
-    chi_square_name,
-    fisher_exact_name,
+    CHI_SQUARE_NAME,
+    FISHER_EXACT_NAME,
 }
 
 __many_groups_test__ = {
-    rm_one_way_anova_name,
-    f_test_name,
+    RM_ONE_WAY_ANOVA_NAME,
+    F_TEST_NAME,
 }
 
 __many_groups_outcome_tests__ = {
-    kruskall_wallis_name,
-    factorial_anova_name,
+    KRUSKALL_WALLIS_NAME,
+    FACTORIAL_ANOVA_NAME,
 }
 
 
