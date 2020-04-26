@@ -288,9 +288,10 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
                 # do nothing to lhs, lhs_dir
                 lhs_var = get_var_from_list(lhs, vars)
 
-            if rhs.startswith(continuous_negative_relationship):
+            if rhs.startswith(continuous_negative_relationship) or rhs.startswith(continuous_positive_relationship):
+                relationship = rhs[0]
                 rhs = rhs[1:]
-                rhs_dir = '-'
+                rhs_dir = relationship
                 rhs_var = get_var_from_list(rhs, vars)
             else:
                 # do nothing to rhs, rhs_dir
