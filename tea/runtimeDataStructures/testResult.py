@@ -203,7 +203,7 @@ class TestResult(Value):
 
 
         # TODO Maybe the "means" part could be replacable....
-        self.interpretation = f"t({self.dof}) = {'%.5f'%(self.test_statistic)}, p = {'%.5f'%(self.adjusted_p_value)}. " if self.dof else ""
+        self.interpretation = f"t({self.dof}) = {'%.5f'%(self.test_statistic)}, p = {'%.5f'%(self.adjusted_p_value)}. \n" if self.dof else ""
         if ttest_result == ttest_result.not_significant:
             self.interpretation += f"Fail to reject the null hypothesis at alpha = {self.alpha}. "
             self.interpretation += self.null_hypothesis
@@ -264,7 +264,7 @@ class TestResult(Value):
         for effect_size_name, effect_size_value in self.effect_size.items():
             effect_sizes += f"{effect_size_name} = {'%.5f' % effect_size_value}, "
         effect_sizes = effect_sizes[:-2]
-        self.interpretation += f"The effect size is {effect_sizes}. " \
+        self.interpretation += f"\nThe effect size is {effect_sizes}. " \
             f"The effect size is the magnitude of the difference, which gives a holistic view of the results [1].\n" \
             f"[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282."
 

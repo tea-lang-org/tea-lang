@@ -1128,11 +1128,12 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                         solver.add(prop.__z3__ == z3.BoolVal(val))
                         # import pdb; pdb.set_trace()
                     else: 
-                        log_debug(f"Testing assumption: {prop._name}.")
+                        # log_debug(f"Testing assumption: {prop._name}.")
                     
                         # Does this property need to hold for the test to be valid?
                         # If so, verify that the property does hold
                         if model and z3.is_true(model.evaluate(prop.__z3__)):
+                            log_debug(f"Testing assumption: {prop._name}.")
                             val = verify_prop(dataset, combined_data, prop)
                             if val: 
                                 log_debug(f"Property holds.")

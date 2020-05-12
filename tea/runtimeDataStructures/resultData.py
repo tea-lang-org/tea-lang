@@ -92,7 +92,7 @@ class ResultData(Value):
                     for effect_size_name, effect_size_value in effect_sizes:
                         output += f"{effect_size_name} = {'%.5f'%(effect_size_value)}\n"
                 if results.null_hypothesis:
-                    output += f"Null hypothesis = {results.null_hypothesis}\n"
+                    output += f"Null hypothesis = \"{results.null_hypothesis}\"\n"
                 if results.interpretation:
                     output += f"Interpretation = {results.interpretation}\n"
 
