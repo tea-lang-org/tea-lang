@@ -166,7 +166,8 @@ def hypothesize(vars: list, prediction: list = None):
     # Interpret AST node, Returns ResultData object <-- this may need to change
     set_mode(MODE)
     num_comparisons = 1
-    vardata_factory = VarDataFactory()
+    study_type_determiner = StudyTypeDeterminer()
+    vardata_factory = VarDataFactory(study_type_determiner)
     result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
 
     # Make multiple comparison correction

@@ -1,27 +1,32 @@
 from tea.helpers.study_type_determiner import StudyTypeDeterminer
-from tea.ast import (   Node, Variable, Literal, 
-                        Equal, NotEqual, LessThan, 
-                        LessThanEqual, GreaterThan, GreaterThanEqual,
-                        Relate, PositiveRelationship
-                    )
+from tea.ast import (Node, Variable, Literal,
+                     Equal, NotEqual, LessThan,
+                     LessThanEqual, GreaterThan, GreaterThanEqual,
+                     Relate, PositiveRelationship
+                     )
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
 from tea.runtimeDataStructures.resultData import ResultData
 from tea.runtimeDataStructures.combinedData import CombinedData
-from tea.helpers.evaluateHelperMethods import determine_study_type, assign_roles, add_paired_property, execute_test
+from tea.helpers.evaluateHelperMethods import assign_roles, add_paired_property, execute_test
 from tea.z3_solver.solver import synthesize_tests
 
 from typing import Optional
 from typing import Dict
 
+import attr
 import numpy as np  # Use some stats from numpy instead
 import pandas as pd
 
+
 class VarDataFactory:
+    def __init__(self, study_type_determiner: StudyTypeDeterminer):
+        self.study_type_determiner = study_type_determiner
 
     # TODO: Pass participant_id as part of experimental design, not load_data
+
     def create_vardata(self, dataset: Dataset, expr: Node, assumptions: Dict[str, str], design: Optional[Dict[str, str]] = None) -> Optional[VarData]:
         if isinstance(expr, Variable):
             return self.__create_variable_vardata(dataset, expr)
@@ -66,7 +71,6 @@ class VarDataFactory:
         #     raise Exception('Not implemented Mean')
 
     def __create_variable_vardata(self, dataset: Dataset, expr: Variable) -> VarData:
-        study_type_determiner = StudyTypeDeterminer()
         # dataframe = dataset[expr.name] # I don't know if we want this. We may want to just store query (in metadata?) and
         # then use query to get raw data later....(for user, not interpreter?)
         metadata = dataset.get_variable_data(expr.name)  # (dtype, categories)
@@ -373,7 +377,7 @@ class VarDataFactory:
             vars.append(eval_v)
 
         # What kind of study are we analyzing?
-        study_type = study_type_determiner.determine_study_type(vars, design)
+        study_type = self.study_type_determiner.determine_study_type(vars, design)
 
         # Assign roles to variables we are analyzing
         vars = assign_roles(vars, study_type, design)
@@ -383,8 +387,8 @@ class VarDataFactory:
 
         # Do we have a Bivariate analysis?
         if len(vars) == 2:
-            combined_data = BivariateData(vars, study_type, alpha=assumed_alpha) 
-        else: # Do we have a Multivariate analysis?
+            combined_data = BivariateData(vars, study_type, alpha=assumed_alpha)
+        else:  # Do we have a Multivariate analysis?
             combined_data = MultivariateData(vars, study_type, alpha=assumed_alpha)
 
         # Add paired property
