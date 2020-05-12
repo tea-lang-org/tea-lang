@@ -5,10 +5,12 @@ from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.helpers.evaluateHelperMethods import get_data, compute_normal_distribution, compute_eq_variance
+from tea.logging.tea_logger import TeaLogger
 
 import attr
 import z3
 from typing import Dict, List
+
 
 # Prog -> List[StatisticalTest] -> Query
 alpha = DEFAULT_ALPHA_PARAMETER
@@ -979,6 +981,8 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
 # Assumes properties to hold
 def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset, combined_data): 
     global assumptions_to_properties, alpha
+    
+    tea_logger = TeaLogger.get_logger()
 
     assumed_props = []
 
@@ -1004,18 +1008,18 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                             # CHECK ASSUMPTIONS HERE
                             val = verify_prop(dataset, combined_data, ap)
                             if MODE == 'strict': 
-                                log_debug(f"Running under STRICT mode.")
+                                tea_logger.log_debug(f"Running under STRICT mode.")
                                 if val: 
-                                    log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                    tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
-                                    log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.") 
+                                    tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.") 
                                 solver.add(ap.__z3__ == z3.BoolVal(val))
                             elif MODE == 'relaxed': 
-                                log_debug(f"Running under RELAXED mode.")
+                                tea_logger.log_debug(f"Running under RELAXED mode.")
                                 if val: 
-                                    log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                    tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
-                                    log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
+                                    tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
                                 
                                 solver.add(ap.__z3__ == z3.BoolVal(True))
                             else: 
@@ -1029,18 +1033,18 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                             # CHECK ASSUMPTIONS HERE
                             val = verify_prop(dataset, combined_data, ap)
                             if MODE == 'strict': 
-                                log_debug(f"Running under STRICT mode.")
+                                tea_logger.log_debug(f"Running under STRICT mode.")
                                 if val: 
-                                    log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                    tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
-                                    log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.")
+                                    tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.")
                                 solver.add(ap.__z3__ == z3.BoolVal(val))
                             elif MODE == 'relaxed': 
-                                log_debug(f"Running under RELAXED mode.")
+                                tea_logger.log_debug(f"Running under RELAXED mode.")
                                 if val: 
-                                    log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                    tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
                                 else: 
-                                    log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
+                                    tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
                                 solver.add(ap.__z3__ == z3.BoolVal(True)) # override user
                             else: 
                                 raise ValueError(f"Invalid MODE: {MODE}")
@@ -1063,7 +1067,9 @@ def is_assumed_prop(assumed_props, prop):
 # This is a concrete (rather than symbolic) problem 
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
-def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):    
+def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
+    
+    tea_logger = TeaLogger.get_logger()
     construct_all_tests(combined_data)
 
     global name
@@ -1099,14 +1105,14 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     # For each test, add it to the solver as a constraint. 
     # Add the tests and their properties
     for test in all_tests():
-        log_debug(f"\nCurrently considering {test.name}")
+        tea_logger.log_debug(f"\nCurrently considering {test.name}")
         solver.add(test.__z3__ == z3.And(*test.query()))
         solver.add(test.__z3__ == z3.BoolVal(True))
 
         # Check the model 
         result = solver.check()
         if result == z3.unsat:
-            log_debug("Test is unsat.\n")
+            tea_logger.log_debug("Test is unsat.\n")
             solver.pop() 
         elif result == z3.unknown:
             print("failed to solve")
@@ -1124,28 +1130,28 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                 # Verify the properties for that test
                 for prop in test._properties:
                     if is_assumed_prop(assumed_props, prop):
-                        log_debug(f"User asserted property: {prop._name}.")
+                        tea_logger.log_debug(f"User asserted property: {prop._name}.")
                         val = True
                         solver.add(prop.__z3__ == z3.BoolVal(val))
                         # import pdb; pdb.set_trace()
                     else: 
-                        log_debug(f"Testing assumption: {prop._name}.")
+                        tea_logger.log_debug(f"Testing assumption: {prop._name}.")
                     
                         # Does this property need to hold for the test to be valid?
                         # If so, verify that the property does hold
                         if model and z3.is_true(model.evaluate(prop.__z3__)):
                             val = verify_prop(dataset, combined_data, prop)
                             if val: 
-                                log_debug(f"Property holds.")
+                                tea_logger.log_debug(f"Property holds.")
                             else: # The property does not verify
                                 assert (val == False)
-                                log_debug(f"Property FAILS")
+                                tea_logger.log_debug(f"Property FAILS")
                                 # if not test_invalid: 
                                 solver.pop() # remove the last test
                                 test_invalid = True
                                 model = None
                                 # else: # test is already invalid. Going here just for completeness of logging
-                                #     log_debug(f"EVER GET HERE?")
+                                #     tea_logger.log_debug(f"EVER GET HERE?")
                             solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
 

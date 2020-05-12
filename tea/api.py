@@ -1,3 +1,4 @@
+from tea.logging.tea_logger import TeaLogger
 from tea.helpers.study_type_determiner import StudyTypeDeterminer
 import pandas as pd
 
@@ -45,6 +46,7 @@ all_results = {}  # Used for multiple comparison correction
 MODE = 'strict'
 
 study_type_determiner = StudyTypeDeterminer()
+
 
 # For testing purposes
 def download_data(url, file_name):
@@ -111,6 +113,8 @@ def define_study_design(design: Dict[str, str]):
 
 
 def assume(user_assumptions: Dict[str, str], mode=None):
+    
+    tea_logger = TeaLogger.get_logger()
     global alpha, alpha_keywords
     global assumptions
     global MODE
@@ -129,14 +133,14 @@ def assume(user_assumptions: Dict[str, str], mode=None):
     # Set MODE for dealing with assumptions
     if mode and mode == 'relaxed':
         MODE = mode
-        log(f"\nRunning under {MODE.upper()} mode.\n")
-        log(
+        tea_logger.log_info(f"\nRunning under {MODE.upper()} mode.\n")
+        tea_logger.log_info(
             f"This means that user assertions will be checked. Should they fail, Tea will issue a warning but proceed as if user's assertions were true.")
     else:
         assert (mode == None or mode == 'strict')
         MODE = 'strict'
-        log(f"\nRunning under {MODE.upper()} mode.\n")
-        log(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
+        tea_logger.log_info(f"\nRunning under {MODE.upper()} mode.\n")
+        tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
 
 def hypothesize(vars: list, prediction: list = None):

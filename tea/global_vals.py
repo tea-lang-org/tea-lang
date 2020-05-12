@@ -45,14 +45,3 @@ assumptions_to_properties = {
 
 # For solver, how to treat user assumptions
 # MODE = 'strict' #can be 'strict' or 'relaxed'
-
-# LOGGING
-# TODO: This shoudl eventually write out to a file somewhere.
-def log(message: str):
-    print(message)
-    # pass
-
-
-def log_debug(message: str):
-    print(message)
-    # pass
