@@ -2,7 +2,7 @@ import contextlib
 import html
 import io
 
-from tea.z3_solver.solver import __ALL_TESTS__
+from tea.z3_solver.solver import all_tests
 from tea.runtimeDataStructures.value import Value
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.global_vals import *
@@ -18,7 +18,8 @@ class ResultData(Value):
     def __init__(self, test_to_results, combined_data: CombinedData):
         self.test_to_results = test_to_results
         self.test_to_assumptions = {}
-        for test in __ALL_TESTS__:
+        ALL_TESTS = all_tests()
+        for test in ALL_TESTS:
             if test.name in test_to_results:
                 test_assumptions = []
                 # TODO: The names get stale if hypothesize() is called multiple times in a row.
@@ -62,9 +63,6 @@ class ResultData(Value):
             output += "***Test results:\n"
 
             if hasattr(results, '__dict__'):
-                # for prop, value in results.__dict__.items():
-                #     if value is None:
-                #         continue
 
                 if results.name:
                     output += f"name = {results.name}\n"

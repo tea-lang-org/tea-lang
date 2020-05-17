@@ -1224,9 +1224,3 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
 
     # Return results
     return stat_result
-
-#
-# # Correct for multiple comparisons
-# def correct_multiple_comparison(res_data: ResultData, num_comparisons: int):
-#     # TODO: refactor ResultData first.
-#     res_data.adjust_p_values(num_comparisons)

@@ -5,6 +5,7 @@ from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.helpers.evaluateHelperMethods import get_data, compute_normal_distribution, compute_eq_variance
+# from tea.z3_solver.solver
 from tea.logging.tea_logger import TeaLogger
 
 import attr
@@ -23,7 +24,7 @@ __test_map__ = {}
 
 #  A list of all tests in the system which we can use
 # to iterate over all tests.
-__ALL_TESTS__ = []
+__ALL_TESTS__ = None
 
 def all_tests():
     """A helper for accessing the global set of tests"""
@@ -56,9 +57,9 @@ def reset_all_tests():
     factorial_ANOVA = None
     
     __test_map__ = {}
-    __ALL_TESTS__ = []
+    __ALL_TESTS__ = None
     __property_to_function__ = {}
-
+    __property_var_map__ = {}
 
 # Contains the global map from z3 variables which
 # represent properties applied to variables back
@@ -162,12 +163,14 @@ class StatisticalTest:
 
         # Populate global table.
         __test_map__[self.__z3__] = self
+        if not __ALL_TESTS__: 
+            __ALL_TESTS__ = []
         __ALL_TESTS__.append(self)
 
     # Question: does this mean you can't consider two tests of the same type on different variables at once?
     def apply(self, *test_vars):
-        if len(test_vars) != len(self.test_vars): 
-            import pdb; pdb.set_trace()
+        # if len(test_vars) != len(self.test_vars): 
+        #     import pdb; pdb.set_trace()
         assert len(test_vars) == len(self.test_vars)
         self.test_vars = test_vars
 
@@ -180,16 +183,14 @@ class StatisticalTest:
             # the test name
             # self._properties.append(prop(StatVar(self.name)))
             variables = [v for v in self.test_vars]
-            # import pdb; pdb.set_trace()
             self._properties.append(prop(*variables))
 
         for prop in self.properties_for_vars:
             list_of_variable_indices = self.properties_for_vars[prop]
             for variable_indices in list_of_variable_indices:
                 variable_indices = [self.test_vars[i] for i in variable_indices]
-                # import pdb; pdb.set_trace()
                 self._properties.append(prop(*variable_indices))
-    
+        
     def properties(self):
         return self.test_properties + list(self.properties_for_vars)
 
@@ -597,30 +598,6 @@ groups_normal = Property('is_groups_normal', "Groups are normally distributed", 
 normal = Property('is_normal', "Normal distribution", has_normal_distribution)
 eq_variance = Property('has_equal_variance', "Equal variance", has_equal_variance, arity=2)
 
-
-# two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 'variable', 2)
-
-# def has_one_x_variable(var_data: CombinedData): 
-#     pass
-
-# def all_x_variables_categorical(var_data: CombinedData): 
-#     pass
-# Map properties to functions
-# __property_to_function__[one_x_variable] = has_one_x_variable
-# __property_to_function__[all_x_variables_categorical] = all_x_variables_categorical
-
-# one_x_variable = Property('one_x', "Exactly one explanatory variable")  # test property
-# all_x_variables_categorical = Property('all_x_cat', "All explanatory variables are categorical")
-# two_x_variable_categories = Property('two_x_var', "Exactly two categories in explanatory variable")
-# one_y_variable = Property('one_y_var', "Exactly one explained variable")  # test property
-
-# categorical = Property('categorical', "Categorical (not continuous) data")
-# continuous = Property('continuous', "Continuous (not categorical) data")
-# normal = Property('normal', "Normal distribution")
-# paired = Property('paired', "Paired observations")  # test property
-# eq_variance = Property('equal_var', "Equal variance", 2)
-
-# two_categories_eq_variance = Property('two_cat_eq_var', "Two groups have equal variance", 2)
 
 def construct_test_axioms(solver):
     solver.add(paired_obs.__z3__ != independent_obs.__z3__)
@@ -1050,7 +1027,6 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                                 raise ValueError(f"Invalid MODE: {MODE}")
         else:
             pass
-    # import pdb; pdb.set_trace()
     return assumed_props
 
 
@@ -1068,6 +1044,7 @@ def is_assumed_prop(assumed_props, prop):
 # @param combined_data CombinedData object
 # @returns list of Property objects that combined_data exhibits
 def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data: CombinedData):
+    reset_all_tests()
     
     tea_logger = TeaLogger.get_logger()
     construct_all_tests(combined_data)
@@ -1133,7 +1110,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                         tea_logger.log_debug(f"User asserted property: {prop._name}.")
                         val = True
                         solver.add(prop.__z3__ == z3.BoolVal(val))
-                        # import pdb; pdb.set_trace()
                     else: 
                         tea_logger.log_debug(f"Testing assumption: {prop._name}.")
                     
@@ -1159,7 +1135,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         
         
     solver.check()
-    # import pdb; pdb.set_trace()
     model = solver.model() # final model
     tests_to_conduct = []
     # Could add all the test props first 
@@ -1170,7 +1145,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
         elif not model: # No test applies
             pass
 
-    reset_all_tests()
+    # reset_all_tests()
     return tests_to_conduct
 
 
@@ -1258,29 +1233,3 @@ def which_props(tests_names: list, var_names: List[str]):
                     _test_to_broken_properties[test_name].append(property_identifier)
 
         return _tests_and_properties, _test_to_broken_properties
-
-
-# test_to_properties, test_to_broken_properties = which_props([mannwhitney_u, students_t])
-
-# # print(ps)
-# import pprint
-# pp = pprint.PrettyPrinter()
-# print("\nProperties for student's t test and Mann Whitney u test are complementary.")
-# print("\nProperties:")
-# pp.pprint(test_to_properties)
-# print("\nProperties that could not be satisfied:")
-# pp.pprint(test_to_broken_properties)
-
-
-# test_to_properties, test_to_broken_properties = which_props([mannwhitney_u, chi_square_test])
-
-# # print(ps)
-# import pprint
-# print("\nProperties for Mann Whitney u test and the chi square test conflict.")
-# pp = pprint.PrettyPrinter()
-# print("\nFound properties:")
-# pp.pprint(test_to_properties)
-# print("\nProperties that could not be satisfied:")
-# pp.pprint(test_to_broken_properties)
-# # If properties do not hold, need to go back to solver with partially concrete assertions
-# # Use user assumptions to drive verification
