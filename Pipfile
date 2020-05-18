@@ -20,6 +20,7 @@ pipfile = "*"
 requests = "*"
 z3-solver = "*"
 urllib3 = ">=1.24.2"
+parameterized = "*"
 
 [requires]
 python_version = "3.7"

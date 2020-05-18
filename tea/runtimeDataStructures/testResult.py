@@ -128,8 +128,8 @@ class TestResult(Value):
                 self.corrected_p_value = self.p_value/(num_comparisons * 1.0)
 
         ## FOR DEBUGGING
-        if num_comparisons != 1:
-            import pdb; pdb.set_trace()
+        # if num_comparisons != 1:
+        #     import pdb; pdb.set_trace()
 
     def get_null_hypothesis(self):
         # TODO: Passing x and y seems more modular than passing string?
