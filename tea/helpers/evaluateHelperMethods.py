@@ -17,6 +17,8 @@ from sklearn import preprocessing # for creating interaction effects
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from statsmodels.formula.api import ols
+import numpy as np
+import math
 
 import pandas as pd
 from statsmodels.stats.anova import AnovaRM
@@ -627,11 +629,28 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
             prediction = predictions[0]
     else:
         prediction = None
-    t_stat, p_val = stats.pointbiserialr(data[0], data[1])
+    if len(data[0]) == len(data[1]): # Scipy requires that groups have equal sizes even though this is not technically a requirement of the Pointbiserial correlation
+        corr, p_val = stats.pointbiserialr(data[0], data[1])
+    else: 
+        # Compute pointbiserial correlation on our own
+        data_all = data[0].append(data[1])
+        
+        group_0_mean = np.mean(data[0])
+        group_0_size = len(data[0])
+        group_1_mean = np.mean(data[1])
+        group_1_size = len(data[1])
+        
+        sample_size = group_0_size + group_1_size
+        assert(sample_size == len(data_all))
+        sample_std = stats.tstd(data_all)
+
+        corr = (group_0_mean - group_1_mean)/sample_std * math.sqrt((group_0_size*group_1_size)/(sample_size * (sample_size - 1)))
+        t_stat, p_val = stats.ttest_ind(data[0], data[1], equal_var=True)
+
     dof = None
     test_result = TestResult(
                         name = POINTBISERIAL_NAME,
-                        test_statistic = t_stat,
+                        test_statistic = corr,
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,

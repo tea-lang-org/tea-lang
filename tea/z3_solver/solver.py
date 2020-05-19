@@ -766,7 +766,8 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                         [bivariate, independent_obs],
                                         properties_for_vars={
                                             continuous: [[x1]],
-                                            normal: [[x1]],
+                                            # normal: [[x1]],
+                                            groups_normal: [[x0, x1]],
                                             categorical: [[x0]],
                                             two_categories: [[x0]],
                                             eq_variance: [[x0, x1]]
@@ -778,7 +779,8 @@ def construct_bivariate_tests(combined_data: CombinedData):
                                         [bivariate, independent_obs],
                                         properties_for_vars={
                                             continuous: [[x0]],
-                                            normal: [[x0]],
+                                            # normal: [[x0]],
+                                            groups_normal: [[x1, x0]],
                                             categorical: [[x1]],
                                             two_categories: [[x1]],
                                             eq_variance: [[x1, x0]]
