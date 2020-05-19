@@ -763,7 +763,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
         # TODO: Could just sort before apply test?
         pointbiserial_corr_a = StatisticalTest('pointbiserial_corr_a', [x0, x1],
                                         test_properties=
-                                        [bivariate],
+                                        [bivariate, independent_obs],
                                         properties_for_vars={
                                             continuous: [[x1]],
                                             normal: [[x1]],
@@ -775,7 +775,7 @@ def construct_bivariate_tests(combined_data: CombinedData):
 
         pointbiserial_corr_b = StatisticalTest('pointbiserial_corr_b', [x0, x1],
                                         test_properties=
-                                        [bivariate],
+                                        [bivariate, independent_obs],
                                         properties_for_vars={
                                             continuous: [[x0]],
                                             normal: [[x0]],
