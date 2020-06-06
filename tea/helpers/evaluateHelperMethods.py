@@ -482,9 +482,8 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
 
     # TODO
     total_sample_size = len(data[0]) + len(data[1])
-    
+    # For small samples, calculate Mann Whitney U and p-value exaclty
     if total_sample_size < 20:
-        # calculate Mann Whitney U and p-value exaclty
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
@@ -492,7 +491,7 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
         else: 
             t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="two-sided")
         #TODO: compare the output from our calculation and Scipy
-
+    # For larger  samples, calculate Mann Whitney U and p-value using normality approximation 
     else:
         assert(total_sample_size >= 20)
         if isinstance(prediction, GreaterThan): 
@@ -517,6 +516,27 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     return test_result
 
 
+def wilcox_signed_rank_exact(group0, group1, alternative):
+    alternative_options = ["lesser", "greater", "two-sided"]
+    # The specified alternative is invalid
+    if not (alternative in alternative_options):
+        raise ValueError(f"alternative parameter can be one of {alternative_options}. Current value of {alternative} is invalid.")
+    else: 
+        n0 = len(group0)
+        n1 = len(group1)
+        n = n0 + n1
+
+        statistic = None
+        p_value = None
+        # Compute all the permutations
+
+        # Calculate the p-value
+
+        # Return the stat and the p-value
+        return (statistic, p_value)
+
+
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
 def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedData):
@@ -539,16 +559,26 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     else:
         prediction = None
     
-    if isinstance(prediction, GreaterThan): 
-        t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="greater")
-    elif isinstance(prediction, LessThan): 
-        t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="lesser")
-    else: 
-        t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
+    total_sample_size = len(data[0]) + len(data[1])
+    # Compute exact test statistic and p-value for small sample sizes
+    if total_sample_size < 20: 
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="two-sided")
+    # For larger samples, calculate test statistic and p-value using a normality approximation
+    else:
+        assert(total_sample_size >= 20)
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
 
-    # TODO
-    # if n < 20: 
-    # COMPUTE!
+    
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
                         name = WILCOXON_SIGNED_RANK_NAME,
