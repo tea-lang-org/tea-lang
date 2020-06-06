@@ -364,8 +364,8 @@ def test_wilcoxon_signed_rank():
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['day', 'value'], ['day:sundayBDI > wedsBDI'])
-
+    tea.hypothesize(['day', 'value'], ['day:sundayBDI != wedsBDI'])
+    
     # print("\nfrom Field et al.")
     # print("Expected outcome: Wilcoxon signed rank test")
     print('++++++++++++')

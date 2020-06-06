@@ -33,6 +33,7 @@ from collections import namedtuple
 from enum import Enum
 import copy
 
+
 # @returns list of VarData objects with same info as @param vars but with one updated role characteristic
 def assign_roles(vars_data: list, study_type: str, design: Dict[str, str]):
     vars = copy.deepcopy(vars_data)
@@ -432,6 +433,26 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
     return test_result
 
 
+def mann_whitney_exact(group0, group1, alternative):
+    alternative_options = ["lesser", "greater", "two-sided"]
+    # The specified alternative is invalid
+    if not (alternative in alternative_options):
+        raise ValueError(f"alternative parameter can be one of {alternative_options}. Current value of {alternative} is invalid.")
+    else: 
+        n0 = len(group0)
+        n1 = len(group1)
+        n = n0 + n1
+
+        u_statistic = None
+        p_value = None
+        # Compute all the permutations
+
+        # Calculate the p-value
+
+        # Return the stat and the p-value
+        return (u_statistic, p_value)
+
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
 # def utest(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
@@ -458,12 +479,35 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
             prediction = predictions[0]
     else:
         prediction = None
-    t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+
+    # TODO
+    total_sample_size = len(data[0]) + len(data[1])
+    
+    if total_sample_size < 20:
+        # calculate Mann Whitney U and p-value exaclty
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="two-sided")
+        #TODO: compare the output from our calculation and Scipy
+
+    else:
+        assert(total_sample_size >= 20)
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
+
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
                         name = MANN_WHITNEY_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
+                        adjusted_p_value = p_val, # Already adjusted p-value by picking a one-sided or two-sided test
                         prediction = prediction,
                         dof = dof,
                         alpha = combined_data.alpha,
@@ -494,12 +538,23 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
             prediction = predictions[0]
     else:
         prediction = None
-    t_stat, p_val = stats.wilcoxon(data[0], data[1])
+    
+    if isinstance(prediction, GreaterThan): 
+        t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="greater")
+    elif isinstance(prediction, LessThan): 
+        t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="lesser")
+    else: 
+        t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
+
+    # TODO
+    # if n < 20: 
+    # COMPUTE!
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
                         name = WILCOXON_SIGNED_RANK_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
+                        adjusted_p_value = p_val, # Already adjusted p-value by picking a one-sided or two-sided test
                         prediction = prediction,
                         dof = dof,
                         alpha = combined_data.alpha,

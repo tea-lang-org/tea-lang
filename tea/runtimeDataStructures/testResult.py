@@ -108,13 +108,14 @@ class TestResult(Value):
         else:
             print("No prediction specified.")
 
-    def adjust_p_val(self):
-        # Adjust p value
-        if self.prediction or (self.x and self.y):
-            if self._is_one_sided():
-                self.adjusted_p_value = self.p_value/2
-            else: 
-                self.adjusted_p_value = self.p_value
+    def adjust_p_val(self): 
+        # Adjust p value if it has not already been adjusted
+        if not self.adjusted_p_value:
+            if self.prediction or (self.x and self.y):
+                if self._is_one_sided():
+                    self.adjusted_p_value = self.p_value/2
+                else: 
+                    self.adjusted_p_value = self.p_value
 
     def bonferroni_correction(self, num_comparisons):
         assert(num_comparisons >= 1)
