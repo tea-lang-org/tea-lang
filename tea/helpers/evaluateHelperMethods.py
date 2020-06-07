@@ -543,8 +543,6 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
 
         return ranks
 
-
-        
     alternative_options = ["lesser", "greater", "two-sided"]
     # The specified alternative is invalid
     if not (alternative in alternative_options):
@@ -570,13 +568,22 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         abs_ranks = rank(abs_diff)
         # add 1 to all elts
         abs_ranks += 1
-                
+
+
+        # # https://www.statisticssolutions.com/how-to-conduct-the-wilcox-sign-test/
+        # Compute W+    
+        # Sum all the positive ranks', ignoring 0s
+        
+
+        # Compute W-
+        # Sum all the negative ranks, ignoring 0s
+
         # Get all permutations
         # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
         # Assume there are no ties
         # If there are ties, round up to int (ceiling)
 
-        # https://www.statisticssolutions.com/how-to-conduct-the-wilcox-sign-test/
+        
 
 
         import pdb; pdb.set_trace()
@@ -623,7 +630,6 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         prediction = None
     
     total_sample_size = len(data[0]) + len(data[1])
-    import pdb; pdb.set_trace()
     # Compute exact test statistic and p-value for small sample sizes
     if total_sample_size <= 20: 
         if isinstance(prediction, GreaterThan): 
