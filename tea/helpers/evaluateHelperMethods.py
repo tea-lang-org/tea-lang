@@ -522,7 +522,6 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
     # @returns a list containing the ranks of each elt (zero-indexed)
     # If ther are any ties, the returned ranks "break" them
     def rank(arr):
-
         tmp = arr.argsort() # Returns numpy array of indices ordering their elts
         ranks = np.empty_like(tmp)
         ranks[tmp] = np.arange(len(arr))
@@ -531,7 +530,7 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         if len(set(arr)) != len(arr):
             # Go through and recompute ranks for elts with the same value
             # Get unique elts
-            unique_elts = np.unique(arr, return_counts=True)
+            unique_elts = np.unique(arr)
 
             for e in range(len(unique_elts)):
                 idxs = np.where(arr == unique_elts[e])[0] # list of indices for each elt
@@ -541,8 +540,9 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
                     new_rank = rank_sum/len(idxs)
                     ranks = ranks.astype('float64') # to allow for new_rank
                     ranks[idxs] = new_rank
-                    
+
         return ranks
+
 
         
     alternative_options = ["lesser", "greater", "two-sided"]
@@ -575,8 +575,9 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
         # Assume there are no ties
         # If there are ties, round up to int (ceiling)
-        
-        
+
+        # https://www.statisticssolutions.com/how-to-conduct-the-wilcox-sign-test/
+
 
         import pdb; pdb.set_trace()
 
