@@ -483,7 +483,7 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     # TODO
     total_sample_size = len(data[0]) + len(data[1])
     # For small samples, calculate Mann Whitney U and p-value exaclty
-    if total_sample_size < 20:
+    if total_sample_size <= 20:
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
@@ -515,8 +515,36 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
 
     return test_result
 
-
+# http://www.real-statistics.com/non-parametric-tests/wilcoxon-signed-ranks-test/wilcoxon-signed-ranks-exact-test/
 def wilcox_signed_rank_exact(group0, group1, alternative):
+
+    # @param arr contains the elts to be ranked
+    # @returns a list containing the ranks of each elt (zero-indexed)
+    # If ther are any ties, the returned ranks "break" them
+    def rank(arr):
+
+        tmp = arr.argsort() # Returns numpy array of indices ordering their elts
+        ranks = np.empty_like(tmp)
+        ranks[tmp] = np.arange(len(arr))
+
+        # If there are ties
+        if len(set(arr)) != len(arr):
+            # Go through and recompute ranks for elts with the same value
+            # Get unique elts
+            unique_elts = np.unique(arr, return_counts=True)
+
+            for e in range(len(unique_elts)):
+                idxs = np.where(arr == unique_elts[e])[0] # list of indices for each elt
+                # Update ranks
+                if len(idxs) > 1: 
+                    rank_sum = np.sum(ranks[idxs])
+                    new_rank = rank_sum/len(idxs)
+                    ranks = ranks.astype('float64') # to allow for new_rank
+                    ranks[idxs] = new_rank
+                    
+        return ranks
+
+        
     alternative_options = ["lesser", "greater", "two-sided"]
     # The specified alternative is invalid
     if not (alternative in alternative_options):
@@ -526,11 +554,45 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         n1 = len(group1)
         n = n0 + n1
 
+        
+        # Calculate differences in pairs    
+        arr0 = group0.to_numpy()
+        arr1 = group1.to_numpy()
+        
+        # Get signed ranks
+        signed_diff = arr0 - arr1
+        signed_ranks = rank(signed_diff)
+        # add 1 to all elts
+        signed_ranks += 1
+
+        # Get absolute ranks
+        abs_diff = np.absolute(signed_diff)
+        abs_ranks = rank(abs_diff)
+        # add 1 to all elts
+        abs_ranks += 1
+                
+        # Get all permutations
+        # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
+        # Assume there are no ties
+        # If there are ties, round up to int (ceiling)
+        
+        
+
+        import pdb; pdb.set_trace()
+
+        # Rank differences in pairs
+
+        # Split positive and negative differences
+
+        
         statistic = None
         p_value = None
         # Compute all the permutations
 
         # Calculate the p-value
+
+
+        # One-tailed tests: http://www.real-statistics.com/statistics-tables/wilcoxon-signed-ranks-table/
 
         # Return the stat and the p-value
         return (statistic, p_value)
@@ -560,8 +622,9 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         prediction = None
     
     total_sample_size = len(data[0]) + len(data[1])
+    import pdb; pdb.set_trace()
     # Compute exact test statistic and p-value for small sample sizes
-    if total_sample_size < 20: 
+    if total_sample_size <= 20: 
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
@@ -570,7 +633,7 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="two-sided")
     # For larger samples, calculate test statistic and p-value using a normality approximation
     else:
-        assert(total_sample_size >= 20)
+        assert(total_sample_size > 20)
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
