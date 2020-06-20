@@ -19,6 +19,7 @@ import statsmodels.formula.api as smf
 from statsmodels.formula.api import ols
 import numpy as np
 import math
+from sympy.utilities.iterables import multiset_permutations
 
 import pandas as pd
 from statsmodels.stats.anova import AnovaRM
@@ -553,8 +554,6 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         assert(n0 == n1) # paired
         n = n0 # number of pairs
         
-
-        
         # Calculate differences in pairs    
         arr0 = group0.to_numpy()
         arr1 = group1.to_numpy()
@@ -586,19 +585,41 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         summation = (n*(n+1))/2
         assert(w_pos + w_neg == summation)
 
-        import pdb; pdb.set_trace()
+    
         # Get all permutations
         # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
         
+        perm_count = math.pow(2,n)
         # Assume there are no ties
-
-        # If there are ties, round up to int (ceiling)
-
-
+        poss_vals = [1 for i in range(n)] + [0 for i in range(n)]
+        poss_vals_arr = np.array(poss_vals)
+        all_poss_assignments = list()
+        for p in multiset_permutations(poss_vals_arr, size=n):
+            all_poss_assignments.append(p)
+        assert(len(all_poss_assignments) == perm_count)
+        
+        freq = [0 for i in range(n+1)]
+        prob = [0 for i in range(n+1)]
+        cum_prob = [0 for i in range(n+1)]
+        for a in all_poss_assignments:
+            a_sum = np.sum(a)
+            freq[a_sum] += 1
+        assert(np.sum(freq) == perm_count)
+        for i in range(len(freq)):
+            prob[i] = freq[i]/perm_count
+        epsilon = 0.000000001 # to account for floating point comparison
+        assert(np.sum(prob) <= 1.0 + epsilon)
+        cum_prob[0] = prob[0]
+        for i in range(len(cum_prob)):
+            if i > 0:
+                cum_prob[i] = cum_prob[i-1] +  prob[i]
+        assert(cum_prob[len(cum_prob) - 1] <= 1.0 + epsilon)
         import pdb; pdb.set_trace()
 
+        # Determine if stat sig according to two-sided, one-sided
+        # TODO: If there are ties, round up to int (ceiling)
+        
         # Rank differences in pairs
-
         # Split positive and negative differences
 
         
