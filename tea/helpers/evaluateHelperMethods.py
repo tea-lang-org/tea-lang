@@ -34,6 +34,9 @@ from collections import namedtuple
 from enum import Enum
 import copy
 
+# Globals for statistical tests
+alternative_options = ["lesser", "greater", "two-sided"]
+
 
 # @returns list of VarData objects with same info as @param vars but with one updated role characteristic
 def assign_roles(vars_data: list, study_type: str, design: Dict[str, str]):
@@ -435,7 +438,7 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
 
 
 def mann_whitney_exact(group0, group1, alternative):
-    alternative_options = ["lesser", "greater", "two-sided"]
+    global alternative_options
     # The specified alternative is invalid
     if not (alternative in alternative_options):
         raise ValueError(f"alternative parameter can be one of {alternative_options}. Current value of {alternative} is invalid.")
@@ -516,8 +519,10 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
 
     return test_result
 
-# http://www.real-statistics.com/non-parametric-tests/wilcoxon-signed-ranks-test/wilcoxon-signed-ranks-exact-test/
+# http://www.real-statistics.com/non-parametric-tests/wilcoxon-signed-ranks-test/wilcoxon-signed-ranks-exact-test/ 
+# cross-reference with http://www.real-statistics.com/statistics-tables/wilcoxon-signed-ranks-table/
 def wilcox_signed_rank_exact(group0, group1, alternative):
+    global alternative_options
 
     # @param arr contains the elts to be ranked
     # @returns a list containing the ranks of each elt (zero-indexed)
@@ -544,7 +549,6 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
 
         return ranks
 
-    alternative_options = ["lesser", "greater", "two-sided"]
     # The specified alternative is invalid
     if not (alternative in alternative_options):
         raise ValueError(f"alternative parameter can be one of {alternative_options}. Current value of {alternative} is invalid.")
@@ -582,13 +586,15 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         neg_ranks = [r for r in signed_ranks if r < 0]
         w_neg = np.sum(neg_ranks)
 
-        summation = (n*(n+1))/2
-        assert(w_pos + w_neg == summation)
+        # Compute |W|
+        w_abs = np.sum(abs_ranks)
+
+        num_poss_sums = (n*(n+1))/2
+        assert(w_pos + w_neg == num_poss_sums)
 
     
-        # Get all permutations
+        # Get all permutations of positive and negative entries
         # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
-        
         perm_count = math.pow(2,n)
         # Assume there are no ties
         poss_vals = [1 for i in range(n)] + [0 for i in range(n)]
@@ -598,12 +604,14 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
             all_poss_assignments.append(p)
         assert(len(all_poss_assignments) == perm_count)
         
-        freq = [0 for i in range(n+1)]
-        prob = [0 for i in range(n+1)]
-        cum_prob = [0 for i in range(n+1)]
+        freq = [0 for i in range(int(num_poss_sums) + 1)]
+        prob = [0 for i in range(int(num_poss_sums)+1)]
+        cum_prob = [0 for i in range(int(num_poss_sums)+1)]
+        weights = [(i+1) for i in range(n)] # add 1 to all ranks/weights
         for a in all_poss_assignments:
-            a_sum = np.sum(a)
+            a_sum = np.dot(weights, a)
             freq[a_sum] += 1
+
         assert(np.sum(freq) == perm_count)
         for i in range(len(freq)):
             prob[i] = freq[i]/perm_count
@@ -614,28 +622,17 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
             if i > 0:
                 cum_prob[i] = cum_prob[i-1] +  prob[i]
         assert(cum_prob[len(cum_prob) - 1] <= 1.0 + epsilon)
-        import pdb; pdb.set_trace()
 
-        # Determine if stat sig according to two-sided, one-sided
-        # TODO: If there are ties, round up to int (ceiling)
-        
-        # Rank differences in pairs
-        # Split positive and negative differences
-
-        
-        statistic = None
-        p_value = None
-        # Compute all the permutations
-
-        # Calculate the p-value
-
-
-        # One-tailed tests: http://www.real-statistics.com/statistics-tables/wilcoxon-signed-ranks-table/
+        statistic = freq[int(w_pos)]
+        if alternative == "two-sided":
+            p_value = prob[int(w_pos)] * 2
+        else:
+            assert(alternative == "lesser" or alternative == "greater")
+            p_value = prob[int(w_pos)]
 
         # Return the stat and the p-value
         return (statistic, p_value)
-
-
+        
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
