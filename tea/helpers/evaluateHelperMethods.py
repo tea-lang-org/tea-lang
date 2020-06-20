@@ -586,12 +586,13 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         summation = (n*(n+1))/2
         assert(w_pos + w_neg == summation)
 
+        import pdb; pdb.set_trace()
         # Get all permutations
         # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
-        # Assume there are no ties
-        # If there are ties, round up to int (ceiling)
-
         
+        # Assume there are no ties
+
+        # If there are ties, round up to int (ceiling)
 
 
         import pdb; pdb.set_trace()
