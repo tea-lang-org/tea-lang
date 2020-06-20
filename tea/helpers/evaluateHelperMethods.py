@@ -550,7 +550,9 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
     else: 
         n0 = len(group0)
         n1 = len(group1)
-        n = n0 + n1
+        assert(n0 == n1) # paired
+        n = n0 # number of pairs
+        
 
         
         # Calculate differences in pairs    
@@ -560,23 +562,29 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         # Get signed ranks
         signed_diff = arr0 - arr1
         signed_ranks = rank(signed_diff)
-        # add 1 to all elts
+        # add 1 to all elts since ranks come as zero-indexed
         signed_ranks += 1
 
         # Get absolute ranks
         abs_diff = np.absolute(signed_diff)
         abs_ranks = rank(abs_diff)
-        # add 1 to all elts
+        # add 1 to all elts since ranks come as zero-indexed
         abs_ranks += 1
-
+        
 
         # # https://www.statisticssolutions.com/how-to-conduct-the-wilcox-sign-test/
         # Compute W+    
-        # Sum all the positive ranks', ignoring 0s
-        
+        # Sum all the positive ranks, ignoring 0s
+        pos_ranks = [r for r in signed_ranks if r > 0]
+        w_pos = np.sum(pos_ranks)
 
         # Compute W-
         # Sum all the negative ranks, ignoring 0s
+        neg_ranks = [r for r in signed_ranks if r < 0]
+        w_neg = np.sum(neg_ranks)
+
+        summation = (n*(n+1))/2
+        assert(w_pos + w_neg == summation)
 
         # Get all permutations
         # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
