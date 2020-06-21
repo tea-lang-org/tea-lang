@@ -666,7 +666,7 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     
     total_sample_size = len(data[0]) + len(data[1])
     # Compute exact test statistic and p-value for small sample sizes
-    if total_sample_size <= 40: 
+    if total_sample_size <= 20: 
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
@@ -675,14 +675,14 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="two-sided")
     # For larger samples, calculate test statistic and p-value using a normality approximation
     else:
-        assert(total_sample_size > 40)
+        assert(total_sample_size > 20)
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="lesser")
         else: 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
-        
+     
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
                         name = WILCOXON_SIGNED_RANK_NAME,
@@ -1121,6 +1121,7 @@ def rm_one_way_anova(dataset: Dataset, predictions, design, combined_data: Combi
         prediction = None
 
     key = dataset.pid_col_name
+    import pdb; pdb.set_trace()
     aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=key, within=within_subjs, aggregate_func='mean')
     # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
     res2way = aovrm2way.fit()

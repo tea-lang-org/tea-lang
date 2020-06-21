@@ -3,6 +3,13 @@ import pandas as pd
 import tea
 import os
 
+from tea.logging import TeaLoggerConfiguration, TeaLogger
+import logging
+configuration = TeaLoggerConfiguration()
+configuration.logging_level = logging.DEBUG
+TeaLogger.initialize_logger(configuration)
+
+
 base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
 file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv',
               'pbcorr.csv', 'spiderLong_within.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
@@ -30,47 +37,88 @@ def get_data_path(filename):
 
     return data_path
 
-def test_wilcoxon_signed_rank():
-    # data_path = get_data_path('')
-    # data_path = get_data_path('alcohol.csv')
+# This example is adapted from http://www.real-statistics.com/non-parametric-tests/wilcoxon-signed-ranks-test/
+def test_wilcoxon_signed_rank_0():
+    tea.data('./tests/data/real_stats_0.csv', key='Person')
 
-    # Declare and annotate the variables of interest
     variables = [
         {
-            'name': 'drug',
-            'data type': 'nominal',
-            'categories': ['Alcohol']
+            'name': 'Person',
+            'data type': 'ratio'
         },
         {
-            'name': 'day',
+            'name': 'Side',
             'data type': 'nominal',
-            'categories': ['sundayBDI', 'wedsBDI']
+            'categories': ['Right', 'Left']
         },
         {
-            'name': 'value',
+            'name': 'Score',
             'data type': 'ratio'
         }
     ]
     experimental_design = {
         'study type': 'experiment',
-        'independent variables': 'day',
-        'dependent variables': 'value',
-        'within subjects': 'day'
-
+        'independent variables': 'Side',
+        'dependent variables': 'Score',
+        'within subjects': 'Side',
+        # 'key': 'Person'
     }
     assumptions = {
         'Type I (False Positive) Error Rate': 0.05
     }
 
-    tea.data('/Users/emjun/.tea/data/alcohol_long.csv')
+
     tea.define_variables(variables)
     # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.define_study_design(experimental_design)
     tea.assume(assumptions)
 
-    tea.hypothesize(['day', 'value'], ['day:sundayBDI != wedsBDI'])
+    tea.hypothesize(['Side', 'Score'], ['Side:Right != Left'])
     # print("\nfrom Field et al.")
     # print("Expected outcome: Wilcoxon signed rank test")
     print('++++++++++++')
 
-    # TODO: Add a new test where there is a difference btw signed and not signed
+# def test_wilcoxon_signed_rank():
+#     # data_path = get_data_path('')
+#     # data_path = get_data_path('alcohol.csv')
+
+#     # Declare and annotate the variables of interest
+#     variables = [
+#         {
+#             'name': 'drug',
+#             'data type': 'nominal',
+#             'categories': ['Alcohol']
+#         },
+#         {
+#             'name': 'day',
+#             'data type': 'nominal',
+#             'categories': ['sundayBDI', 'wedsBDI']
+#         },
+#         {
+#             'name': 'value',
+#             'data type': 'ratio'
+#         }
+#     ]
+#     experimental_design = {
+#         'study type': 'experiment',
+#         'independent variables': 'day',
+#         'dependent variables': 'value',
+#         'within subjects': 'day'
+
+#     }
+#     assumptions = {
+#         'Type I (False Positive) Error Rate': 0.05
+#     }
+
+#     tea.data('/Users/emjun/.tea/data/alcohol_long.csv')
+#     tea.define_variables(variables)
+#     # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+#     tea.define_study_design(experimental_design)
+#     tea.assume(assumptions)
+
+#     tea.hypothesize(['day', 'value'], ['day:sundayBDI != wedsBDI'])
+#     # print("\nfrom Field et al.")
+#     # print("Expected outcome: Wilcoxon signed rank test")
+#     print('++++++++++++')
+
+#     # TODO: Add a new test where there is a difference btw signed and not signed
