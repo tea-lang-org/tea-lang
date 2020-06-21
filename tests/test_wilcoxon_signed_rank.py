@@ -31,7 +31,8 @@ def get_data_path(filename):
     return data_path
 
 def test_wilcoxon_signed_rank():
-    data_path = get_data_path('alcohol.csv')
+    # data_path = get_data_path('')
+    # data_path = get_data_path('alcohol.csv')
 
     # Declare and annotate the variables of interest
     variables = [
@@ -61,7 +62,7 @@ def test_wilcoxon_signed_rank():
         'Type I (False Positive) Error Rate': 0.05
     }
 
-    tea.data(data_path)
+    tea.data('/Users/emjun/.tea/data/alcohol_long.csv')
     tea.define_variables(variables)
     # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     tea.define_study_design(experimental_design)

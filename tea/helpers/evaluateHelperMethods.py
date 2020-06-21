@@ -623,11 +623,19 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
                 cum_prob[i] = cum_prob[i-1] +  prob[i]
         assert(cum_prob[len(cum_prob) - 1] <= 1.0 + epsilon)
 
-        statistic = freq[int(w_pos)]
         if alternative == "two-sided":
-            p_value = prob[int(w_pos)] * 2
+            if w_pos != 0: 
+                if w_neg != 0:
+                    t_stat = min(w_pos, w_neg)
+                else: 
+                    t_stat = w_pos
+            else: 
+                t_stat = w_neg
+            statistic = t_stat
+            p_value = prob[int(t_stat)] * 2
         else:
             assert(alternative == "lesser" or alternative == "greater")
+            statistic = freq[int(w_pos)]
             p_value = prob[int(w_pos)]
 
         # Return the stat and the p-value
@@ -658,7 +666,7 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     
     total_sample_size = len(data[0]) + len(data[1])
     # Compute exact test statistic and p-value for small sample sizes
-    if total_sample_size <= 20: 
+    if total_sample_size <= 40: 
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
@@ -667,15 +675,14 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="two-sided")
     # For larger samples, calculate test statistic and p-value using a normality approximation
     else:
-        assert(total_sample_size > 20)
+        assert(total_sample_size > 40)
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="lesser")
         else: 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
-
-    
+        
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
                         name = WILCOXON_SIGNED_RANK_NAME,
