@@ -556,7 +556,6 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         n0 = len(group0)
         n1 = len(group1)
         assert(n0 == n1) # paired
-        n = n0 # number of pairs
         
         # Calculate differences in pairs    
         arr0 = group0.to_numpy()
@@ -564,50 +563,60 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         
         # Get signed ranks
         signed_diff = arr0 - arr1
+        # Remove any zero differences
+        signed_diff = [d for d in signed_diff if d != 0]
+        # Cast back as numpy array
+        signed_diff = np.array(signed_diff)
+        # Rank
         signed_ranks = rank(signed_diff)
-        # add 1 to all elts since ranks come as zero-indexed
+        # # Add 1 to all elts since ranks come as zero-indexed
         signed_ranks += 1
 
         # Get absolute ranks
-        abs_diff = np.absolute(signed_diff)
+        abs_diff = np.absolute(signed_diff) # already removed any zero differences
         abs_ranks = rank(abs_diff)
-        # add 1 to all elts since ranks come as zero-indexed
+        # Add 1 to all elts since ranks come as zero-indexed
         abs_ranks += 1
-        
+        num_ranks = len([r for r in abs_ranks if r != 0])
+
 
         # # https://www.statisticssolutions.com/how-to-conduct-the-wilcox-sign-test/
         # Compute W+    
-        # Sum all the positive ranks, ignoring 0s
-        pos_ranks = [r for r in signed_ranks if r > 0]
+        # Sum the absolute ranks of positive differences, ignoring 0s
+        assert(len(signed_ranks) == len(signed_diff))
+        pos_ranks = [abs_ranks[i] for i in range(len(signed_diff)) if signed_diff[i] > 0]
         w_pos = np.sum(pos_ranks)
 
         # Compute W-
-        # Sum all the negative ranks, ignoring 0s
-        neg_ranks = [r for r in signed_ranks if r < 0]
+        # Sum the absolute ranks of negative differences, ignoring 0s
+        neg_ranks = [abs_ranks[i] for i in range(len(signed_diff)) if signed_diff[i] < 0]
         w_neg = np.sum(neg_ranks)
 
-        # Compute |W|
-        w_abs = np.sum(abs_ranks)
 
-        num_poss_sums = (n*(n+1))/2
+        # Compute |W|
+        # w_abs = np.sum(abs_ranks)
+
+                
+        num_poss_sums = (num_ranks*(num_ranks+1))/2
+        import pdb; pdb.set_trace()
         assert(w_pos + w_neg == num_poss_sums)
 
     
         # Get all permutations of positive and negative entries
         # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
-        perm_count = math.pow(2,n)
+        perm_count = math.pow(2,num_ranks)
         # Assume there are no ties
-        poss_vals = [1 for i in range(n)] + [0 for i in range(n)]
+        poss_vals = [1 for i in range(num_ranks)] + [0 for i in range(num_ranks)]
         poss_vals_arr = np.array(poss_vals)
         all_poss_assignments = list()
-        for p in multiset_permutations(poss_vals_arr, size=n):
+        for p in multiset_permutations(poss_vals_arr, size=num_ranks):
             all_poss_assignments.append(p)
         assert(len(all_poss_assignments) == perm_count)
         
         freq = [0 for i in range(int(num_poss_sums) + 1)]
         prob = [0 for i in range(int(num_poss_sums)+1)]
         cum_prob = [0 for i in range(int(num_poss_sums)+1)]
-        weights = [(i+1) for i in range(n)] # add 1 to all ranks/weights
+        weights = [(i+1) for i in range(num_ranks)] # add 1 to all ranks/weights
         for a in all_poss_assignments:
             a_sum = np.dot(weights, a)
             freq[a_sum] += 1
@@ -631,13 +640,14 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
                     t_stat = w_pos
             else: 
                 t_stat = w_neg
-            statistic = t_stat
+            statistic = t_stat * 10000
             p_value = prob[int(t_stat)] * 2
         else:
             assert(alternative == "lesser" or alternative == "greater")
             statistic = freq[int(w_pos)]
             p_value = prob[int(w_pos)]
-
+        
+        import pdb; pdb.set_trace()
         # Return the stat and the p-value
         return (statistic, p_value)
         
@@ -664,8 +674,11 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     else:
         prediction = None
     
-    total_sample_size = len(data[0]) + len(data[1])
+    # total_sample_size = len(data[0]) + len(data[1])
+    assert(len(data[0]) == len(data[1]))
+    total_sample_size = len(data[0])
     # Compute exact test statistic and p-value for small sample sizes
+    import pdb; pdb.set_trace()
     if total_sample_size <= 20: 
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="greater")
