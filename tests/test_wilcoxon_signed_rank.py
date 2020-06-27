@@ -150,3 +150,6 @@ def test_wilcoxon_signed_rank_2():
     tea.assume(assumptions)
 
     tea.hypothesize(['Person', 'Score'], ['Person:Wife != Husband'])
+
+
+    ## TODO: one-sided!

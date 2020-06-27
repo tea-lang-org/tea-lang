@@ -19,6 +19,7 @@ import statsmodels.formula.api as smf
 from statsmodels.formula.api import ols
 import numpy as np
 import math
+from scipy.special import comb
 from sympy.utilities.iterables import multiset_permutations
 
 import pandas as pd
@@ -439,20 +440,122 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
 
 def mann_whitney_exact(group0, group1, alternative):
     global alternative_options
+
+    # @param arr contains the elts to be ranked
+    # @returns a list containing the ranks of each elt (zero-indexed)
+    # If ther are any ties, the returned ranks "break" them
+    def rank(arr):
+        tmp = arr.argsort() # Returns numpy array of indices ordering their elts
+        ranks = np.empty_like(tmp)
+        ranks[tmp] = np.arange(len(arr))
+
+        # If there are ties
+        if len(set(arr)) != len(arr):
+            # Go through and recompute ranks for elts with the same value
+            # Get unique elts
+            unique_elts = np.unique(arr)
+
+            for e in range(len(unique_elts)):
+                idxs = np.where(arr == unique_elts[e])[0] # list of indices for each elt
+                # Update ranks
+                if len(idxs) > 1: 
+                    rank_sum = np.sum(ranks[idxs])
+                    new_rank = rank_sum/len(idxs)
+                    ranks = ranks.astype('float64') # to allow for new_rank
+                    ranks[idxs] = new_rank
+
+        return ranks
+
     # The specified alternative is invalid
     if not (alternative in alternative_options):
         raise ValueError(f"alternative parameter can be one of {alternative_options}. Current value of {alternative} is invalid.")
     else: 
         n0 = len(group0)
         n1 = len(group1)
-        n = n0 + n1
+        total_n = n0 + n1
+        
+        # Combine values to rank globally
+        arr0 = group0.to_numpy()
+        arr1 = group1.to_numpy()
+        combined_arr = np.concatenate((arr0, arr1))
 
-        u_statistic = None
-        p_value = None
-        # Compute all the permutations
+        # Rank values
+        combined_ranks = rank(combined_arr)
+        # # Add 1 to all elts since ranks come as zero-indexed
+        combined_ranks += 1
+        # Split up ranks
+        split_ranks = np.split(combined_ranks, [len(arr0)])
+        arr0 = split_ranks[0]
+        arr1 = split_ranks[1]
 
-        # Calculate the p-value
+        smaller_n = n0
+        smaller_arr = arr0
+        larger_n = n1
+        larger_arr = arr1
+        if n1 < n0:
+            smaller_n = n1
+            smaller_arr = arr1
+            larger_n = n0
+            larger_arr = arr0
+        
 
+        # Get all permutations of positive and negative entries
+        # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
+        comb_count = comb(total_n, smaller_n, exact=True)
+        # Assume there are no ties
+        poss_vals = [1 for i in range(larger_n)] + [0 for i in range(smaller_n)]
+        poss_vals_arr = np.array(poss_vals)
+        all_poss_assignments = list()
+        for p in multiset_permutations(poss_vals_arr, size=total_n):
+            all_poss_assignments.append(p)
+        assert(len(all_poss_assignments) == comb_count)
+
+        sums = list()
+        weights = [(i+1) for i in range(total_n)] # add 1 to all ranks/weights
+        for a in all_poss_assignments:
+            a_sum = np.dot(weights, a)
+            sums.append(a_sum)
+        assert(len(sums) == comb_count)
+
+        # Count frequency of sums
+        max_sum = np.max(sums)
+        min_sum = np.min(sums)
+        smaller_n_summation = (smaller_n*(smaller_n+1))/2
+        total_n_summation = (total_n*(total_n+1))/2
+        assert(min_sum == smaller_n_summation)
+        assert(max_sum == (total_n_summation - smaller_n_summation))
+        freq = [-1 for i in range(max_sum + 1)]
+        for s in sums: 
+            if freq[s] == -1: 
+                freq[s] = 0
+            freq[s] += 1
+        
+        # Calculate probabilities of sums, based on frequency
+        prob = [0 for i in range(len(freq))] 
+        for i in range(len(freq)):
+            if freq[i] != -1: 
+                prob[i] = freq[i]/comb_count
+        epsilon = 0.000000001 # to account for floating point comparison
+        assert(np.sum(prob) >= 1.0 - epsilon)
+        assert(np.sum(prob) <= 1.0 + epsilon)
+
+        # Calculate cummulative probabilites of sums
+        cum_prob = [0 for i in range(len(freq))]
+        cum_prob[min_sum] = prob[min_sum]
+        for i in range(min_sum, len(prob)):
+            cum_prob[i] = cum_prob[i-1] +  prob[i]
+        assert(cum_prob[len(cum_prob) - 1] >= 1.0 - epsilon)
+        assert(cum_prob[len(cum_prob) - 1] <= 1.0 + epsilon)
+        
+        assert(len(freq) == len(prob) == len(cum_prob))
+        
+        # Get test statistic and p-value
+        u_statistic = np.sum(smaller_arr)
+        p_value = cum_prob[u_statistic]
+
+        if alternative == "two-sided":
+            p_value *= 2
+    
         # Return the stat and the p-value
         return (u_statistic, p_value)
 
@@ -624,7 +727,7 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         for i in range(len(freq)):
             prob[i] = freq[i]/perm_count
         epsilon = 0.000000001 # to account for floating point comparison
-        assert(np.sum(prob) <= 1.0 + epsilon)
+        assert((np.sum(prob) >= 1.0 - epsilon) and (np.sum(prob) <= 1.0 + epsilon))
         cum_prob[0] = prob[0]
         for i in range(len(cum_prob)):
             if i > 0:
