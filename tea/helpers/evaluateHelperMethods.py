@@ -727,7 +727,9 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
         for i in range(len(freq)):
             prob[i] = freq[i]/perm_count
         epsilon = 0.000000001 # to account for floating point comparison
-        assert((np.sum(prob) >= 1.0 - epsilon) and (np.sum(prob) <= 1.0 + epsilon))
+        assert(np.sum(prob) >= 1.0 - epsilon)
+        assert(np.sum(prob) <= 1.0 + epsilon)
+        
         cum_prob[0] = prob[0]
         for i in range(len(cum_prob)):
             if i > 0:
