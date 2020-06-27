@@ -239,6 +239,7 @@ def friedman(xs, y, df):
 
 
 def rm_one_way(xs, y, key, df):
+    
     aovrm2way = AnovaRM(df, depvar=y, subject=key,
                         within=xs, aggregate_func='mean')
 

@@ -19,6 +19,8 @@ import statsmodels.formula.api as smf
 from statsmodels.formula.api import ols
 import numpy as np
 import math
+from scipy.special import comb
+from sympy.utilities.iterables import multiset_permutations
 
 import pandas as pd
 from statsmodels.stats.anova import AnovaRM
@@ -32,6 +34,10 @@ from types import SimpleNamespace # allows for dot notation access for dictionar
 from collections import namedtuple
 from enum import Enum
 import copy
+
+# Globals for statistical tests
+alternative_options = ["lesser", "greater", "two-sided"]
+
 
 # @returns list of VarData objects with same info as @param vars but with one updated role characteristic
 def assign_roles(vars_data: list, study_type: str, design: Dict[str, str]):
@@ -432,6 +438,128 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
     return test_result
 
 
+def mann_whitney_exact(group0, group1, alternative):
+    global alternative_options
+
+    # @param arr contains the elts to be ranked
+    # @returns a list containing the ranks of each elt (zero-indexed)
+    # If ther are any ties, the returned ranks "break" them
+    def rank(arr):
+        tmp = arr.argsort() # Returns numpy array of indices ordering their elts
+        ranks = np.empty_like(tmp)
+        ranks[tmp] = np.arange(len(arr))
+
+        # If there are ties
+        if len(set(arr)) != len(arr):
+            # Go through and recompute ranks for elts with the same value
+            # Get unique elts
+            unique_elts = np.unique(arr)
+
+            for e in range(len(unique_elts)):
+                idxs = np.where(arr == unique_elts[e])[0] # list of indices for each elt
+                # Update ranks
+                if len(idxs) > 1: 
+                    rank_sum = np.sum(ranks[idxs])
+                    new_rank = rank_sum/len(idxs)
+                    ranks = ranks.astype('float64') # to allow for new_rank
+                    ranks[idxs] = new_rank
+
+        return ranks
+
+    # The specified alternative is invalid
+    if not (alternative in alternative_options):
+        raise ValueError(f"alternative parameter can be one of {alternative_options}. Current value of {alternative} is invalid.")
+    else: 
+        n0 = len(group0)
+        n1 = len(group1)
+        total_n = n0 + n1
+        
+        # Combine values to rank globally
+        arr0 = group0.to_numpy()
+        arr1 = group1.to_numpy()
+        combined_arr = np.concatenate((arr0, arr1))
+
+        # Rank values
+        combined_ranks = rank(combined_arr)
+        # # Add 1 to all elts since ranks come as zero-indexed
+        combined_ranks += 1
+        # Split up ranks
+        split_ranks = np.split(combined_ranks, [len(arr0)])
+        arr0 = split_ranks[0]
+        arr1 = split_ranks[1]
+
+        smaller_n = n0
+        smaller_arr = arr0
+        larger_n = n1
+        larger_arr = arr1
+        if n1 < n0:
+            smaller_n = n1
+            smaller_arr = arr1
+            larger_n = n0
+            larger_arr = arr0
+        
+
+        # Get all permutations of positive and negative entries
+        # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
+        comb_count = comb(total_n, smaller_n, exact=True)
+        # Assume there are no ties
+        poss_vals = [1 for i in range(larger_n)] + [0 for i in range(smaller_n)]
+        poss_vals_arr = np.array(poss_vals)
+        all_poss_assignments = list()
+        for p in multiset_permutations(poss_vals_arr, size=total_n):
+            all_poss_assignments.append(p)
+        assert(len(all_poss_assignments) == comb_count)
+
+        sums = list()
+        weights = [(i+1) for i in range(total_n)] # add 1 to all ranks/weights
+        for a in all_poss_assignments:
+            a_sum = np.dot(weights, a)
+            sums.append(a_sum)
+        assert(len(sums) == comb_count)
+
+        # Count frequency of sums
+        max_sum = np.max(sums)
+        min_sum = np.min(sums)
+        smaller_n_summation = (smaller_n*(smaller_n+1))/2
+        total_n_summation = (total_n*(total_n+1))/2
+        assert(min_sum == smaller_n_summation)
+        assert(max_sum == (total_n_summation - smaller_n_summation))
+        freq = [-1 for i in range(max_sum + 1)]
+        for s in sums: 
+            if freq[s] == -1: 
+                freq[s] = 0
+            freq[s] += 1
+        
+        # Calculate probabilities of sums, based on frequency
+        prob = [0 for i in range(len(freq))] 
+        for i in range(len(freq)):
+            if freq[i] != -1: 
+                prob[i] = freq[i]/comb_count
+        epsilon = 0.000000001 # to account for floating point comparison
+        assert(np.sum(prob) >= 1.0 - epsilon)
+        assert(np.sum(prob) <= 1.0 + epsilon)
+
+        # Calculate cummulative probabilites of sums
+        cum_prob = [0 for i in range(len(freq))]
+        cum_prob[min_sum] = prob[min_sum]
+        for i in range(min_sum, len(prob)):
+            cum_prob[i] = cum_prob[i-1] +  prob[i]
+        assert(cum_prob[len(cum_prob) - 1] >= 1.0 - epsilon)
+        assert(cum_prob[len(cum_prob) - 1] <= 1.0 + epsilon)
+        
+        assert(len(freq) == len(prob) == len(cum_prob))
+        
+        # Get test statistic and p-value
+        u_statistic = np.sum(smaller_arr)
+        p_value = cum_prob[u_statistic]
+
+        if alternative == "two-sided":
+            p_value *= 2
+    
+        # Return the stat and the p-value
+        return (u_statistic, p_value)
+
+
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html
 # Paramters: x, y : array_like | use_continuity (default=True, optional - for ties) | alternative (p-value for two-sided vs. one-sided)
 # def utest(iv: VarData, dv: VarData, predictions: list, comp_data: CombinedData, **kwargs):
@@ -458,12 +586,34 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
             prediction = predictions[0]
     else:
         prediction = None
-    t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')
+
+    # TODO
+    total_sample_size = len(data[0]) + len(data[1])
+    # For small samples, calculate Mann Whitney U and p-value exaclty
+    if total_sample_size <= 20:
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="two-sided")
+        #TODO: compare the output from our calculation and Scipy
+    # For larger  samples, calculate Mann Whitney U and p-value using normality approximation 
+    else:
+        assert(total_sample_size >= 20)
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
+
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
                         name = MANN_WHITNEY_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
+                        adjusted_p_value = p_val, # Already adjusted p-value by picking a one-sided or two-sided test
                         prediction = prediction,
                         dof = dof,
                         alpha = combined_data.alpha,
@@ -472,6 +622,138 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
 
     return test_result
 
+# http://www.real-statistics.com/non-parametric-tests/wilcoxon-signed-ranks-test/wilcoxon-signed-ranks-exact-test/ 
+# cross-reference with http://www.real-statistics.com/statistics-tables/wilcoxon-signed-ranks-table/
+def wilcox_signed_rank_exact(group0, group1, alternative):
+    global alternative_options
+
+    # @param arr contains the elts to be ranked
+    # @returns a list containing the ranks of each elt (zero-indexed)
+    # If ther are any ties, the returned ranks "break" them
+    def rank(arr):
+        tmp = arr.argsort() # Returns numpy array of indices ordering their elts
+        ranks = np.empty_like(tmp)
+        ranks[tmp] = np.arange(len(arr))
+
+        # If there are ties
+        if len(set(arr)) != len(arr):
+            # Go through and recompute ranks for elts with the same value
+            # Get unique elts
+            unique_elts = np.unique(arr)
+
+            for e in range(len(unique_elts)):
+                idxs = np.where(arr == unique_elts[e])[0] # list of indices for each elt
+                # Update ranks
+                if len(idxs) > 1: 
+                    rank_sum = np.sum(ranks[idxs])
+                    new_rank = rank_sum/len(idxs)
+                    ranks = ranks.astype('float64') # to allow for new_rank
+                    ranks[idxs] = new_rank
+
+        return ranks
+
+    # The specified alternative is invalid
+    if not (alternative in alternative_options):
+        raise ValueError(f"alternative parameter can be one of {alternative_options}. Current value of {alternative} is invalid.")
+    else: 
+        n0 = len(group0)
+        n1 = len(group1)
+        assert(n0 == n1) # paired
+        
+        # Calculate differences in pairs    
+        arr0 = group0.to_numpy()
+        arr1 = group1.to_numpy()
+        
+        # Get signed ranks
+        signed_diff = arr0 - arr1
+        # Remove any zero differences
+        signed_diff = [d for d in signed_diff if d != 0]
+        # Cast back as numpy array
+        signed_diff = np.array(signed_diff)
+        # Rank
+        signed_ranks = rank(signed_diff)
+        # # Add 1 to all elts since ranks come as zero-indexed
+        signed_ranks += 1
+
+        # Get absolute ranks
+        abs_diff = np.absolute(signed_diff) # already removed any zero differences
+        abs_ranks = rank(abs_diff)
+        # Add 1 to all elts since ranks come as zero-indexed
+        abs_ranks += 1
+        num_ranks = len([r for r in abs_ranks if r != 0])
+
+
+        # # https://www.statisticssolutions.com/how-to-conduct-the-wilcox-sign-test/
+        # Compute W+    
+        # Sum the absolute ranks of positive differences, ignoring 0s
+        assert(len(signed_ranks) == len(signed_diff))
+        pos_ranks = [abs_ranks[i] for i in range(len(signed_diff)) if signed_diff[i] > 0]
+        w_pos = np.sum(pos_ranks)
+
+        # Compute W-
+        # Sum the absolute ranks of negative differences, ignoring 0s
+        neg_ranks = [abs_ranks[i] for i in range(len(signed_diff)) if signed_diff[i] < 0]
+        w_neg = np.sum(neg_ranks)
+
+
+        # Compute |W|
+        # w_abs = np.sum(abs_ranks)
+
+                
+        num_poss_sums = (num_ranks*(num_ranks+1))/2
+        assert(w_pos + w_neg == num_poss_sums)
+
+    
+        # Get all permutations of positive and negative entries
+        # https://stackoverflow.com/questions/41210142/get-all-permutations-of-a-numpy-array/41210450
+        perm_count = math.pow(2,num_ranks)
+        # Assume there are no ties
+        poss_vals = [1 for i in range(num_ranks)] + [0 for i in range(num_ranks)]
+        poss_vals_arr = np.array(poss_vals)
+        all_poss_assignments = list()
+        for p in multiset_permutations(poss_vals_arr, size=num_ranks):
+            all_poss_assignments.append(p)
+        assert(len(all_poss_assignments) == perm_count)
+        
+        freq = [0 for i in range(int(num_poss_sums) + 1)]
+        prob = [0 for i in range(int(num_poss_sums)+1)]
+        cum_prob = [0 for i in range(int(num_poss_sums)+1)]
+        weights = [(i+1) for i in range(num_ranks)] # add 1 to all ranks/weights
+        for a in all_poss_assignments:
+            a_sum = np.dot(weights, a)
+            freq[a_sum] += 1
+
+        assert(np.sum(freq) == perm_count)
+        for i in range(len(freq)):
+            prob[i] = freq[i]/perm_count
+        epsilon = 0.000000001 # to account for floating point comparison
+        assert(np.sum(prob) >= 1.0 - epsilon)
+        assert(np.sum(prob) <= 1.0 + epsilon)
+        
+        cum_prob[0] = prob[0]
+        for i in range(len(cum_prob)):
+            if i > 0:
+                cum_prob[i] = cum_prob[i-1] +  prob[i]
+        assert(cum_prob[len(cum_prob) - 1] <= 1.0 + epsilon)
+
+        if alternative == "two-sided":
+            if w_pos != 0: 
+                if w_neg != 0:
+                    t_stat = min(w_pos, w_neg)
+                else: 
+                    t_stat = w_pos
+            else: 
+                t_stat = w_neg
+            statistic = t_stat #* 10000
+            p_value = cum_prob[int(t_stat)] * 2
+        else:
+            assert(alternative == "lesser" or alternative == "greater")
+            statistic = w_pos
+            p_value = cum_prob[int(w_pos)]
+        
+        # Return the stat and the p-value
+        return (statistic, p_value)
+        
 
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html
 # Parameters: x (array-like) | y (array-like, optional) | zero_method (default = 'wilcox', optional) | correction (continuity correction, optional)
@@ -494,12 +776,34 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
             prediction = predictions[0]
     else:
         prediction = None
-    t_stat, p_val = stats.wilcoxon(data[0], data[1])
+    
+    # total_sample_size = len(data[0]) + len(data[1])
+    assert(len(data[0]) == len(data[1]))
+    total_sample_size = len(data[0])
+    # Compute exact test statistic and p-value for small sample sizes
+    if total_sample_size <= 20: 
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="two-sided")
+    # For larger samples, calculate test statistic and p-value using a normality approximation
+    else:
+        assert(total_sample_size > 20)
+        if isinstance(prediction, GreaterThan): 
+            t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="greater")
+        elif isinstance(prediction, LessThan): 
+            t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="lesser")
+        else: 
+            t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
+     
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
                         name = WILCOXON_SIGNED_RANK_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
+                        adjusted_p_value = p_val, # Already adjusted p-value by picking a one-sided or two-sided test
                         prediction = prediction,
                         dof = dof,
                         alpha = combined_data.alpha,
