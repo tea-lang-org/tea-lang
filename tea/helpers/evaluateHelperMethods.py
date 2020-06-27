@@ -598,7 +598,6 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
 
                 
         num_poss_sums = (num_ranks*(num_ranks+1))/2
-        import pdb; pdb.set_trace()
         assert(w_pos + w_neg == num_poss_sums)
 
     
@@ -640,14 +639,13 @@ def wilcox_signed_rank_exact(group0, group1, alternative):
                     t_stat = w_pos
             else: 
                 t_stat = w_neg
-            statistic = t_stat * 10000
-            p_value = prob[int(t_stat)] * 2
+            statistic = t_stat #* 10000
+            p_value = cum_prob[int(t_stat)] * 2
         else:
             assert(alternative == "lesser" or alternative == "greater")
-            statistic = freq[int(w_pos)]
-            p_value = prob[int(w_pos)]
+            statistic = w_pos
+            p_value = cum_prob[int(w_pos)]
         
-        import pdb; pdb.set_trace()
         # Return the stat and the p-value
         return (statistic, p_value)
         
@@ -678,7 +676,6 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     assert(len(data[0]) == len(data[1]))
     total_sample_size = len(data[0])
     # Compute exact test statistic and p-value for small sample sizes
-    import pdb; pdb.set_trace()
     if total_sample_size <= 20: 
         if isinstance(prediction, GreaterThan): 
             t_stat, p_val = wilcox_signed_rank_exact(data[0], data[1], alternative="greater")
