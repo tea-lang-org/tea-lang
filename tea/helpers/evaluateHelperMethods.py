@@ -1131,7 +1131,6 @@ def rm_one_way_anova(dataset: Dataset, predictions, design, combined_data: Combi
         prediction = None
 
     key = dataset.pid_col_name
-    import pdb; pdb.set_trace()
     aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=key, within=within_subjs, aggregate_func='mean')
     # aovrm2way = AnovaRM(data, depvar=y.metadata[name], subject=dataset.pid_col_name, within=within_subjs, between=between_subjs) # apparently not implemented in statsmodels
     res2way = aovrm2way.fit()
