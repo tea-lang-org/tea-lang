@@ -462,7 +462,7 @@ def has_equal_variance(dataset: Dataset, var_data: list, alpha):
                     eq_var = compute_eq_variance(grouped_data)
 
     if eq_var[0] is None and eq_var[1] is None:
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         # raise Exception("did not compute variance, this is a bug")
         return False
 
@@ -1205,7 +1205,7 @@ def which_props(tests_names: list, var_names: List[str]):
 
     result = s.check()
     if result == z3.unsat:
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
         print("no solution")
     elif result == z3.unknown:
         print("failed to solve")
