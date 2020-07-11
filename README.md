@@ -35,6 +35,8 @@ pip install tealang
 
 See community examples <a href='https://github.com/emjun/tea-lang/tree/master/examples'>here</a>. If you have trouble using Tea with your use case, feel free to open an issue, and we'll try to help. 
 
+Step through <a href='https://github.com/emjun/tea-lang/blob/master/documentation.md'>a more guided, thorough documentation and a worked example</a>. 
+
 ## How can I cite Tea?
 For now, please cite: 
 ```  
