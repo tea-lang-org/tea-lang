@@ -31,10 +31,13 @@ class Dataset(object):
         
         # Private method
         def is_valid_csv(path):
+            path_obj = Path(path)
+            curr_path = os.getcwd()
+            complete_path = os.path.join(curr_path, path_obj)
             # Is the path a valid path?
-            if os.path.exists(path):
+            if os.path.exists(complete_path):
                 # Is the path to a CSV file?
-                return os.path.abspath(path).endswith('.csv') 
+                return os.path.abspath(complete_path).endswith('.csv') 
             return False
         
         if isinstance(data, pd.DataFrame):  

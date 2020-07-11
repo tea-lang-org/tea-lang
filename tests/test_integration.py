@@ -60,14 +60,12 @@ def test_pearson_corr():
         'normal distribution': ['Illiteracy']
     }
 
+    # set_analysis_mode('strict')
     tea.data(data_path)
-    # tea.data(data_path2)
-    tea.define_variables(variables)
-    # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.define_study_design(experimental_design)
-    tea.assume(assumptions, 'strict')
-
-    results = tea.hypothesize(['Illiteracy', 'Life Exp'], [
+    vars_list = tea.define_variables(variables)
+    design = tea.define_study_design(experimental_design, vars_list)
+    tea.assume(assumptions, vars_list)
+    results = tea.hypothesize(vars_list, ['Illiteracy', 'Life Exp'], [
                               'Illiteracy ~ Life Exp'])
     # print("\nfrom Kabacoff")
     # print("Expected outcome: Pearson")
