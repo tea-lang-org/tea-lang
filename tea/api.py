@@ -166,53 +166,6 @@ def hypothesize_old(vars: list, prediction: list = None):
     # Give user output
     # return output
 
-# @param vars that user would like to relate
-# @param stats_tests contains all the tests that the user would like
-# @return properties that must be true in order to satisfy
-# as many of the tests as possible
-def divine_properties(vars: list, tests: list):
-    global study_design
-
-    v_objs = []
-    for v in vars:
-        v_objs.append(get_var_from_list(v, vars_objs))  # may want to use Dataset instance method instead
-
-    relationship = relate(v_objs)
-
-    # What kind of study are we analyzing?
-    study_type = study_type_determiner.determine_study_type(vars, study_design)
-
-    combined_data = None
-    # Do we have a Bivariate analysis?
-    if len(vars) == 2:
-        combined_data = BivariateData(vars, study_type, alpha=float(assumptions['alpha']))
-    else:  # Do we have a Multivariate analysis?
-        combined_data = MultivariateData(vars, study_type, alpha=float(assumptions['alpha']))
-
-    # test_to_properties, test_to_broken_properties = which_props(['mannwhitney_u', 'students_t'])
-    test_to_properties, test_to_broken_properties = which_props(tests, vars)
-
-    all_properties_are_satisfied = True
-    for val in test_to_broken_properties.values():
-        if val:
-            all_properties_are_satisfied = False
-            break
-
-    if all_properties_are_satisfied:
-        print(f"\nProperties for {tests[0]} and {tests[1]} are complementary.")
-    else:
-        print(f"\nProperties for {tests[0]} and {tests[1]} conflict.")
-
-    # print(ps)
-    import pprint
-    pp = pprint.PrettyPrinter()
-
-    # print("\nProperties for student's t test and Mann Whitney u test are complementary.")
-    print("\nProperties:")
-    pp.pprint(test_to_properties)
-    print("\nProperties that could not be satisfied:")
-    pp.pprint(test_to_broken_properties)
-
 # TODO change how the key is input. Maybe we want to move this to the variables block
 def tea_time(data, variables, design, assumptions=None, hypothesis=None, key=None): 
     tea_obj = Tea(variables, design, assumptions, hypothesis)
