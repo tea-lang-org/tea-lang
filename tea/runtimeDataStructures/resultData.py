@@ -9,6 +9,7 @@ from tea.global_vals import *
 
 import attr
 
+
 @attr.s(init=False, repr=False, str=False)
 class ResultData(Value):
     test_to_results = attr.ib(type=dict)
@@ -30,7 +31,10 @@ class ResultData(Value):
                         assumption += combined_data.get_explanatory_variables()[0].metadata[name]
                     elif applied_prop.property.name == "has_one_y":
                         assumption += combined_data.get_explained_variables()[0].metadata[name]
-                    elif applied_prop.property.name == "has_independent_observations" or applied_prop.property.name == "has_paired_observations":
+                    elif (
+                        applied_prop.property.name == "has_independent_observations"
+                        or applied_prop.property.name == "has_paired_observations"
+                    ):
                         assumption += combined_data.get_explanatory_variables()[0].metadata[name]
                     else:
                         for stat_var in applied_prop.vars:
@@ -43,12 +47,12 @@ class ResultData(Value):
 
                 self.test_to_assumptions[test.name] = test_assumptions
 
-    def get_all_test_results(self): 
-        results = [v for k,v in self.test_to_results.items()]
+    def get_all_test_results(self):
+        results = [v for k, v in self.test_to_results.items()]
         return results
 
     def bonferroni_correction(self, num_comparisons):
-        for key,value in self.test_to_results.items():
+        for key, value in self.test_to_results.items():
             value.bonferroni_correction(num_comparisons)
         return self
 
@@ -58,11 +62,11 @@ class ResultData(Value):
             output += f"\nTest: {test_name}\n"
             test_assumptions = "None"
             if test_name in self.test_to_assumptions:
-                test_assumptions = ('\n').join(self.test_to_assumptions[test_name])
+                test_assumptions = ("\n").join(self.test_to_assumptions[test_name])
             output += f"***Test assumptions:\n{test_assumptions}\n\n"
             output += "***Test results:\n"
 
-            if hasattr(results, '__dict__'):
+            if hasattr(results, "__dict__"):
 
                 if results.name:
                     output += f"name = {results.name}\n"
@@ -94,20 +98,19 @@ class ResultData(Value):
                 if results.interpretation:
                     output += f"Interpretation = {results.interpretation}\n"
 
-            else: 
+            else:
                 output += f"{str(results)}\n"
-        
-        if hasattr(self, 'follow_up_results'): # not empty
+
+        if hasattr(self, "follow_up_results"):  # not empty
             for res in self.follow_up_results:
                 print("\nFollow up for multiple comparisons: \n")
-                print(res)    
+                print(res)
 
         return output
 
     def add_follow_up(self, follow_up_res_data: list):
         if len(follow_up_res_data) >= 1:
-            setattr(self, 'follow_up_results', follow_up_res_data)
-
+            setattr(self, "follow_up_results", follow_up_res_data)
 
     # def __repr__(self):
     #     # return self._pretty_print()
@@ -134,10 +137,12 @@ class ResultData(Value):
                     print("<p>No assumptions</p>")
                 print("<h3>Results</h3>")
                 if hasattr(results, "__dict__"):
+
                     def dl_pair(term, definition):
                         dt = html.escape(str(term))
                         dd = html.escape(str(definition))
                         return f"<li><b>{dt}:</b> {dd}</li>"
+
                     print("<ul>")
                     if results.name:
                         print(dl_pair("name", results.name))

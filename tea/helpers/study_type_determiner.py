@@ -1,7 +1,14 @@
 from typing import Dict
 
-from tea.global_vals import dv_identifier, iv_identifier, \
-    contributor_identifier, experiment_identifier, observational_identifier, outcome_identifier, study_type_identifier
+from tea.global_vals import (
+    dv_identifier,
+    iv_identifier,
+    contributor_identifier,
+    experiment_identifier,
+    observational_identifier,
+    outcome_identifier,
+    study_type_identifier,
+)
 
 
 class StudyTypeDeterminer:
@@ -17,7 +24,9 @@ class StudyTypeDeterminer:
                     return observational_identifier
                 # We don't know what kind of study this is.
                 else:
-                    raise ValueError(f"Type of study is not supported:{design[study_type_identifier]}. Is it an experiment or an observational study?")
+                    raise ValueError(
+                        f"Type of study is not supported:{design[study_type_identifier]}. Is it an experiment or an observational study?"
+                    )
             # The study type is not explicit, so let's check the other properties...
             else:
                 # This might be an experiment.
@@ -27,4 +36,6 @@ class StudyTypeDeterminer:
                     return observational_identifier
                 # We don't know what kind of study this is.
                 else:
-                    raise ValueError(f"Type of study is not supported:{design}. Is it an experiment or an observational study?")
+                    raise ValueError(
+                        f"Type of study is not supported:{design}. Is it an experiment or an observational study?"
+                    )

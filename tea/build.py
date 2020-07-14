@@ -3,21 +3,21 @@ from typing import Union
 import pandas as pd
 
 from tea.runtimeDataStructures.dataset import Dataset
-from tea.ast import (Variable, DataType, Literal, Relate, Relationship)
+from tea.ast import Variable, DataType, Literal, Relate, Relationship
 
 from collections import OrderedDict
 from pathlib import Path
 
-iv_identifier = 'independent variable'
-dv_identifier = 'dependent variable'
-var_identifier = 'variable'
-categorical_prediction = 'categorical prediction'
-continuous_prediction = 'continuous prediction'
-categorical_prediction_delimiter = ':'
-continuous_prediction_delimiter = '~'
-categorical_comparators = ['>', '<', '==', '!=']
-continuous_positive_relationship = '+'
-continuous_negative_relationship = '-'
+iv_identifier = "independent variable"
+dv_identifier = "dependent variable"
+var_identifier = "variable"
+categorical_prediction = "categorical prediction"
+continuous_prediction = "continuous prediction"
+categorical_prediction_delimiter = ":"
+continuous_prediction_delimiter = "~"
+categorical_comparators = [">", "<", "==", "!="]
+continuous_positive_relationship = "+"
+continuous_negative_relationship = "-"
 
 
 def const(val):
@@ -49,8 +49,9 @@ def isnominal(var: Variable):
 
 
 def interval(var_name: str, drange: list = None):
-    return Variable.from_spec(var_name, DataType.INTERVAL, None,
-                              drange)  # treat range like categories, check that all values are within range
+    return Variable.from_spec(
+        var_name, DataType.INTERVAL, None, drange
+    )  # treat range like categories, check that all values are within range
 
 
 def isinterval(var: Variable):
@@ -58,8 +59,9 @@ def isinterval(var: Variable):
 
 
 def ratio(var_name: str, drange: list = None):
-    return Variable.from_spec(var_name, DataType.RATIO, None,
-                              drange)  # treat range like categories, check that all values are within range
+    return Variable.from_spec(
+        var_name, DataType.RATIO, None, drange
+    )  # treat range like categories, check that all values are within range
 
 
 def isratio(var: Variable):
@@ -84,17 +86,17 @@ def load_data_from_url(url: str, name: str):
 
 
 def select(var: Variable, op: str, other: Literal):
-    if op == '==':
+    if op == "==":
         return var.subset_equals(other)
-    elif op == '!=':
+    elif op == "!=":
         return var.subset_not_equals(other)
-    elif op == '<':
+    elif op == "<":
         return var.subset_lt(other)
-    elif op == '<=':
+    elif op == "<=":
         return var.subset_le(other)
-    elif op == '>':
+    elif op == ">":
         return var.subset_gt(other)
-    elif op == '>=':
+    elif op == ">=":
         return var.subset_ge(other)
     else:
         raise ValueError(f"Do not support the operator{op}")
@@ -103,10 +105,10 @@ def select(var: Variable, op: str, other: Literal):
 # @param vars: list of all vars in tuple form (Variable, 'iv/dv/variable')
 # @param role: "role" of Variable (i.e., independent variable, dependent variable, variable)
 # @returns new list of vars with specified role
-# def get_vars(role: str, vars: list): 
+# def get_vars(role: str, vars: list):
 #     vars_role = []
 #     for v,r in vars:
-#         if r == role: 
+#         if r == role:
 #             vars_role.append(v)
 
 #     return vars_role
@@ -142,6 +144,7 @@ def select(var: Variable, op: str, other: Literal):
 
 #     return var_name in names
 
+
 def get_var_from_list(var_name: str, vars: list):
     for v in vars:
         if v.name == var_name:
@@ -162,7 +165,7 @@ def is_well_formed_prediction(prediction_type: str, vars: list, prediction: str)
         # if var:
         #     # Does the category exist in the var? (implictly checks that var is a categorical variable)
         #     return var.category_exists(category)
-        # else: 
+        # else:
         #     return ValueError(f"The variable used in prediction{var} is not in list of variables comparing{vars}")
     elif continuous_prediction == prediction_type:
 
@@ -177,35 +180,35 @@ def is_well_formed_prediction(prediction_type: str, vars: list, prediction: str)
             # LHS is categorical
             if cat_delimiter_ind < num_delimiter_ind:
                 lhs = categorical_var_name.strip()
-                category = lhs[cat_delimiter_ind + 1:num_delimiter_ind]
+                category = lhs[cat_delimiter_ind + 1 : num_delimiter_ind]
                 lhs_var = get_var_from_list(lhs, vars)
-                assert (lhs_var.category_exists(category))
-                rhs = prediction[num_delimiter_ind + 1:].strip()
+                assert lhs_var.category_exists(category)
+                rhs = prediction[num_delimiter_ind + 1 :].strip()
             else:
-                assert (cat_delimiter_ind > num_delimiter_ind)
+                assert cat_delimiter_ind > num_delimiter_ind
                 lhs = prediction[:num_delimiter_ind].strip()
-                rhs = prediction[num_delimiter_ind + 1:cat_delimiter_ind].strip()
-                category = rhs[cat_delimiter_ind + 1:].strip()
+                rhs = prediction[num_delimiter_ind + 1 : cat_delimiter_ind].strip()
+                category = rhs[cat_delimiter_ind + 1 :].strip()
                 rhs_var = get_var_from_list(rhs, vars)
-                assert (rhs_var.category_exists(category))
+                assert rhs_var.category_exists(category)
 
         # Prediction does not include categorical variable value (can still have a categorical variable)
         else:
             delimiter_ind = prediction.index(continuous_prediction_delimiter)
             lhs = prediction[:delimiter_ind].strip()
-            rhs = prediction[delimiter_ind + 1:].strip()
+            rhs = prediction[delimiter_ind + 1 :].strip()
 
         if continuous_negative_relationship in lhs:
-            lhs = lhs[lhs.index(continuous_negative_relationship) + 1:].strip()
+            lhs = lhs[lhs.index(continuous_negative_relationship) + 1 :].strip()
         elif continuous_positive_relationship in lhs:
-            lhs = lhs[lhs.index(continuous_negative_relationship) + 1:].strip()
+            lhs = lhs[lhs.index(continuous_negative_relationship) + 1 :].strip()
         else:
             pass
 
         if continuous_negative_relationship in rhs:
-            rhs = rhs[rhs.index(continuous_negative_relationship) + 1:].strip()
+            rhs = rhs[rhs.index(continuous_negative_relationship) + 1 :].strip()
         elif continuous_positive_relationship in rhs:
-            rhs = rhs[rhs.index(continuous_positive_relationship) + 1:].strip()
+            rhs = rhs[rhs.index(continuous_positive_relationship) + 1 :].strip()
         else:
             pass
 
@@ -228,31 +231,31 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
 
                 var_name = prediction[:delimiter_ind].strip()
                 var = get_var_from_list(var_name, vars)
-                lhs = prediction[delimiter_ind + 1:comparator_ind].strip()
+                lhs = prediction[delimiter_ind + 1 : comparator_ind].strip()
                 # Add len(c) to index in case comparator is longer than one character
-                rhs = prediction[comparator_ind + len(c):].strip()
+                rhs = prediction[comparator_ind + len(c) :].strip()
 
                 types = set(type(k) for k in var.categories.keys())
-                assert (len(types) == 1)  # Assert all keys have the same type
+                assert len(types) == 1  # Assert all keys have the same type
                 cat_type = next(iter(types))
 
                 if isinstance(lhs, str) and cat_type == int:
                     lhs = int(lhs)
                     rhs = int(rhs)
 
-                assert (lhs in var.categories.keys())
-                assert (rhs in var.categories.keys())
-                if c == '<':
+                assert lhs in var.categories.keys()
+                assert rhs in var.categories.keys()
+                if c == "<":
                     return [const(lhs) < const(rhs)]
-                elif c == '>':
+                elif c == ">":
                     return [const(lhs) > const(rhs)]
-                elif c == '==':
+                elif c == "==":
                     return [const(lhs) == const(rhs)]
                 else:
-                    assert (c == '!=')
+                    assert c == "!="
                     return [const(lhs) != const(rhs)]
     else:
-        assert (continuous_prediction == prediction_type)
+        assert continuous_prediction == prediction_type
 
         # Prediction includes categorical variable value
         if categorical_prediction_delimiter in prediction:
@@ -265,22 +268,24 @@ def create_prediction(prediction_type: str, vars: list, prediction: str):
             # LHS is categorical
             if cat_delimiter_ind < num_delimiter_ind:
                 lhs = categorical_var_name.strip()
-                rhs = prediction[num_delimiter_ind + 1:].strip()
+                rhs = prediction[num_delimiter_ind + 1 :].strip()
             else:
-                assert (cat_delimiter_ind > num_delimiter_ind)
+                assert cat_delimiter_ind > num_delimiter_ind
                 lhs = prediction[:num_delimiter_ind].strip()
-                rhs = prediction[num_delimiter_ind + 1:cat_delimiter_ind].strip()
+                rhs = prediction[num_delimiter_ind + 1 : cat_delimiter_ind].strip()
 
         # Prediction does not include categorical variable value (can still have a categorical variable)
         else:
             delimiter_ind = prediction.index(continuous_prediction_delimiter)
             lhs = prediction[:delimiter_ind].strip()
-            rhs = prediction[delimiter_ind + 1:].strip()
+            rhs = prediction[delimiter_ind + 1 :].strip()
 
-            lhs_dir = '+'  # Positive relationship/change in variable is the default
-            rhs_dir = '+'  # Positive relationship/change in variable is the default
+            lhs_dir = "+"  # Positive relationship/change in variable is the default
+            rhs_dir = "+"  # Positive relationship/change in variable is the default
 
-            if lhs.startswith(continuous_negative_relationship) or lhs.startswith(continuous_positive_relationship):  # "as LHS decreases,..."
+            if lhs.startswith(continuous_negative_relationship) or lhs.startswith(
+                continuous_positive_relationship
+            ):  # "as LHS decreases,..."
                 lhs_dir = lhs[0]
                 lhs = lhs[1:]
                 lhs_var = get_var_from_list(lhs, vars)
@@ -310,19 +315,19 @@ def predict(vars: list, predictions: list = None):
     if predictions:
         # Check that each prediction is well-formed
         for p in predictions:
-            assert (isinstance(p, str))
+            assert isinstance(p, str)
             # Does the prediction pertain to categorical data?
             if categorical_prediction_delimiter in p and continuous_prediction_delimiter not in p:
-                assert (is_well_formed_prediction(categorical_prediction, vars, p))
+                assert is_well_formed_prediction(categorical_prediction, vars, p)
                 pred = create_prediction(categorical_prediction, vars, p)
 
             # Does the prediction pertain to numerical data?
             elif continuous_prediction_delimiter in p:
-                assert (is_well_formed_prediction(continuous_prediction, vars, p))
+                assert is_well_formed_prediction(continuous_prediction, vars, p)
                 # import pdb; pdb.set_trace()
                 pred = create_prediction(continuous_prediction, vars, p)
 
-            # Prediction pertains to neither categorical nor numerical data                 
+            # Prediction pertains to neither categorical nor numerical data
             else:
                 raise ValueError(f"Prediction is malformed: {p}")
 
@@ -351,22 +356,23 @@ def compare(vars: list, prediction: list = None, when: str = None):
     #         return Relate(vars, predict(vars, prediction))
     #     elif isnumeric(iv):
     #         return Relate(vars, predict(vars, prediction))
-    #     else: 
+    #     else:
     #         raise ValueError(f"Invalid Variable type: {iv.dtype}")
-    # elif (isinstance(iv, list)): 
+    # elif (isinstance(iv, list)):
     #     vars = []
-    #     for i in iv: 
+    #     for i in iv:
     #         vars.append((i, iv_identifier))
     #     return Relate(vars, predict(vars, prediction))
-    # else: 
+    # else:
     #     raise ValueError (f"IV (first parameter) is not a Variable or list of Variables: {f.type}")
+
 
 # def compare(var, var, semantically_same=True): # Compare two groups
 #     pass
 
 # compare(iv, dv, predictions)
-# compare(dv, dv, groups=False) or compare (iv, iv, groups=False) 
-# # Are they the same groups? 
+# compare(dv, dv, groups=False) or compare (iv, iv, groups=False)
+# # Are they the same groups?
 
 # strategy = nominal('strategy', ['forking', 'caching', 'naive'])
 # ratio('time', drange=[0, 10000], comes_from=(strategy, ['forking', 'caching', 'naive']))
