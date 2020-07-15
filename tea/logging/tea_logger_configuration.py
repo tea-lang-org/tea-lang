@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from tea.logging.logging_target import LoggingTarget
 from typing import Optional
