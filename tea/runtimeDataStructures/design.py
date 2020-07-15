@@ -11,6 +11,8 @@ class AbstractDesign(object):
 
     @classmethod
     def create(cls, attributes, variables):
+        if variables is None: 
+            raise ValueError(f"Please specify variables before specifying a study design.")
         if STUDY_TYPE in attributes:
             study = attributes[STUDY_TYPE]
             if study == OBS_STUDY:

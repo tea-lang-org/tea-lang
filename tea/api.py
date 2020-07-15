@@ -34,10 +34,87 @@ from tea.runtimeDataStructures.design import AbstractDesign, ObservationalDesign
 from tea.runtimeDataStructures.hypothesis import AbstractHypothesis, LinearHypothesis, GroupComparisons
 
 from typing import Dict
-from .global_vals import *
+# from .global_vals import *
 from pathlib import Path
+from enum import Enum
 
+class Mode(Enum): 
+    STRICT_MODE = "STRICT" # Check user assumptions, if fail to validate, terminate program/analysis
+    INFER_MODE = "INFER" # DEFAULT: Infer all properties about data, not require user assumptions
+    RELAXED_MODE = "RELAXED" # Check user assumptions, if fail to validate, proceed with user assumptions (as if they passed)
 
+# Public facing Tea object end-user can construct
+class Tea(object):
+    data: None
+    variables: list # list of AbstractVariable
+    design: AbstractDesign
+    hypothesis: AbstractHypothesis
+    mode: str
+
+    def __init__(self, data_source = None, variables = None, design = None, assumptions = None, mode = Mode.INFER_MODE): 
+        # Initialize to None
+        self.data = None
+        self.variables = None
+        self.design = None
+        self.hypothesis = None 
+        
+        # Mutate with any user-specified values
+        if not data_source is None: 
+            self.add_data(data_source)
+        if not variables is None: 
+            self.declare_variables(variables)
+        if not design is None:
+            self.specify_design(design)
+        if not assumptions is None: 
+            self.assume(assumptions, self.variables) # Assume updates Variables
+        self.mode = mode
+
+    def add_data(self, data_source): 
+        data_obj = Dataset(data_source)
+        
+        self.data = data_obj
+
+    def declare_variables(self, variables: Dict[str, str]):
+        # List of Variables
+        var_objs = []
+
+        for var in variables:
+            var_obj = AbstractVariable.create(var)
+            var_objs.append(var_obj)
+
+        self.variables = var_objs
+
+    def specify_design(self, design: Dict[str, str]):
+        design_obj = AbstractDesign.create(design, self.variables)
+
+        self.design = design_obj
+
+    def assume(self, assumptions: Dict[str, str], variables):
+        for key, value in assumptions.items():
+            if isinstance(value, list):
+                for v in value:
+                    var = AbstractVariable.get_variable(variables, v)
+                    if var:
+                        var.assume(key)
+            else:
+                var = AbstractVariable.get_variable(variables, value)
+                if var:
+                    var.assume(key)
+
+    def hypothesize(self, hypothesis):
+        hypothesis_obj = AbstractHypothesis.create(hypothesis, self.variables, self.design)
+
+        self.hypothesis = hypothesis_obj
+
+        # return Hypothesis(hypothesis, self.variables) -- call to the AbstractHypothesis class
+
+    def set_mode(self, mode=Mode.INFER_MODE):
+        if mode in list(Mode):
+            old_mode = self.mode
+            self.mode = mode
+            print(f"Mode changed from {old_mode} to {self.mode}.")  # Update user
+    
+"""
 # Set at start of programs
 # Used across functions
 dataset_path = ""
@@ -195,66 +272,4 @@ def tea_time(data, variables, design, assumptions=None, hypothesis=None, key=Non
     tea_obj.load_data(data, key)
 
 
-# TODO: This is a wrapper around the other API calls.
-# Public facing Tea object end-user can construct
-class Tea(object):
-    data: None
-    mode: str
-    variables: list
-    design: AbstractDesign
-    # hypothesis: str
-
-    def __init__(self, variables: Dict[str, str], design: Dict[str, str], assumptions=None, hypothesis=None):
-        self.variables = self.define_variables(variables)
-        self.design = self.define_study_design(design, self.variables)
-        self.mode = INFER_MODE
-
-    def set_mode(self, mode=INFER_MODE):
-        if mode in MODES:
-            old_mode = self.mode
-            self.mode = mode
-            print(f"Mode changed from {old_mode} to {self.mode}.")  # Update user
-        else:
-            # TODO: More descriptive
-            raise ValueError(f"Invalid Mode: Should be one of {MODES}")
-
-    def load_data(self, file, key=None):
-        self.data = Dataset(file)
-
-        return self.data
-
-    def define_variables(self, vars: Dict[str, str]):
-        # List of Variables
-        variables = []
-
-        for var in vars:
-            var_obj = AbstractVariable.create(var)
-            variables.append(var_obj)
-
-        return variables
-
-    def define_study_design(self, design: Dict[str, str], variables: list):
-        design_obj = AbstractDesign.create(design, variables)
-
-        return design_obj
-
-    def assume(self, assumptions: Dict[str, str]):
-        vars_list = self.variables
-
-        for key, value in assumptions.items():
-            if isinstance(value, list):
-                for v in value:
-                    var = AbstractVariable.get_variable(vars_list, v)
-                    if var:
-                        var.assume(key)
-            else:
-                var = AbstractVariable.get_variable(vars_list, value)
-                if var:
-                    var.assume(key)
-
-    def hypothesize(self, hypothesis):
-        hypothesis_obj = AbstractHypothesis.create(hypothesis, self.variables, self.design)
-
-        return hypothesis_obj
-
-        # return Hypothesis(hypothesis, self.variables) -- call to the AbstractHypothesis class
+"""
