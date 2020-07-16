@@ -1,10 +1,11 @@
-import attr
+# import attr
 import pandas as pd
 import os
 import csv
 from pathlib import Path
 from urllib.parse import urlparse
 import requests
+from tabulate import tabulate
 
 BASE_PATH = os.getcwd()
 
@@ -13,7 +14,7 @@ def _dir_exists(path):
     return os.path.isdir(path) and os.path.exists(path)
 
 
-@attr.s(init=False, hash=True)
+# @attr.s(init=False, hash=True)
 class Dataset(object):
     # dfile = attr.ib()  # path name
     # variables = attr.ib()  # list of Variable objects <-- TODO: may not need this in new implementation....
@@ -25,7 +26,7 @@ class Dataset(object):
     variables: list
     pid_col_name: str
     row_pids: list
-    data: None
+    data: pd.DataFrame
 
     def __init__(self, data):
 
@@ -138,3 +139,22 @@ class Dataset(object):
             res = df[col]
 
         return res
+
+    # @returns true if the variables, pid, row_pids, and dataframe values are all equal. 
+    # This means that the filename is not checked for equality
+    def __eq__(self, other):
+        return (self.variables == other.variables) and (self.pid_col_name == other.pid_col_name) and (self.data.equals(other.data))
+
+    def __repr__(self):
+        pretty_df = tabulate(self.data, headers="keys", tablefmt="psql")
+        return repr(f"Data: {pretty_df} from file {self.dfile}. Known variables: {self.variables}, pid: {self.pid_col_name}")
+
+    def __str__(self):
+        print(tabulate(self.data, headers="keys", tablefmt="psql"))
+        print(f"Variables in the dataframe that Tea knows about:\n")
+        for v in self.variables: 
+            print(v)
+        if self.pid_col_name: 
+            print(f"Column that has observation/participant ids has been speicfied as : {self.pid_col_name}")
+        else: 
+            print("Column that has observation/participant ids has not been specified. Assuming each row is a unique observation/participant.")
