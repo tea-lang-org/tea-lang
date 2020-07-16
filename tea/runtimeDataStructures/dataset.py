@@ -1,4 +1,4 @@
-import attr
+# import attr
 import pandas as pd
 import os
 import csv
@@ -13,7 +13,7 @@ def _dir_exists(path):
     return os.path.isdir(path) and os.path.exists(path)
 
 
-@attr.s(init=False, hash=True)
+# @attr.s(init=False, hash=True)
 class Dataset(object):
     # dfile = attr.ib()  # path name
     # variables = attr.ib()  # list of Variable objects <-- TODO: may not need this in new implementation....
@@ -138,3 +138,11 @@ class Dataset(object):
             res = df[col]
 
         return res
+
+    def __eq__(self, other):
+        pass
+    
+
+    def __str__(self):
+        # Should show what the data working with is. 
+        pass
