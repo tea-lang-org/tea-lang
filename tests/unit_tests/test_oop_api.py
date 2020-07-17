@@ -1,7 +1,9 @@
 import tea
 from tea.api import Mode
+from tea.runtimeDataStructures.dataset import Dataset
 
 import unittest
+import os
 
 class ApiTests(unittest.TestCase):
     def test_empty_ctor(self): 
@@ -25,8 +27,7 @@ class ApiTests(unittest.TestCase):
 
         import pandas as pd
         df = pd.read_csv(file_path)
-        import pdb; pdb.set_trace()
-        # self.assertTrue(tea_obj.data.equals(df))
+        self.assertTrue(tea_obj.data.data.equals(df))
 
         # ASSERT
         self.assertIsNotNone(tea_obj.data) 
@@ -34,9 +35,61 @@ class ApiTests(unittest.TestCase):
         self.assertIsNone(tea_obj.design)
         self.assertIsNone(tea_obj.hypothesis)
         self.assertEquals(tea_obj.mode, Mode.INFER_MODE)
-        
+
+
+    def test_declare_variables_length(self): 
+        # ACT
+        tea_obj = tea.Tea()
+        tea_obj.declare_variables(DataForTests.variables_to_define)
+
+        # ASSERT
+        self.assertEqual(len(tea_obj.variables), 4)
+
+    def test_declare_variables_should_have_correct_names(self):
+        expected_names = ["NominalT", "IntervalT", "OrdinalT", "RatioT"]
+
+        # ACT
+        tea_obj = tea.Tea()
+        tea_obj.declare_variables(DataForTests.variables_to_define)
+        #TODO update
+        real_names = [var.name for var in vars_to_test]
+
+        # ASSERT
+        self.assertCountEqual(real_names, expected_names)
     
-    def test_incremental_ctor(self): 
+    # TODO: Re-write this test
+    def test_define_variables_should_have_correct_types(self):
+        from tea.runtimeDataStructures.variable import NominalVariable, OrdinalVariable, NumericVariable
+
+        vars_to_test = define_variables(DataForTests.variables_to_define)
+        sorted_vars = sorted(vars_to_test, key=lambda x: x.name)
+        self.assertIsInstance(sorted_vars[0], NumericVariable)  # IntervalT
+        self.assertIsInstance(sorted_vars[1], NominalVariable)  # NominalT
+        self.assertIsInstance(sorted_vars[2], OrdinalVariable)  # OrdinalT
+        self.assertIsInstance(sorted_vars[3], NumericVariable)  # RatioT
+
+    def test_declare_variables_is_atomic(self): 
+        # ACT
+        tea_obj = tea.Tea()
+        tea_obj.declare_variables(DataForTests.variables_to_define)
+
+        # ASSERT
+        self.assertIsNone(tea_obj.data) 
+        self.assertIsNotNone(tea_obj.variables)
+        self.assertIsNone(tea_obj.design)
+        self.assertIsNone(tea_obj.hypothesis)
+        self.assertEquals(tea_obj.mode, Mode.INFER_MODE)
+    
+    def test_specify_design(self): 
+        pass
+
+    def test_assume(self): 
+        pass
+
+    def test_set_mode(self): 
+        pass
+
+    def test_hypothesize(self): 
         pass
 
 class DataForTests:
@@ -61,13 +114,20 @@ class DataForTests:
     ]
     data_paths = [None] * len(file_names)
 
+    variables_to_define = [
+        {"name": "RatioT", "data type": "ratio"},
+        {"name": "NominalT", "data type": "nominal", "categories": ["Nominal0"]},
+        {"name": "OrdinalT", "data type": "ordinal", "categories": ["Ordinal1", "Ordinal2", "Ordinal3"]},
+        {"name": "IntervalT", "data type": "interval",},
+    ]
+
     def get_data_path(filename):
         def load_data():
             for i in range(len(DataForTests.data_paths)):
                 csv_name = DataForTests.file_names[i]
 
                 csv_url = os.path.join(DataForTests.base_url, csv_name)
-                DataForTests.data_paths[i] = tea.download_data(csv_url, csv_name)
+                DataForTests.data_paths[i] = Dataset.load(csv_url, csv_name)
 
         load_data()
         try:

@@ -104,9 +104,23 @@ class Tea(object):
     def hypothesize(self, hypothesis):
         hypothesis_obj = AbstractHypothesis.create(hypothesis, self.variables, self.design)
 
-        self.hypothesis = hypothesis_obj
+        self.hypothesis = hypothesis_obj # What if this adds hypotheses to a list of Hypotheses?
 
-        # return Hypothesis(hypothesis, self.variables) -- call to the AbstractHypothesis class
+
+    # IDEA: Maybe this executes end-user to add hypotheses (through several successive calls to hypothesize) and then execute all at once
+    # to allow for correction of multiple comparisons. 
+    # IMPLICATION: each call to hypothesize and execute should output/return to the end-user a list of current hypotheses
+    def execute(self): 
+        # Interpret AST node, Returns ResultData object <-- this may need to change
+        study_type_determiner = StudyTypeDeterminer() # May no longer need this
+        vardata_factory = VarDataFactory(study_type_determiner) # This may need to change
+        result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
+
+        # Make multiple comparison correction
+        result.bonferroni_correction(num_comparisons)
+
+    print(f"\n{result}")
+    return result
 
     def set_mode(self, mode=Mode.INFER_MODE):
         if mode in list(Mode):
