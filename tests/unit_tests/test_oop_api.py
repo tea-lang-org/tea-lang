@@ -51,17 +51,17 @@ class ApiTests(unittest.TestCase):
         # ACT
         tea_obj = tea.Tea()
         tea_obj.declare_variables(DataForTests.variables_to_define)
-        #TODO update
-        real_names = [var.name for var in vars_to_test]
+        real_names = [var.name for var in tea_obj.variables]
 
         # ASSERT
         self.assertCountEqual(real_names, expected_names)
     
-    # TODO: Re-write this test
-    def test_define_variables_should_have_correct_types(self):
+    def test_declare_variables_should_have_correct_types(self):
         from tea.runtimeDataStructures.variable import NominalVariable, OrdinalVariable, NumericVariable
 
-        vars_to_test = define_variables(DataForTests.variables_to_define)
+        tea_obj = tea.Tea()
+        tea_obj.declare_variables(DataForTests.variables_to_define)
+        vars_to_test = tea_obj.variables
         sorted_vars = sorted(vars_to_test, key=lambda x: x.name)
         self.assertIsInstance(sorted_vars[0], NumericVariable)  # IntervalT
         self.assertIsInstance(sorted_vars[1], NominalVariable)  # NominalT

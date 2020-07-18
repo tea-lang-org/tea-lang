@@ -119,8 +119,8 @@ class Tea(object):
         # Make multiple comparison correction
         result.bonferroni_correction(num_comparisons)
 
-    print(f"\n{result}")
-    return result
+        print(f"\n{result}")
+        # return result
 
     def set_mode(self, mode=Mode.INFER_MODE):
         if mode in list(Mode):
