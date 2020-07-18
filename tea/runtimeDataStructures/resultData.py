@@ -47,7 +47,7 @@ class TestOutputData(DataClassWithOptionalFieldsSetToNoneByDefault):
     assumption: Union[str, List[str]] = "None"
 
 
-# Note: This class can be split to Formatter and Writter in the future
+# Note: This ABC can be implemented by OutputDataHtmlFormatter later on
 class AbstractOutputDataFormatter(ABC):
     @abstractmethod
     def format_output_data(self, data: "TestOutputData"):
