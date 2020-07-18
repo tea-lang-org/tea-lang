@@ -50,16 +50,16 @@ class TestOutputData(DataClassWithOptionalFieldsSetToNoneByDefault):
 # Note: This class can be split to Formatter and Writter in the future
 class AbstractOutputDataFormatter(ABC):
     @abstractmethod
-    def write_output_data(self, data: "TestOutputData"):
+    def format_output_data(self, data: "TestOutputData"):
         return ""
 
     @abstractmethod
-    def write_output_data_list(self, data: List["TestOutputData"]):
+    def format_output_data_list(self, data: List["TestOutputData"]):
         return ""
 
 
 class OutputDataTextFormatter(AbstractOutputDataFormatter):
-    def write_output_data(self, data: "TestOutputData"):
+    def format_output_data(self, data: "TestOutputData"):
         output = f"\nTest: {data.test_name}\n"
         assumption = "\n".join(data.assumption) if isinstance(data.assumption, list) else data.assumption
         output += f"***Test assumptions:\n{assumption}\n\n"
@@ -94,7 +94,7 @@ class OutputDataTextFormatter(AbstractOutputDataFormatter):
         if data.results is not None:
             output += f"{str(data.results)}\n"
 
-    def write_output_data_list(self, data_list: List["TestOutputData"]) -> str:
+    def format_output_data_list(self, data_list: List["TestOutputData"]) -> str:
         output = "\nResults:\n--------------"
         for data in data_list:
             output += self.write_output_data_list(data)
@@ -191,9 +191,16 @@ class ResultData(Value):
 
     def _pretty_print_2(self):
         builder = OutputBuilder()
+        formatter = OutputDataTextFormatter()
         outputs = builder.build_output_from_result_data(
             self, self.test_to_results, self.test_to_assumptions, self.follow_up_results
         )
+
+        if hasattr(self, "follow_up_results"):  # not empty
+            for res in self.follow_up_results:
+                print("\nFollow up for multiple comparisons: \n")
+                print(res)
+        return formatter.format_output_data_list(outputs)
 
     def _pretty_print(self):
         output = "\nResults:\n--------------"
@@ -256,7 +263,8 @@ class ResultData(Value):
     #     return self
 
     def __str__(self):  # Maybe what the user sees?
-        return self._pretty_print()
+        return self._pretty_print_2()
+        # return self._pretty_print()
 
     def as_html(self):
         html_out = io.StringIO()
