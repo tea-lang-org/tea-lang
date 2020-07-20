@@ -41,10 +41,9 @@ class AbstractDesign(object):
         return variable in self.ys
 
 
-@attr.s(init=False)
 class ObservationalDesign(AbstractDesign):
     def __init__(self, attributes, variables):
-
+        
         for key, value in attributes.items():
             if key in OBS_X:
                 # Assign observational x variable, must be a list first

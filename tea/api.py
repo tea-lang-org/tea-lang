@@ -84,6 +84,7 @@ class Tea(object):
 
         self.variables = var_objs
 
+    # TODO: What if rather than use a dictionary, we used parameters or kwargs???
     def specify_design(self, design: Dict[str, str]):
         design_obj = AbstractDesign.create(design, self.variables)
 
