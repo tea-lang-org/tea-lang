@@ -1,7 +1,6 @@
 # TODO Import all necessary APIs/libraries
+from tea.global_vals import *
 import tea.runtimeDataStructures.dataset
-
-
 
 
 """
@@ -31,8 +30,8 @@ __stat_test_to_function__ = {
 
 # Abstract parent class for Statistical Tests
 class AbstractStatisticalTest(object):
-    
-    test_type: object # assign type to instance variable
+
+    test_type: object  # assign type to instance variable
 
     # constructor
     # test_type - the statistical test category that the statistical test belongs to according to the tea-vis guidelines ie. the Kruskall-Wallis Test belongs to the ANOVA test group
@@ -46,38 +45,37 @@ class AbstractStatisticalTest(object):
         elif test_name == "kendalltau_corr":
             return KendallsTau(dataset, design, predications)
         # so on and so forth for all tests
-    
+
     # function for printing the test group
     def get_test_type():
-        print(f"The test belongs to the {self.test_type} class of statistical test")
-    
+        print(
+            f"The test belongs to the {self.test_type} class of statistical test")
+
     # abstract method for executing a statistical test according to the rules defined by Tea
     @abstractmethod
     def execute(self, data, design, predictions, combined_data: CombinedData):
         pass
-    
+
     # abstract method for creating a visualization based on the tea-vis guidelines
     @abstractmethod
     def visualize():
         pass
-    
+
     # abstract method for generating text about the statistical information for a particular test
     @abstractmethod
     def text_output():
         pass
-    
+
     # function that defines the string representation for a statistical test object
     def __str__():
         visualize()
         text_output()
 
-from tea.global_vals import *
-
 
 # Concrete Statistical Test class for Pearson's Correlation
 class Pearsons_Correlation_Test(AbstractStatisticalTest):
 
-    # function for determining the encoding type for use with altair 
+    # function for determining the encoding type for use with altair
     def get_variable_type(var):
         if var.is_continuous():
             # indicate variable is quantitative
@@ -86,16 +84,17 @@ class Pearsons_Correlation_Test(AbstractStatisticalTest):
             # indicate the variable is nominal
             return "N"
         elif var.is_ordinal():
-            # indicate the variable is ordinal 
+            # indicate the variable is ordinal
             return "O"
         else:
-            raise ValueError(f"Invalid type, unsure how to resolve this type: {var_0.metadata['dtype']}")
+            raise ValueError(
+                f"Invalid type, unsure how to resolve this type: {var_0.metadata['dtype']}")
 
     def get_test_type(self):
         super().get_test_type
+
     def execute(self, data, design, predictions, combined_data: CombinedData):
         # referencing pearson_corr in evaluateHelperMethods
-
         """
         # https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.pearsonr.html
         # Parameters: x (array-like) | y (array-like)
@@ -131,7 +130,7 @@ class Pearsons_Correlation_Test(AbstractStatisticalTest):
         pass
 
     def visualize(self, dataset: Dataset, design, predictions, combined_data: CombinedData):
-        list_vars = combined_data.vars # will return a list of VarData objects
+        list_vars = combined_data.vars  # will return a list of VarData objects
 
         # What type is each VarData obj in list_vars?
         try:
@@ -147,14 +146,14 @@ class Pearsons_Correlation_Test(AbstractStatisticalTest):
             var_0_name = var_0.get_name() + var_0_type
             var_1_name = var_1.get_name() + var_1_type
 
-
             # do something here with the altair visualization
             # how do we determine what goes for the x and y axes?
 
         except ValueError as e:
             print(e)
+
     def text_output():
         pass
+
     def __str__(self):
         super().__str__()
-
