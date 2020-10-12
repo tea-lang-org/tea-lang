@@ -1,4 +1,4 @@
-# tea-lang [![Build Status](https://travis-ci.com/emjun/tea-lang.svg?branch=master)](https://travis-ci.com/emjun/tea-lang) [![Coverage Status](https://coveralls.io/repos/github/emjun/tea-lang/badge.svg?branch=master)](https://coveralls.io/github/emjun/tea-lang?branch=master)
+# tea-lang [![Build Status](https://travis-ci.com/tea-lang-org/tea-lang.svg?branch=master)](https://travis-ci.com/tea-lang-org/tea-lang) [![Coverage Status](https://coveralls.io/repos/github/tea-lang-org/tea-lang/badge.svg?branch=master)](https://coveralls.io/github/tea-lang-org/tea-lang?branch=master)
 
 # [WIP] Tea: A High-level Language and Runtime System for Automating Statistical Analyses
 
@@ -33,9 +33,9 @@ Testing (NHST).
 pip install tealang
 ```
 
-See community examples <a href='https://github.com/emjun/tea-lang/tree/master/examples'>here</a>. If you have trouble using Tea with your use case, feel free to open an issue, and we'll try to help. 
+See community examples <a href='https://github.com/tea-lang-org/tea-lang/tree/master/examples'>here</a>. If you have trouble using Tea with your use case, feel free to open an issue, and we'll try to help. 
 
-Step through <a href='https://github.com/emjun/tea-lang/blob/master/documentation.md'>a more guided, thorough documentation and a worked example</a>. 
+Step through <a href='https://github.com/tea-lang-org/tea-lang/blob/master/documentation.md'>a more guided, thorough documentation and a worked example</a>. 
 
 ## How can I cite Tea?
 For now, please cite: 
