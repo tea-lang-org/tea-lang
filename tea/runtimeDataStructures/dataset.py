@@ -90,22 +90,33 @@ class Dataset(object):
 
     # SQL style select
     def select(self, col: str, where: list = None):
-        # TODO should check that the query is valid (no typos, etc.) before build
 
-        def build_query(where: list):
-            query = ''
-
-            # build up query based on where clauses
-            for i, e in enumerate(where):
-                query += e
-                
-                if i+1 < len(where):
-                    query += '&'
-            return query
+            # Add back ticks to variable names that have spaces in them 
+        def format_where(vars: list, where: list): 
+            formatted_where = []
+            for clause in where: 
+                bt_var_name = '`' # opening back tick
+                for var in vars: 
+                    # Is the variable in the where clause? 
+                    if var.name in clause: 
+                        # Does the variable name have a space in it? 
+                        if ' ' in var.name: 
+                            bt_var_name += var.name 
+                            bt_var_name += '`' # closing back tick
+                            split_clause = clause.split(var.name)
+                            assert(len(split_clause) == 2)
+                            assert(len(split_clause[0]) == 0)
+                            formatted_where.append(bt_var_name + split_clause[1])
+                        else: 
+                            formatted_where.append(clause)
+            
+            formatted_where_str = "&".join(formatted_where)
+            return formatted_where_str            
 
         df = self.data
         if where: # not None
-            query = build_query(where)
+            # query = build_query(self.variables, where)
+            query = format_where(self.variables, where)
             res = df.query(query)[col] # makes a copy
         else: 
             res = df[col]

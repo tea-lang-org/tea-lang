@@ -71,7 +71,6 @@ def define_variables(vars: Dict[str, str]):
 
     for var in vars:
         name = var['name']
-        
         if (var[var_dtype] == 'nominal'):
             categories = var[var_categories]
             v_obj = nominal(name, categories)

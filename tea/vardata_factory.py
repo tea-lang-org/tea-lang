@@ -427,10 +427,8 @@ class VarDataFactory:
         test_objs = ()
 
         for test in tests:
-            test_obj = AbstractStatisticalTest.create(test, dataset, design, expr.predictions, combined_data) # make sure signatures line up
-            test_objs.append(test_obj)
-            # test_result = execute_test(dataset, design, expr.predictions, combined_data, test)
-            # results[test] = test_result
+            test_result = execute_test(dataset, design, expr.predictions, combined_data, test)
+            results[test] = test_result
 
         for obj in test_objs:
             obj.execute()
