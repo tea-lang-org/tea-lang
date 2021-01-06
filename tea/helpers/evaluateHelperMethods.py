@@ -851,7 +851,7 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
 
     data = []
     for var in combined_data.vars:
-        # TODO: Check that var is ordinal. If so, then assign all ordinal values numbers 
+        # Check that var is ordinal. If so, then assign all ordinal values numbers 
         # Compare to without converting to numbers (in Evernote)
         var_data = get_data(dataset, var)
         if var.is_ordinal():
