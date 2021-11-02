@@ -1,5 +1,6 @@
 import tea
 import os
+import json
 import pandas as pd
 from scipy import stats  # Stats library used
 import statsmodels.api as sm
@@ -27,7 +28,6 @@ data_paths = [uscrime_data_path, states_path, cats_path, cholesterol_path, soya_
               liar_path, pbcorr_path, spider_path, drug_path, alcohol_path, ecstasy_path, goggles_path, goggles_dummy_path]
 file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv',
               'pbcorr.csv', 'spiderLong.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
-
 
 def test_load_data():
     global base_url, data_paths, file_names
@@ -61,13 +61,12 @@ def all_cors(var_0, var_1):
 
     return results
 
-
 def test_all_corrs():
     tests = {
-        'pearson': "/Users/emjun/.tea/data/statex77.csv",
-        'spearman': "/Users/emjun/.tea/data/liar.csv",
-        'kendall': "/Users/emjun/.tea/data/liar.csv",
-        'point_biserial': "/Users/emjun/.tea/data/pbcorr.csv"
+        'pearson': "/Users/reide/.tea/data/statex77.csv",
+        'spearman': "/Users/reide/.tea/data/liar.csv",
+        'kendall': "/Users/reide/.tea/data/liar.csv",
+        'point_biserial': "/Users/reide/.tea/data/pbcorr.csv"
     }
 
     test_vars = {
@@ -77,20 +76,29 @@ def test_all_corrs():
         'point_biserial': ['time', 'gender']
     }
 
-    for tutorial_test, file_path in tests.items():
-        df = pd.read_csv(file_path)
+    try:
+        open("evals/Statsmodel/Outputs/correlation_tests.txt", "w").close()
+    except:
+        pass # File not yet created, no need to overwrite it 
 
-        variables = test_vars[tutorial_test]
-        var_0_name = variables[0]
-        var_1_name = variables[1]
+    with open("evals/Statsmodel/Outputs/correlation_tests.txt", "a") as f:
+        for tutorial_test, file_path in tests.items():
+            df = pd.read_csv(file_path)
 
-        var_0 = df[var_0_name]
-        var_1 = df[var_1_name]
+            variables = test_vars[tutorial_test]
+            var_0_name = variables[0]
+            var_1_name = variables[1]
 
-        print(tutorial_test)
-        results = all_cors(var_0, var_1)
-        print(results)
-        print('\n---------')
+            var_0 = df[var_0_name]
+            var_1 = df[var_1_name]
+
+            print(tutorial_test)
+            f.write(tutorial_test)
+            results = all_cors(var_0, var_1)
+            print(results)
+            f.write(json.dumps(results))
+            print('\n---------')
+            f.write('\n')
 
 
 def all_bivariate(group_0, group_1):
@@ -118,10 +126,10 @@ def all_bivariate(group_0, group_1):
 
 def test_all_bivariate():
     tests = {
-        'students_t': "/Users/emjun/.tea/data/UScrime.csv",
-        'paired_t': "/Users/emjun/.tea/data/spiderLong.csv",
-        'wilcoxon_signed_rank': "/Users/emjun/.tea/data/alcohol.csv",
-        'welchs': "/Users/emjun/.tea/data/UScrime.csv"
+        'students_t': "/Users/reide/.tea/data/UScrime.csv",
+        'paired_t': "/Users/reide/.tea/data/spiderLong.csv",
+        'wilcoxon_signed_rank': "/Users/reide/.tea/data/alcohol.csv",
+        'welchs': "/Users/reide/.tea/data/UScrime.csv"
     }
 
     test_vars = {
@@ -131,25 +139,34 @@ def test_all_bivariate():
         'welchs': ['So', 'Prob']
     }
 
-    for tutorial_test, file_path in tests.items():
-        df = pd.read_csv(file_path)
+    try:
+        open("evals/Statsmodel/Outputs/bivariate_tests.txt", "w").close()
+    except:
+        pass # File not yet created, no need to overwrite it 
 
-        variables = test_vars[tutorial_test]
-        var_0_name = variables[0]
-        var_1_name = variables[1]
+    with open("evals/Statsmodel/Outputs/bivariate_tests.txt", "a") as f:
+        for tutorial_test, file_path in tests.items():
+            df = pd.read_csv(file_path)
 
-        groups = df[var_0_name].unique()
-        assert(len(groups) == 2)
+            variables = test_vars[tutorial_test]
+            var_0_name = variables[0]
+            var_1_name = variables[1]
 
-        data = []
-        for group in groups:
-            d = df[var_1_name][df[var_0_name] == group]
-            data.append(d)
+            groups = df[var_0_name].unique()
+            assert(len(groups) == 2)
 
-        print(tutorial_test)
-        results = all_bivariate(data[0], data[1])
-        print(results)
-        print('\n---------')
+            data = []
+            for group in groups:
+                d = df[var_1_name][df[var_0_name] == group]
+                data.append(d)
+
+            print(tutorial_test)
+            f.write(tutorial_test)
+            results = all_bivariate(data[0], data[1])
+            print(results)
+            f.write(json.dumps(results))
+            print('\n---------')
+            f.write('\n');
 
 
 def _is_interaction_unique(interactions, inter):
@@ -259,10 +276,10 @@ def all_multivariate(xs, y, key, df):
     if len(xs) == 1:
         x_name = xs[0]
 
-        results['f_test'] = f_test(x_name, y, df)
+        results['f_test'] = f_test(x_name, y, df).to_json()
 
     # Factorial ANOVA
-    results['factorial_ANOVA'] = factorial(xs, y, df)
+    results['factorial_ANOVA'] = factorial(xs, y, df).to_json()
 
     # Repeated Measures
     if key:
@@ -279,11 +296,11 @@ def all_multivariate(xs, y, key, df):
 
 def test_all_multivariate():
     tests = {
-        'f_test': "/Users/emjun/.tea/data/cholesterol.csv",
-        'kruskall_wallis': "/Users/emjun/.tea/data/soya.csv",
-        'rm_one_way': "/Users/emjun/.tea/data/co2.csv",
-        'factorial_anova': "/Users/emjun/.tea/data/gogglesData.csv",
-        'two_way_anova': "/Users/emjun/.tea/data/co2.csv"
+        'f_test': "/Users/reide/.tea/data/cholesterol.csv",
+        'kruskall_wallis': "/Users/reide/.tea/data/soya.csv",
+        'rm_one_way': "/Users/reide/.tea/data/co2.csv",
+        'factorial_anova': "/Users/reide/.tea/data/gogglesData.csv",
+        'two_way_anova': "/Users/reide/.tea/data/co2.csv"
     }
 
     # Y var comes at the end!
@@ -295,29 +312,38 @@ def test_all_multivariate():
         'two_way_anova': ['conc', 'Type', 'uptake']
     }
 
-    for tutorial_test, file_path in tests.items():
-        df = pd.read_csv(file_path)
+    try:
+        open("evals/Statsmodel/Outputs/multivariate_tests.txt", "w").close()
+    except:
+        pass # File not yet created, no need to overwrite it 
 
-        variables = test_vars[tutorial_test]
+    with open("evals/Statsmodel/Outputs/multivariate_tests.txt", "a") as f:
+        for tutorial_test, file_path in tests.items():
+            df = pd.read_csv(file_path)
 
-        key = ''
-        if tutorial_test == 'rm_one_way':
-            key = variables[2]
-            variables = [v for i, v in enumerate(variables) if i < 2]
-        # import pdb; pdb.set_trace()
+            variables = test_vars[tutorial_test]
 
-        xs = []
-        y = []
-        for i in range(len(variables)):
-            if i < len(variables) - 1:
-                xs.append(variables[i])
-            if i == len(variables) - 1:
-                y.append(variables[i])
+            key = ''
+            if tutorial_test == 'rm_one_way':
+                key = variables[2]
+                variables = [v for i, v in enumerate(variables) if i < 2]
+            # import pdb; pdb.set_trace()
 
-        print(tutorial_test)
-        results = all_multivariate(xs, y, key, df)
-        print(results)
-        print('\n---------')
+            xs = []
+            y = []
+            for i in range(len(variables)):
+                if i < len(variables) - 1:
+                    xs.append(variables[i])
+                if i == len(variables) - 1:
+                    y.append(variables[i])
+
+            print(tutorial_test)
+            f.write(tutorial_test)
+            results = all_multivariate(xs, y, key, df)
+            print(results)
+            f.write(json.dumps(results))
+            print('\n---------')
+            f.write('\n')
 
 
 def chi_square(var_0, var_1, df):
@@ -340,7 +366,7 @@ def all_proportions(var_0, var_1, df):
     results = {}
 
     # Chi Square
-    res = chi_square(var_0, var_1, df)
+    res = str(chi_square(var_0, var_1, df))
 
     results['chi_square'] = res
 
@@ -349,24 +375,40 @@ def all_proportions(var_0, var_1, df):
 
 def test_proportions():
     tests = {
-        'chi_square': "/Users/emjun/.tea/data/catsData.csv"
+        'chi_square': "/Users/reide/.tea/data/catsData.csv"
     }
 
     test_vars = {
         'chi_square': ['Training', 'Dance']
     }
 
-    for tutorial_test, file_path in tests.items():
-        df = pd.read_csv(file_path)
+    try:
+        open("evals/Statsmodel/Outputs/proportions_tests.txt", "w").close()
+    except:
+        pass # File not yet created, no need to overwrite it 
 
-        variables = test_vars[tutorial_test]
-        assert(len(variables) == 2)
-        var_0 = variables[0]
-        var_1 = variables[1]
+    with open("evals/Statsmodel/Outputs/proportions_tests.txt", "a") as f:
+        for tutorial_test, file_path in tests.items():
+            df = pd.read_csv(file_path)
 
-        # import pdb; pdb.set_trace()
+            variables = test_vars[tutorial_test]
+            assert(len(variables) == 2)
+            var_0 = variables[0]
+            var_1 = variables[1]
 
-        print(tutorial_test)
-        results = all_proportions(var_0, var_1, df)
-        print(results)
-        print('\n---------')
+            # import pdb; pdb.set_trace()
+
+            print(tutorial_test)
+            f.write(tutorial_test)
+            results = all_proportions(var_0, var_1, df)
+            print(results)
+            f.write(results['chi_square'])
+            print('\n---------')
+            f.write('\n')
+
+if __name__ == "__main__":
+    # test_load_data()
+    # test_all_corrs() 
+    # test_all_bivariate()
+    # test_all_multivariate()
+    test_proportions()

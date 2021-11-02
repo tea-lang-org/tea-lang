@@ -46,7 +46,7 @@ tea.data(data_path, key='ID')
 tea.define_variables(variables)
 tea.define_study_design(study_design)
 tea.assume(assumptions)
-tea.hypothesize(['Sport', 'Weight'], ['Sport:Wrestling > Swimming'])
+tea.hypothesize(['Sport', 'Weight'], ['Sport:Wrestling > Swimming']) #Sport = indep, weight = dep, 2nd group states the hypothesis is wresting (in Sport) has greater weight than Swimming
 tea.hypothesize(['Sex', 'Weight'], ['Sex:F < M'])
 
 '''
