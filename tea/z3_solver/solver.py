@@ -260,6 +260,7 @@ class Property:
         return hash((self.arity, self.name, self.function))
 
     def __call__(self, *var_names):
+        # import pdb; pdb.set_trace()
         if len(var_names) != self.arity:
             raise Exception(f"{self.name} property has arity {self.arity} " \
                             f"found {len(var_names)} arguments")
@@ -297,6 +298,7 @@ class AppliedProperty:
             # Allows for unique identification of prop -> var, but not looking up from model because that refs prop name
             # self._name += tv.name + ":"
             # self._name + tv.name
+            # import pdb; pdb.set_trace()
             z3_args.append(tv.__z3__)
         self._name = self.property.name  # continuous
         # Why is property fn a bool? Does this allow continuous(x) and not continuous(y)?
@@ -501,7 +503,10 @@ def has_groups_normal_distribution(dataset, var_data, alpha):
             for x in xs: 
                 cat = [k for k,v in x.metadata[categories].items()]
                 for c in cat: 
-                    data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                    if isinstance(c, str):
+                        data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                    else: 
+                        data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
                     grouped_data.append(data)
 
                 for group in grouped_data:
@@ -930,7 +935,6 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
         else: 
             prop_val = __property_to_function__[prop.__z3__](**kwargs)   
     else: 
-        # import pdb; pdb.set_trace()
         assert (len(prop.vars) < len(combined_data.vars))
         var_data = []
         # For each of the variables for which we are checking the current prop
@@ -940,7 +944,6 @@ def verify_prop(dataset: Dataset, combined_data: CombinedData, prop:AppliedPrope
                 if var.metadata[name] == test_var.name:
                     var_data.append(var)
         kwargs = {'dataset': dataset, 'var_data': var_data, 'alpha': alpha}
-        # import pdb; pdb.set_trace()
         if __property_to_function__ == {}:
             prop_val = prop.property.function(**kwargs)
         else: 
@@ -1086,6 +1089,7 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     for test in all_tests():
         tea_logger.log_debug(f"\nCurrently considering {test.name}")
         solver.add(test.__z3__ == z3.And(*test.query()))
+        # import pdb; pdb.set_trace()
         solver.add(test.__z3__ == z3.BoolVal(True))
 
         # Check the model 

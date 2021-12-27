@@ -318,7 +318,10 @@ def students_t(dataset, predictions, combined_data: BivariateData):
     lhs = None
     rhs = None
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         if c == prediction.lhs.value:
             lhs = cat_data
         if c == prediction.rhs.value:
@@ -371,7 +374,10 @@ def paired_students_t(dataset, predictions, combined_data: CombinedData):
         prediction = None
 
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         data.append(cat_data)
 
     t_stat, p_val = stats.ttest_rel(data[0], data[1])
@@ -410,7 +416,10 @@ def welchs_t(dataset, predictions, combined_data: BivariateData):
     lhs = None
     rhs = None
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         if c == prediction.lhs.value:
             lhs = cat_data
         if c == prediction.rhs.value:
@@ -576,7 +585,10 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     data = []
 
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         data.append(cat_data)
 
     if predictions:
@@ -766,7 +778,10 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
     data = []
 
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         data.append(cat_data)
 
     if predictions:
@@ -923,7 +938,10 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
     data = []
 
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         data.append(cat_data)
 
     if predictions:
@@ -1275,7 +1293,10 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
             raise ValueError('')
         cat = [k for k,v in x.metadata[categories].items()]
         for c in cat:
-            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+            if isinstance(c, str):
+                cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+            else: 
+                cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
             data.append(cat_data)
 
     if predictions:
@@ -1312,7 +1333,10 @@ def friedman(dataset: Dataset, predictions, combined_data: CombinedData):
     for x in xs:
         cat = [k for k,v in x.metadata[categories].items()]
         for c in cat:
-            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+            if isinstance(c, str):
+                cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+            else: 
+                cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
             data.append(cat_data)
 
     # return stats.friedmanchisquare(*data)
@@ -1359,7 +1383,10 @@ def bootstrap(dataset: Dataset, predictions, combined_data: CombinedData):
         for x in xs:
             cat = [k for k,v in x.metadata[categories].items()]
             for c in cat:
-                cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                if isinstance(c, str):
+                    cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+                else: 
+                    cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
                 stat = bs.bootstrap(cat_data.to_numpy(), stat_func=bs_stats.median)
                 calculations[c] = stat
 
@@ -1427,7 +1454,10 @@ def cohens(dataset, predictions, combined_data: CombinedData):
     lhs = None
     rhs = None
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         if c == pred.lhs.value:
             lhs = cat_data
         if c == pred.rhs.value:
@@ -1452,7 +1482,10 @@ def vda(dataset, predictions, combined_data: CombinedData):
     lhs = None
     rhs = None
     for c in cat:
-        cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else: 
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
         if c == pred.lhs.value:
             lhs = cat_data
         if c == pred.rhs.value:

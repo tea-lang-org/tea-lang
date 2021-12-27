@@ -12,6 +12,8 @@ BASE_PATH = os.getcwd()
 def _dir_exists(path):
     return os.path.isdir(path) and os.path.exists(path)
 
+def absolute_path(p: str) -> str:
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), p)
 
 @attr.s(hash=True)
 class Dataset(object): 
@@ -59,6 +61,7 @@ class Dataset(object):
 
     def __attrs_post_init__(self):
         if isinstance(self.dfile, (str, Path)):
+            # import pdb;pdb.set_trace()
             self.data = pd.read_csv(self.dfile)
         elif isinstance(self.dfile, pd.DataFrame):
             self.data = self.dfile
@@ -117,8 +120,16 @@ class Dataset(object):
         if where: # not None
             # query = build_query(self.variables, where)
             query = format_where(self.variables, where)
+            # import pdb; pdb.set_trace()
             res = df.query(query)[col] # makes a copy
+            # import pdb; pdb.set_trace()
         else: 
             res = df[col]
 
         return res
+    
+    def has_empty_data(self):
+        assert(self.data is not None)
+        assert(isinstance(self.data, pd.DataFrame))
+
+        return self.data.empty

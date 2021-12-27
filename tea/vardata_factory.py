@@ -424,6 +424,11 @@ class VarDataFactory:
         if len(tests) == 0:
             tests.append('bootstrap')  # Default to bootstrap
 
+        
+        # Check to see if there is data on which to execute the synthesized tests
+        if dataset.has_empty_data():
+            return results
+
         test_objs = ()
 
         for test in tests:

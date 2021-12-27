@@ -32,8 +32,6 @@ def get_data_path(filename):
 
 # Example from Kabacoff
 # Expected outcome: Pearson correlation
-
-
 def test_pearson_corr():
     data_path = get_data_path('statex77.csv')
     # data_path2 = get_data_path('statex87.csv')
@@ -254,7 +252,7 @@ def test_indep_t_test():
         {
             'name': 'So',
             'data type': 'nominal',
-            'categories': ['0', '1']
+            'categories': [0, 1]
         },
         {
             'name': 'Prob',

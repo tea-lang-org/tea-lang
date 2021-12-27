@@ -2,6 +2,8 @@ from tea.logging.tea_logger import TeaLogger
 from tea.helpers.study_type_determiner import StudyTypeDeterminer
 import pandas as pd
 
+from tea.runtimeDataStructures.resultData import ResultData
+
 from .build import (load_data, load_data_from_url, const,
                     ordinal, isordinal,
                     nominal, isnominal,
@@ -172,6 +174,13 @@ def hypothesize(vars: list, prediction: list = None):
     vardata_factory = VarDataFactory(study_type_determiner)
     result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
 
+    # If the the result is a dictionary of test names, which should only happen if the data is empty
+    if isinstance(result, dict):
+        assert(dataset_obj.has_empty_data())
+        return result
+    
+    # Else
+    assert(isinstance(result, ResultData))
     # Make multiple comparison correction
     result.bonferroni_correction(num_comparisons)
     

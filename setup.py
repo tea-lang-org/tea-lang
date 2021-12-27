@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(name='tealang',
-      version='0.3.0',
+      version='0.3.1',
       author='Eunice Jun',
       author_email='emjun@cs.washington.edu',
       description='Tea: A High-level Language and Runtime System to Automate Statistical Analysis',
