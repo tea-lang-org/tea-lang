@@ -172,9 +172,10 @@ def hypothesize(vars: list, prediction: list = None):
     study_type_determiner = StudyTypeDeterminer()
     vardata_factory = VarDataFactory(study_type_determiner)
     result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
-
-    # Make multiple comparison correction
-    result.bonferroni_correction(num_comparisons)
+    
+    if not dataset_obj.data.empty:
+        # Make multiple comparison correction
+        result.bonferroni_correction(num_comparisons)
     
     print(f"\n{result}")
     return result
