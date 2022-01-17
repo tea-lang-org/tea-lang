@@ -1,13 +1,146 @@
+from abc import ABC, abstractmethod
 import contextlib
+from dataclasses import dataclass
 import html
 import io
-
-from tea.z3_solver.solver import all_tests
-from tea.runtimeDataStructures.value import Value
-from tea.runtimeDataStructures.combinedData import CombinedData
-from tea.global_vals import *
+from typing import Any, Dict, List, Union, Optional, Tuple
 
 import attr
+
+from tea.global_vals import *
+from tea.runtimeDataStructures.combinedData import CombinedData
+from tea.runtimeDataStructures.value import Value
+from tea.z3_solver.solver import all_tests
+
+# TODO: move the classes outside the file
+
+
+class DataClassWithOptionalFieldsSetToNoneByDefault:
+    def __init_subclass__(cls, *args, **kwargs) -> None:
+        for field, annotation in cls.__annotations__.items():
+            try:
+                # below we check if we have either Union[type, ..., None] or Optional[type]
+                if annotation.__origin__ is Union and type(None) in annotation.__args__:
+                    if not hasattr(cls, field):  # make sure that we don't have default field already
+                        setattr(cls, field, None)
+            except AttributeError:
+                pass
+
+        super().__init_subclass__(*args, **kwargs)
+
+
+# below class has potential to replace ResultData in the future
+@dataclass(frozen=False)
+class TestOutputData(DataClassWithOptionalFieldsSetToNoneByDefault):
+    name: str
+    result_name: Optional[str]
+    statistic: Optional[Union[Dict, float]]
+    p_value: Optional[Union[str, float]]
+    adjusted_p_value: Optional[float]
+    alpha: Optional[float]
+    table: Optional[Any]  # type?
+    dof: Optional[Any]  # type?
+    effect_sizes: Optional[List[Tuple[str, float]]]
+    null_hypothesis: Optional[str]
+    interpretation: Optional[str]
+    results: Optional[str]
+    assumption: Union[str, List[str]] = "None"
+
+
+# Note: This ABC can be implemented by OutputDataHtmlFormatter later on
+class AbstractOutputDataFormatter(ABC):
+    @abstractmethod
+    def format_output_data(self, data: "TestOutputData"):
+        return ""
+
+    @abstractmethod
+    def format_output_data_list(self, data: List["TestOutputData"]):
+        return ""
+
+
+class OutputDataTextFormatter(AbstractOutputDataFormatter):
+    def format_output_data(self, data: "TestOutputData"):
+        output = f"\nTest: {data.test_name}\n"
+        assumption = "\n".join(data.assumption) if isinstance(data.assumption, list) else data.assumption
+        output += f"***Test assumptions:\n{assumption}\n\n"
+        output += "***Test results:\n"
+
+        if data.name is not None:
+            output += f"name = {data.name}\n"
+        if data.test_statistic is not None:
+            if isinstance(data.test_statistic, dict):
+                output += f"test_statistic = {data.test_statistic}\n"
+            else:
+                output += f"test_statistic = {'%.5f'%(data.test_statistic)}\n"
+        if data.p_value is not None:
+            if isinstance(data.p_value, str):
+                output += f"p_value = {data.p_value}\n"
+            else:
+                output += f"p_value = {'%.5f'%(data.p_value)}\n"
+        if data.adjusted_p_value is not None:
+            output += f"adjusted_p_value = {'%.5f'%(data.adjusted_p_value)}\n"
+        if data.alpha is not None:
+            output += f"alpha = {data.alpha}\n"
+        if data.dof is not None:
+            output += f"dof = {data.dof}\n"
+        if data.table is not None:
+            output += f"table = {data.table}\n"
+        for effect_size_name, effect_size_value in data.effect_sizes if data.effect_sizes is not None else []:
+            output += f"{effect_size_name} = {'%.5f'%(effect_size_value)}\n"
+        if data.null_hypothesis is not None:
+            output += f"Null hypothesis = {data.null_hypothesis}\n"
+        if data.interpretation is not None:
+            output += f"Interpretation = {data.interpretation}\n"
+        if data.results is not None:
+            output += f"{str(data.results)}\n"
+
+    def format_output_data_list(self, data_list: List["TestOutputData"]) -> str:
+        output = "\nResults:\n--------------"
+        for data in data_list:
+            output += self.write_output_data_list(data)
+            output += "\n"
+
+
+# This class can be seen as a converter fron ResultData to TestOutputData
+class OutputBuilder:
+    def build_one_result(self, test_name: str, results: Any) -> TestOutputData:
+        testOutputData = TestOutputData(test_name)
+        if hasattr(results, "__dict__"):
+            testOutputData.result_name = results.name
+            testOutputData.statistic = results.test_statistics
+            testOutputData.p_value = results.p_value
+            testOutputData.adjusted_p_value = results.adjusted_p_value
+            testOutputData.alpha = results.alpha
+            testOutputData.dof = results.dof
+            testOutputData.table = results.table
+            if "effect_size" in results.__dict__:
+                effect_sizes = results.effect_size.items()
+                testOutputData.table = results.table = [
+                    (effect_size_name, effect_size_value) for effect_size_name, effect_size_value in effect_sizes
+                ]
+            testOutputData.null_hypothesis = results.null_hypothesis
+            testOutputData.interpretation = results.interpretation
+
+        else:
+            testOutputData.results = str(results)
+
+    def build_output_from_result_data(
+        self, resultData: "ResultData", test_to_results: Dict, test_to_assumptions: Dict, follow_up_results: Dict
+    ) -> List[TestOutputData]:
+        results = []  # type: List[TestOutputData]
+        for test_name, results in test_to_results.items():
+            testOutputData = self.build_one_result(test_name, results)
+            if test_name in test_to_assumptions:
+                testOutputData.assumption = test_to_assumptions[test_name]
+            results.append(testOutputData)
+
+        if hasattr(resultData, "follow_up_results"):  # not empty
+            raise NotImplementedError("Not implemented yet. How to do that?")
+            for res in follow_up_results:
+                print("\nFollow up for multiple comparisons: \n")
+                print(res)
+
+        return results
 
 
 @attr.s(init=False, repr=False, str=False)
@@ -55,6 +188,19 @@ class ResultData(Value):
         for key, value in self.test_to_results.items():
             value.bonferroni_correction(num_comparisons)
         return self
+
+    def _pretty_print_2(self):
+        builder = OutputBuilder()
+        formatter = OutputDataTextFormatter()
+        outputs = builder.build_output_from_result_data(
+            self, self.test_to_results, self.test_to_assumptions, self.follow_up_results
+        )
+
+        if hasattr(self, "follow_up_results"):  # not empty
+            for res in self.follow_up_results:
+                print("\nFollow up for multiple comparisons: \n")
+                print(res)
+        return formatter.format_output_data_list(outputs)
 
     def _pretty_print(self):
         output = "\nResults:\n--------------"
@@ -117,7 +263,8 @@ class ResultData(Value):
     #     return self
 
     def __str__(self):  # Maybe what the user sees?
-        return self._pretty_print()
+        return self._pretty_print_2()
+        # return self._pretty_print()
 
     def as_html(self):
         html_out = io.StringIO()
