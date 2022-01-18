@@ -176,9 +176,10 @@ def hypothesize(vars: list, prediction: list = None):
     
     if dataset_obj.data.empty:
         # If the the result is a dictionary of test names, which should only happen if the data is empty
-        assert(isinstance(result, dict))
+        assert(isinstance(result, list))
         assert(dataset_obj.has_empty_data())
         return result
+
     # Else
     assert(isinstance(result, ResultData))
     # Make multiple comparison correction

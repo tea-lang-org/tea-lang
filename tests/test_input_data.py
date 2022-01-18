@@ -14,7 +14,8 @@ TeaLogger.initialize_logger(configuration)
 class InputDataTests(unittest.TestCase):
     def test_empty_file(self):
         # Read in CSV with only headers (no data)
-        data_path = "/examples/AR_TV/ar_tv.csv"
+        # data_path = load_data_from_url("https://github.com/tea-lang-org/tea-lang/blob/master/tests/data/ar_tv_empty.csv", "ar_tv_empty.csv")
+        data_path = "tests/data/ar_tv_empty.csv"
 
         variables = [
             {
@@ -50,5 +51,5 @@ class InputDataTests(unittest.TestCase):
         results = tea.hypothesize(['Score', 'Condition'], ['Condition:AR > TV'])
 
         self.assertIsNotNone(results)
-        self.assertIsInstance(results, dict)
-        # TODO: Check what the output dict looks like
+        self.assertIsInstance(results, list)
+        self.assertIn('mannwhitney_u', results)
