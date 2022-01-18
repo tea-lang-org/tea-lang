@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tealang"
-version = "1.0.0-alpha"
+version = "0.4.1"
 description = "Tea: A High-level Language and Runtime System to Automate Statistical Analysis"
 authors = ["Eunice Jun <eunice.m.jun@gmail.com>"]
 license = "Apache 2.0"
