@@ -396,7 +396,10 @@ class VarDataFactory:
 
         # Infer stats tests (mingled with)
         tests = synthesize_tests(dataset, assumptions, combined_data)
-
+        
+        if(dataset.data.empty):
+            print("Statistical Tests for empty dataset")
+            return tests
         """"
         # verify_properties(properties_and_tests)
         # get_tests

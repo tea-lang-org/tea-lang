@@ -173,12 +173,12 @@ def hypothesize(vars: list, prediction: list = None):
     study_type_determiner = StudyTypeDeterminer()
     vardata_factory = VarDataFactory(study_type_determiner)
     result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
-
-    # If the the result is a dictionary of test names, which should only happen if the data is empty
-    if isinstance(result, dict):
+    
+    if dataset_obj.data.empty:
+        # If the the result is a dictionary of test names, which should only happen if the data is empty
+        assert(isinstance(result, dict))
         assert(dataset_obj.has_empty_data())
         return result
-    
     # Else
     assert(isinstance(result, ResultData))
     # Make multiple comparison correction
