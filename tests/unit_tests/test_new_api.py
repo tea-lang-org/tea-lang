@@ -351,9 +351,6 @@ def test_linearHypothesis_pos_signed_ctor():
     assert isinstance(hypo_obj_0, PositiveLinear)
     assert vars_list[0] in design_obj.ys
     assert vars_list[1] in design_obj.xs
-    import pdb
-
-    pdb.set_trace()
     assert hypo_obj_0.xs == design_obj.xs
     assert hypo_obj_0.y == design_obj.ys
 

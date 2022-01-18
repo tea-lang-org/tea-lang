@@ -1,4 +1,3 @@
-from build.lib.tea.ast import DataType
 import tea.api
 from tea.api import define_variables
 import unittest
