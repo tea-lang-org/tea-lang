@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import stats # Stats library used
 import unittest
 from tea.helpers.evaluateHelperMethods import compute_normal_distribution, is_numeric
 from parameterized import parameterized
@@ -13,8 +14,8 @@ class EvaluateHelperMethodsTests(unittest.TestCase):
                 4.80279979,  6.41550484, 5.19735433,  3.68366857,  5.19261866, 6.08280386,
                 1.21590325,  4.67839939, 2.15511797,  8.16360168,  4.04091618, 6.77094548]
         returned_value = compute_normal_distribution(data)
-        self.assertAlmostEqual(0.2147399485, returned_value.p_value, 10)
-        self.assertAlmostEqual(0.9470322132, returned_value.W, 10)
+        self.assertAlmostEqual(stats.shapiro(data)[1], returned_value.p_value, 10)
+        self.assertAlmostEqual(stats.shapiro(data)[0], returned_value.W, 10)
 
     @parameterized.expand([
         [DataType.INTERVAL, True],

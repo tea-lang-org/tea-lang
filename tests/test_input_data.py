@@ -4,6 +4,7 @@ import tea
 import os
 import unittest 
 
+from tea.build import load_data_from_url
 from tea.logging import TeaLoggerConfiguration, TeaLogger
 import logging
 configuration = TeaLoggerConfiguration()
@@ -13,7 +14,7 @@ TeaLogger.initialize_logger(configuration)
 class InputDataTests(unittest.TestCase):
     def test_empty_file(self):
         # Read in CSV with only headers (no data)
-        data_path = "tests/data/ar_tv_empty.csv"
+        data_path = "/examples/AR_TV/ar_tv.csv"
 
         variables = [
             {
