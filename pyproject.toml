@@ -1,9 +1,13 @@
 [tool.poetry]
 name = "tealang"
-version = "0.4.1"
+version = "0.4.2"
 description = "Tea: A High-level Language and Runtime System to Automate Statistical Analysis"
+readme = "README.md"
 authors = ["Eunice Jun <eunice.m.jun@gmail.com>"]
 license = "Apache 2.0"
+packages = [
+    {include = "tea"}
+]
 
 [tool.poetry.dependencies]
 python = ">=3.7.11, <3.11"
