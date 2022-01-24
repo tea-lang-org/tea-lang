@@ -7,7 +7,7 @@ from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.runtimeDataStructures.bivariateData import BivariateData
 from tea.runtimeDataStructures.multivariateData import MultivariateData
-from tea.runtimeDataStructures.testResult import TestResult
+from tea.runtimeDataStructures.testResults import *
 
 # Stats
 from statistics import mean, stdev
@@ -849,7 +849,7 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         prediction = None
     t_stat, p_val = stats.pearsonr(data[0], data[1])
     dof = None
-    test_result = TestResult(
+    test_result = PearsonCorrelationResult(
                         name = PEARSON_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
@@ -887,7 +887,7 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         prediction = None
     t_stat, p_val = stats.spearmanr(data[0], data[1])
     dof = None
-    test_result = TestResult(
+    test_result = SpearmanCorrelationResult(
                         name = SPEARMAN_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,
@@ -916,7 +916,7 @@ def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
         prediction = None
     t_stat, p_val = stats.kendalltau(data[0], data[1])
     dof = None
-    test_result = TestResult(
+    test_result = KendallTauCorrelationResult(
                         name = KENDALLTAU_NAME,
                         test_statistic = t_stat,
                         p_value = p_val,

@@ -1,6 +1,9 @@
 import contextlib
 import html
 import io
+from typing import Any, Dict, List, Union, Optional, Tuple
+from rich.table import Table
+from tea.runtimeDataStructures.testResults.testResult import TestResult
 
 from tea.z3_solver.solver import all_tests
 from tea.runtimeDataStructures.value import Value
@@ -9,19 +12,34 @@ from tea.global_vals import *
 
 import attr
 
+class TestOutput(): 
+    name: str
+    result_name: Optional[str]
+    statistic: Optional[Union[Dict, float]]
+    p_value: Optional[Union[str, float]]
+    adjusted_p_value: Optional[float]
+    alpha: Optional[float]
+    table: Optional[Any]  # type?
+    dof: Optional[Any]  # type?
+    effect_sizes: Optional[List[Tuple[str, float]]]
+    null_hypothesis: Optional[str]
+    interpretation: Optional[str]
+    results: Optional[str]
+    assumption: Union[str, List[str]] = "None"
+
 @attr.s(init=False, repr=False, str=False)
 class ResultData(Value):
     test_to_results = attr.ib(type=dict)
     test_to_assumptions = attr.ib(type=dict)
     follow_up_results = attr.ib(type=list, default=None)
 
-    def __init__(self, test_to_results, combined_data: CombinedData):
+    def __init__(self, test_to_results: Dict[str, TestResult], combined_data: CombinedData):        
         self.test_to_results = test_to_results
         self.test_to_assumptions = {}
         ALL_TESTS = all_tests()
         for test in ALL_TESTS:
-            if test.name in test_to_results:
-                test_assumptions = []
+            if test.name in test_to_results.keys():
+                test_assumptions = list()
                 # TODO: The names get stale if hypothesize() is called multiple times in a row.
                 for applied_prop in test._properties:
                     assumption = f"{applied_prop.property.description}: "
@@ -42,6 +60,10 @@ class ResultData(Value):
                     test_assumptions.append(assumption)
 
                 self.test_to_assumptions[test.name] = test_assumptions
+
+                # Update TestResult object for the specific test, too. 
+                test_result = test_to_results[test.name]
+                test_result.set_assumptions(test_assumptions)
 
     def get_all_test_results(self): 
         results = [v for k,v in self.test_to_results.items()]
@@ -108,11 +130,6 @@ class ResultData(Value):
         if len(follow_up_res_data) >= 1:
             setattr(self, 'follow_up_results', follow_up_res_data)
 
-
-    # def __repr__(self):
-    #     # return self._pretty_print()
-    #     return self
-
     def __str__(self):  # Maybe what the user sees?
         return self._pretty_print()
 
@@ -174,3 +191,19 @@ class ResultData(Value):
                 else:
                     print("<p>{html.escape(str(results))}</p>")
         return html_out.getvalue()
+
+class ConstraintSummary(): 
+    pass 
+
+class VariableSummary(): 
+    pass  
+
+class AnalysisSummary(): 
+    pass 
+
+class NotebookSummary(): 
+    pass 
+
+# TODO: Identify appropriate output targets, maybe OSF or something else? 
+class PreRegistration(): 
+    pass 

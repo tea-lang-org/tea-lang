@@ -443,7 +443,7 @@ class VarDataFactory:
             obj.execute()
             obj.visualize()
 
-        res_data = ResultData(results, combined_data)
+        res_data = ResultData(test_to_results=results, combined_data=combined_data)
 
         follow_up = []
 
