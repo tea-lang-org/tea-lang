@@ -1,0 +1,4 @@
+from .testResult import TestResult
+from .pearsonCorrelationResult import PearsonCorrelationResult
+from .spearmanCorrelationResult import SpearmanCorrelationResult
+from .kendallTauCorrelationResult import KendallTauCorrelationResult
