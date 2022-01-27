@@ -9,6 +9,7 @@ from tea.z3_solver.solver import all_tests
 from tea.runtimeDataStructures.value import Value
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.global_vals import *
+from tea.output.outputBuilder import OutputBuilder
 
 import attr
 
@@ -73,6 +74,18 @@ class ResultData(Value):
         for key,value in self.test_to_results.items():
             value.bonferroni_correction(num_comparisons)
         return self
+
+    def build_output(self): 
+        # TODO: Add this!
+        variables = self.get_variables()
+        # builder(variables=variables)
+
+        builder = OutputBuilder(test_to_results=test_to_results)
+        # TODO: How would the user select alternative formts to output besides a default one? 
+        # Idea: Format as text string always, with links to files for other target types
+        builder.format()
+
+        
 
     def _pretty_print(self):
         output = "\nResults:\n--------------"
@@ -191,19 +204,3 @@ class ResultData(Value):
                 else:
                     print("<p>{html.escape(str(results))}</p>")
         return html_out.getvalue()
-
-class ConstraintSummary(): 
-    pass 
-
-class VariableSummary(): 
-    pass  
-
-class AnalysisSummary(): 
-    pass 
-
-class NotebookSummary(): 
-    pass 
-
-# TODO: Identify appropriate output targets, maybe OSF or something else? 
-class PreRegistration(): 
-    pass 
