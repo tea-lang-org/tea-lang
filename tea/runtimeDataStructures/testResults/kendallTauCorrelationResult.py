@@ -11,8 +11,11 @@ class KendallTauCorrelationResult(TestResult):
 
     def generate_template_text(self):
         return "text"
+        # TODO: Update/customize the specific template for the results
         raise NotImplementedError
 
     def generate_visualization(self):
         return "vis"
+
+        # TODO: Construct the apporpriate visualization 
         raise NotImplementedError
