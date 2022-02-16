@@ -1,9 +1,13 @@
 from tea.api import (
-                    data, 
+                    data,
+                    define_experiment, 
                     define_variables, 
-                    define_study_design, 
+                    define_experiment,
+                    define_observational_study,
                     assume,
                     hypothesize,
                     download_data,
                     divine_properties
                 )
+
+from tea.variable import Unit

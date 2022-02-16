@@ -22,11 +22,12 @@ z3-solver = "4.8.14.0"
 urllib3 = "1.26.8"
 parameterized = "0.8.1"
 sympy = "1.9"
+tisane = "^0.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 parameterized = "^0.8.1"
-pytest-cov = "^3.0.0"
+pytest-cov = "^2.11.1"
 coveralls = "^3.3.1"
 
 [build-system]

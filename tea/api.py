@@ -92,6 +92,19 @@ def define_variables(vars: Dict[str, str]):
         vars_objs.append(v_obj)
 
 
+def define_study(study_type, ivs, dvs):
+    global study_design
+    study_design = {} # Reset variable/could change the decleration? 
+    study_design['study type'] = study_type
+    study_design['independent variables'] = [var.name for var in ivs]
+    study_design['dependent variables'] = [var.name for var in dvs]
+
+def define_experiment(ivs:list, dvs: list):
+    define_study('experiment', ivs, dvs)
+
+def define_observational_study(ivs:list, dvs:list):
+    define_study('observational study', ivs, dvs)
+
 def define_study_design(design: Dict[str, str]):
     global study_design, dataset_id, uid, alpha
     global btw_subj, within_subj
@@ -113,25 +126,16 @@ def define_study_design(design: Dict[str, str]):
     # dataset_id = design[uid] if uid in design else None
 
 
-def assume(user_assumptions: Dict[str, str], mode=None):
-    
-    tea_logger = TeaLogger.get_logger()
-    global alpha, alpha_keywords
+
+def assume(false_positive_error_rate:float=0.05, mode=None):
+    global alpha
     global assumptions
     global MODE
 
-    if alpha_keywords[0] in user_assumptions:
-        if alpha_keywords[1] in user_assumptions:
-            assert (float(user_assumptions[alpha_keywords[0]]) == float(user_assumptions[alpha_keywords[1]]))
+    alpha =false_positive_error_rate
+    assumptions['alpha'] = alpha
+    tea_logger = TeaLogger.get_logger()
 
-    for keyword in alpha_keywords:
-        if keyword in user_assumptions:
-            alpha = float(user_assumptions[keyword])
-
-    assumptions = user_assumptions
-    assumptions[alpha_keywords[1]] = alpha
-
-    # Set MODE for dealing with assumptions
     if mode and mode == 'relaxed':
         MODE = mode
         tea_logger.log_info(f"\nRunning under {MODE.upper()} mode.\n")
