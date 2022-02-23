@@ -1,5 +1,7 @@
 from tea.global_vals import *
 
+import altair as alt
+
 # Concrete Statistical Test class for Pearson's Correlation
 class Pearsons_Correlation_Test(AbstractStatisticalTest):
 
@@ -73,9 +75,9 @@ class Pearsons_Correlation_Test(AbstractStatisticalTest):
             var_0_name = var_0.get_name() + var_0_type
             var_1_name = var_1.get_name() + var_1_type
 
-
-            # do something here with the altair visualization
             # how do we determine what goes for the x and y axes?
+
+            
 
         except ValueError as e:
             print(e)

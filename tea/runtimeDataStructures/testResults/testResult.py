@@ -2,6 +2,7 @@ from tea.global_vals import *
 from tea.helpers.constants.test_names import *
 from enum import Enum
 
+from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.value import Value
 from tea.ast import DataType, LessThan, GreaterThan, Literal, Relationship
@@ -10,6 +11,7 @@ from tea.ast import DataType, LessThan, GreaterThan, Literal, Relationship
 import attr
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
+import altair as alt
 
 
 # Need to be reset for each test
@@ -92,6 +94,8 @@ class TestResult(Value):
     prediction: Relationship
     alpha: float
     dof: int
+    dataset: Dataset
+    vars: List
     
     x: VarData
     y: VarData
@@ -103,10 +107,10 @@ class TestResult(Value):
     null_hypothesis: str
     interpretation: str
     template_text: str
-    visualization: Any # TODO: Replace 
+    visualization: alt.Chart
     assumptions: List[str]
 
-    def __init__(self, name: str, test_statistic: Any, p_value: float, prediction: Relationship, alpha: float, dof: int, 
+    def __init__(self, name: str, test_statistic: Any, p_value: float, prediction: Relationship, alpha: float, dof: int, dataset: Dataset, vars: List[VarData],
         x: VarData=None, y: VarData=None, adjusted_p_value: float=None, corrected_p_value: float=None, table: Any=None, group_descriptive_statistics: Dict=None):
         self.name = name
         self.test_statistic = test_statistic
@@ -118,6 +122,8 @@ class TestResult(Value):
         #     print("No prediction specified.")
         self.alpha = alpha 
         self.dof = dof 
+        self.dataset = dataset
+        self.vars = vars
         self.x = x 
         self.y = y
         self.adjusted_p_value = adjusted_p_value
@@ -352,3 +358,18 @@ class Significance(Enum):
         significantly_different = 1
         significantly_greater = 2
         significantly_less = 3
+
+
+# Helper function for determining the encoding type for use with altair 
+def get_variable_type(var: VarData):
+    if var.is_continuous():
+        # indicate variable is quantitative
+        return "Q"
+    elif var.is_nominal():
+        # indicate the variable is nominal
+        return "N"
+    elif var.is_ordinal():
+        # indicate the variable is ordinal 
+        return "O"
+    else:
+        raise ValueError(f"Invalid type, unsure how to resolve this type: {var_0.metadata['dtype']}")

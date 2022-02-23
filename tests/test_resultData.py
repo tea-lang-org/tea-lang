@@ -6,6 +6,7 @@ import unittest
 
 from tea.logging import TeaLoggerConfiguration, TeaLogger
 import logging
+import altair as alt
 
 from tea.runtimeDataStructures.resultData import ResultData
 configuration = TeaLoggerConfiguration()
@@ -74,7 +75,15 @@ class ResultDataTests(unittest.TestCase):
         
         
         self.assertIsInstance(results, ResultData)
-        import pdb; pdb.set_trace()
+        self.assertEqual(len(results.test_to_results), 2)
+        self.assertIn('kendalltau_corr', results.test_to_results.keys())
+        kendalltau_corr_result = results.test_to_results['kendalltau_corr']
+        chart = kendalltau_corr_result.generate_visualization()
+        self.assertIsNotNone(chart)
+        self.assertIsInstance(chart, alt.Chart)
+        # TODO: Add check that chart is a scatterplot and interactive
+
+        # TODO: Add check for spearman's rho
 
     def test_output_builder(self): 
         pass 

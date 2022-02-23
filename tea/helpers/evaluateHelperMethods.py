@@ -1,7 +1,7 @@
 # Tea
 from tea.global_vals import *
 from tea.helpers.constants.test_names import *
-from tea.ast import DataType, LessThan, GreaterThan
+from tea.ast import DataType, LessThan, GreaterThan, Variable
 from tea.runtimeDataStructures.dataset import Dataset
 from tea.runtimeDataStructures.varData import VarData
 from tea.runtimeDataStructures.combinedData import CombinedData
@@ -833,12 +833,16 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
 def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     assert(len(combined_data.vars) == 2)
 
-    data = []
+    data = list() # keep track of data
+    vars = list() # keep track of variables 
     for var in combined_data.vars:
-        var_data = get_data(dataset, var)
-        data.append(var_data)
+        var_data = get_data(dataset, var) # get data
+        data.append(var_data) # add data
+        assert(isinstance(var, VarData))
+        vars.append(var) # add variable
 
     assert(len(data) == 2)
+    assert(len(vars) == 2)
 
     if predictions:
         if isinstance(predictions[0], list):
@@ -855,7 +859,9 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
-                        alpha = combined_data.alpha)
+                        alpha = combined_data.alpha, 
+                        dataset = dataset,
+                        vars = vars)
     return test_result
 
 
@@ -864,7 +870,9 @@ def pearson_corr(dataset: Dataset, predictions, combined_data: CombinedData):
 def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     assert(len(combined_data.vars) == 2)
 
-    data = []
+    data = list() # keep track of data
+    vars = list() # keep track of variables         
+
     for var in combined_data.vars:
         # Check that var is ordinal. If so, then assign all ordinal values numbers 
         # Compare to without converting to numbers (in Evernote)
@@ -874,7 +882,9 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
             num_var_data = [ordered_cat[v] for v in var_data]
             var_data = num_var_data
 
-        data.append(var_data)
+        data.append(var_data) # add data
+        assert(isinstance(var, VarData))
+        vars.append(var) # add variable
 
     assert(len(data) == 2)
 
@@ -893,7 +903,9 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
-                        alpha = combined_data.alpha)
+                        alpha = combined_data.alpha,
+                        dataset = dataset,
+                        vars = vars)
     return test_result
 
 # https://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.stats.kendalltau.html
@@ -901,10 +913,13 @@ def spearman_corr(dataset: Dataset, predictions, combined_data: CombinedData):
 def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
     assert(len(combined_data.vars) == 2)
 
-    data = []
+    data = list() # keep track of data
+    vars = list() # keep track of variables 
     for var in combined_data.vars:
-        var_data = get_data(dataset, var)
-        data.append(var_data)
+        var_data = get_data(dataset, var) # get data
+        data.append(var_data) # add data
+        assert(isinstance(var, VarData))
+        vars.append(var) # add variable
 
     assert(len(data) == 2)
     if predictions:
@@ -922,7 +937,9 @@ def kendalltau_corr(dataset: Dataset, predictions, combined_data: CombinedData):
                         p_value = p_val,
                         prediction = prediction,
                         dof = dof,
-                        alpha = combined_data.alpha)
+                        alpha = combined_data.alpha,
+                        dataset = dataset,
+                        vars = vars)
 
     return test_result
 
