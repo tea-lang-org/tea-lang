@@ -88,6 +88,8 @@ class ResultDataTests(unittest.TestCase):
         self.assertIsNotNone(chart)
         self.assertIsInstance(chart, alt.Chart)
 
+        # TODO: Add a check/test for Pearson's correlation
+
     def test_output_builder(self): 
         pass 
 
