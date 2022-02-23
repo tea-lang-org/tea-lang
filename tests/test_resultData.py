@@ -76,14 +76,17 @@ class ResultDataTests(unittest.TestCase):
         
         self.assertIsInstance(results, ResultData)
         self.assertEqual(len(results.test_to_results), 2)
+        # Check Kendall's Tau 
         self.assertIn('kendalltau_corr', results.test_to_results.keys())
         kendalltau_corr_result = results.test_to_results['kendalltau_corr']
         chart = kendalltau_corr_result.generate_visualization()
         self.assertIsNotNone(chart)
         self.assertIsInstance(chart, alt.Chart)
-        # TODO: Add check that chart is a scatterplot and interactive
-
-        # TODO: Add check for spearman's rho
+        # Check Spearman's Rho
+        spearman_corr_result = results.test_to_results['spearman_corr']
+        chart = spearman_corr_result.generate_visualization()
+        self.assertIsNotNone(chart)
+        self.assertIsInstance(chart, alt.Chart)
 
     def test_output_builder(self): 
         pass 
