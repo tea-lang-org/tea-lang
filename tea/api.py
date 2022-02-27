@@ -62,7 +62,7 @@ def data(file, key=None):
     # Require that the path to the data must be a string or a Path object
     assert isinstance(file, (str, Path, pd.DataFrame))
     dataset_path = file
-    dataset_id = key
+    dataset_id = key.name
 
 
 def define_variables(vars: Dict[str, str]):
@@ -165,59 +165,59 @@ def assume(false_positive_error_rate:float=0.05, mode=None):
     2. Assign columns to varibale declerations. 
     3. 
 '''
-def hypothesize(var, statement):
-    pass
+# def hypothesize(var, statement):
+#     pass
 
-# def hypothesize(vars: list, prediction: list = None):
-#     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
-#     global assumptions, all_results
-#     global MODE
+def hypothesize(vars: list, prediction: list = None):
+    global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
+    global assumptions, all_results
+    global MODE
 
-#     if isinstance(dataset_path, (str, Path)):
-#         assert (dataset_path)
-#     elif isinstance(dataset_path, pd.DataFrame):
-#         assert not dataset_path.empty
-#     else:
-#         raise ValueError(f"dataset_path must be DataFrame, str, or Path. Not: {type(dataset_path)}")
-#     assert (vars_objs)
-#     assert (study_design)
+    if isinstance(dataset_path, (str, Path)):
+        assert (dataset_path)
+    elif isinstance(dataset_path, pd.DataFrame):
+        assert not dataset_path.empty
+    else:
+        raise ValueError(f"dataset_path must be DataFrame, str, or Path. Not: {type(dataset_path)}")
+    assert (vars_objs)
+    assert (study_design)
 
-#     dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
+    dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
 
-#     v_objs = []
-#     for v in vars:
-#         v_objs.append(get_var_from_list(v, vars_objs))  # may want to use Dataset instance method instead
+    v_objs = []
+    for v in vars:
+        v_objs.append(get_var_from_list(v, vars_objs))  # may want to use Dataset instance method instead
 
-#     # Create and get back handle to AST node
-#     relationship = relate(v_objs, prediction)
-#     num_comparisons = len(relationship.predictions) if len(relationship.predictions) > 0 else 1 # use for multiple comparison correction
+    # Create and get back handle to AST node
+    relationship = relate(v_objs, prediction)
+    num_comparisons = len(relationship.predictions) if len(relationship.predictions) > 0 else 1 # use for multiple comparison correction
 
-#     # Interpret AST node, Returns ResultData object <-- this may need to change
-#     set_mode(MODE)
-#     study_type_determiner = StudyTypeDeterminer()
-#     vardata_factory = VarDataFactory(study_type_determiner)
-#     result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
+    # Interpret AST node, Returns ResultData object <-- this may need to change
+    set_mode(MODE)
+    study_type_determiner = StudyTypeDeterminer()
+    vardata_factory = VarDataFactory(study_type_determiner)
+    result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
     
-#     if dataset_obj.data.empty:
-#         # If the the result is a dictionary of test names, which should only happen if the data is empty
-#         assert(isinstance(result, list))
-#         assert(dataset_obj.has_empty_data())
-#         return result
+    if dataset_obj.data.empty:
+        # If the the result is a dictionary of test names, which should only happen if the data is empty
+        assert(isinstance(result, list))
+        assert(dataset_obj.has_empty_data())
+        return result
 
-#     # Else
-#     assert(isinstance(result, ResultData))
-#     # Make multiple comparison correction
-#     result.bonferroni_correction(num_comparisons)
+    # Else
+    assert(isinstance(result, ResultData))
+    # Make multiple comparison correction
+    result.bonferroni_correction(num_comparisons)
     
-#     print(f"\n{result}")
-#     return result
+    print(f"\n{result}")
+    return result
 
-#     # Use assumptions and hypotheses for interpretation/reporting back to user
-#     # Make result human_readable
-#     # output = translate(result)
+    # Use assumptions and hypotheses for interpretation/reporting back to user
+    # Make result human_readable
+    # output = translate(result)
 
-#     # Give user output
-#     # return output
+    # Give user output
+    # return output
 
 
 # TODO: Add relate and compare methods
