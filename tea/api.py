@@ -159,11 +159,7 @@ def assume(false_positive_error_rate:float=0.05, mode=None):
 
 
 '''
-    TODO: Rewrite/write a new assign data to choose data file first
-
-    1. Convert data file into a live variable, (dict)
-    2. Assign columns to varibale declerations. 
-    3. 
+    TODO: New grammar hypothesize 
 '''
 # def hypothesize(var, statement):
 #     pass
@@ -181,7 +177,6 @@ def hypothesize(vars: list, prediction: list = None):
         raise ValueError(f"dataset_path must be DataFrame, str, or Path. Not: {type(dataset_path)}")
     assert (vars_objs)
     assert (study_design)
-
     dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
 
     v_objs = []
@@ -268,3 +263,6 @@ def divine_properties(vars: list, tests: list):
     pp.pprint(test_to_properties)
     print("\nProperties that could not be satisfied:")
     pp.pprint(test_to_broken_properties)
+
+
+
