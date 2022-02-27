@@ -22,12 +22,15 @@ class Unit(tsvars.Unit):
     # See Tisane code for other variable type definitions
 
 
-class Measure(tsvars.Measure):
-    def __init__(self, name: str, data: None, **kwargs):
-        super().__init__(name, data, **kwargs)
-
-
-class Nominal(tsvars.Nominal):
+class Nominal(tsvars.Measure):
     def __init__(self, name: str, categories:list, data=None, **kwargs):
         super().__init__(name, data, **kwargs)
         self.categories = categories
+    
+    def greaterThan(self, other):
+        if type(other) is not type(self):
+            raise Exception("Nominal variable must be compared to another nominal variable")
+        assert(self.data is not None)
+
+
+

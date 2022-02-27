@@ -39,10 +39,10 @@ var_drange = 'range'
 
 # Assumptions
 # Stats properties
-assumptions = {}
+assumptions = dict()
 alpha = DEFAULT_ALPHA_PARAMETER
 
-all_results = {}  # Used for multiple comparison correction
+all_results = dict()  # Used for multiple comparison correction
 
 # For solver
 MODE = 'strict'
@@ -94,7 +94,7 @@ def define_variables(vars: Dict[str, str]):
 
 def define_study(study_type, ivs, dvs):
     global study_design
-    study_design = {} # Reset variable/could change the decleration? 
+    study_design = dict()
     study_design['study type'] = study_type
     study_design['independent variables'] = [var.name for var in ivs]
     study_design['dependent variables'] = [var.name for var in dvs]
@@ -126,7 +126,11 @@ def define_study_design(design: Dict[str, str]):
     # dataset_id = design[uid] if uid in design else None
 
 
-
+'''
+Parameters
+-----------
+false_postive_error_rate: alpha level
+'''
 def assume(false_positive_error_rate:float=0.05, mode=None):
     global alpha
     global assumptions
@@ -148,56 +152,72 @@ def assume(false_positive_error_rate:float=0.05, mode=None):
         tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
 
-def hypothesize(vars: list, prediction: list = None):
-    global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
-    global assumptions, all_results
-    global MODE
 
-    if isinstance(dataset_path, (str, Path)):
-        assert (dataset_path)
-    elif isinstance(dataset_path, pd.DataFrame):
-        assert not dataset_path.empty
-    else:
-        raise ValueError(f"dataset_path must be DataFrame, str, or Path. Not: {type(dataset_path)}")
-    assert (vars_objs)
-    assert (study_design)
+# param 1: Variable the hypothesis concerns
+# param 2: statement/condition
+# TODO: Check if the statemnt is true for the given variable. 
 
-    dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
 
-    v_objs = []
-    for v in vars:
-        v_objs.append(get_var_from_list(v, vars_objs))  # may want to use Dataset instance method instead
+'''
+    TODO: Rewrite/write a new assign data to choose data file first
 
-    # Create and get back handle to AST node
-    relationship = relate(v_objs, prediction)
-    num_comparisons = len(relationship.predictions) if len(relationship.predictions) > 0 else 1 # use for multiple comparison correction
+    1. Convert data file into a live variable, (dict)
+    2. Assign columns to varibale declerations. 
+    3. 
+'''
+def hypothesize(var, statement):
+    pass
 
-    # Interpret AST node, Returns ResultData object <-- this may need to change
-    set_mode(MODE)
-    study_type_determiner = StudyTypeDeterminer()
-    vardata_factory = VarDataFactory(study_type_determiner)
-    result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
+# def hypothesize(vars: list, prediction: list = None):
+#     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
+#     global assumptions, all_results
+#     global MODE
+
+#     if isinstance(dataset_path, (str, Path)):
+#         assert (dataset_path)
+#     elif isinstance(dataset_path, pd.DataFrame):
+#         assert not dataset_path.empty
+#     else:
+#         raise ValueError(f"dataset_path must be DataFrame, str, or Path. Not: {type(dataset_path)}")
+#     assert (vars_objs)
+#     assert (study_design)
+
+#     dataset_obj = load_data(dataset_path, vars_objs, dataset_id)
+
+#     v_objs = []
+#     for v in vars:
+#         v_objs.append(get_var_from_list(v, vars_objs))  # may want to use Dataset instance method instead
+
+#     # Create and get back handle to AST node
+#     relationship = relate(v_objs, prediction)
+#     num_comparisons = len(relationship.predictions) if len(relationship.predictions) > 0 else 1 # use for multiple comparison correction
+
+#     # Interpret AST node, Returns ResultData object <-- this may need to change
+#     set_mode(MODE)
+#     study_type_determiner = StudyTypeDeterminer()
+#     vardata_factory = VarDataFactory(study_type_determiner)
+#     result = vardata_factory.create_vardata(dataset_obj, relationship, assumptions, study_design)
     
-    if dataset_obj.data.empty:
-        # If the the result is a dictionary of test names, which should only happen if the data is empty
-        assert(isinstance(result, list))
-        assert(dataset_obj.has_empty_data())
-        return result
+#     if dataset_obj.data.empty:
+#         # If the the result is a dictionary of test names, which should only happen if the data is empty
+#         assert(isinstance(result, list))
+#         assert(dataset_obj.has_empty_data())
+#         return result
 
-    # Else
-    assert(isinstance(result, ResultData))
-    # Make multiple comparison correction
-    result.bonferroni_correction(num_comparisons)
+#     # Else
+#     assert(isinstance(result, ResultData))
+#     # Make multiple comparison correction
+#     result.bonferroni_correction(num_comparisons)
     
-    print(f"\n{result}")
-    return result
+#     print(f"\n{result}")
+#     return result
 
-    # Use assumptions and hypotheses for interpretation/reporting back to user
-    # Make result human_readable
-    # output = translate(result)
+#     # Use assumptions and hypotheses for interpretation/reporting back to user
+#     # Make result human_readable
+#     # output = translate(result)
 
-    # Give user output
-    # return output
+#     # Give user output
+#     # return output
 
 
 # TODO: Add relate and compare methods
