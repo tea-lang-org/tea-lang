@@ -96,6 +96,12 @@ class TestResult(Value):
     dof: int
     dataset: Dataset
     vars: List
+
+    null_hypothesis: str
+    interpretation: str
+    template_text: str
+    visualization: alt.Chart
+    assumptions: List[str]
     
     x: VarData
     y: VarData
@@ -103,12 +109,6 @@ class TestResult(Value):
     corrected_p_value: float
     table: Any
     group_descriptive_statistics: Dict
-    
-    null_hypothesis: str
-    interpretation: str
-    template_text: str
-    visualization: alt.Chart
-    assumptions: List[str]
 
     def __init__(self, name: str, test_statistic: Any, p_value: float, prediction: Relationship, alpha: float, dof: int, dataset: Dataset, vars: List[VarData],
         x: VarData=None, y: VarData=None, adjusted_p_value: float=None, corrected_p_value: float=None, table: Any=None, group_descriptive_statistics: Dict=None):

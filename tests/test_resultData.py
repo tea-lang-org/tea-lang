@@ -80,18 +80,25 @@ class ResultDataTests(unittest.TestCase):
         self.assertIn('kendalltau_corr', results.test_to_results.keys())
         kendalltau_corr_result = results.test_to_results['kendalltau_corr']
         chart = kendalltau_corr_result.generate_visualization()
+        chart.show()
         self.assertIsNotNone(chart)
         self.assertIsInstance(chart, alt.Chart)
+        # TODO: Add something in here to check more about the Chart internals
+        # TODO: Could also print/display in an HTML to manually verify that the Chart is correct
         # Check Spearman's Rho
         spearman_corr_result = results.test_to_results['spearman_corr']
         chart = spearman_corr_result.generate_visualization()
+        chart.show()
         self.assertIsNotNone(chart)
         self.assertIsInstance(chart, alt.Chart)
 
         # TODO: Add a check/test for Pearson's correlation
 
+    def test_result_data_t_tests(self):
+        raise NotImplementedError
+
     def test_output_builder(self): 
-        pass 
+        raise NotImplementedError
 
     def test_output_formatter(self): 
-        pass
+        raise NotImplementedError

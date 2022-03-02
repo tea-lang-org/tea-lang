@@ -24,6 +24,7 @@ parameterized = "0.8.1"
 sympy = "1.9"
 rich = "^11.0.0"
 altair = "^4.2.0"
+altair-viewer = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
