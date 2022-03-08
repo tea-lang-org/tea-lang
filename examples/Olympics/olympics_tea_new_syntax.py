@@ -1,5 +1,4 @@
 import tea
-import tisane as ts
 import pandas as pd
 
 ''' 
@@ -10,20 +9,17 @@ Male athletes.
 
 data_path = "./athlete_events_cleaned_weight.csv"
 
-df = pd.read_csv(data_path) #DF is never loaded -> Question: Where to load DF
-
-id = ts.Unit('ID')
+df = pd.read_csv(data_path)
+id = tea.Unit('ID')
 sport = id.nominal('Sport', categories=['Swimming', 'Wrestling'])
 sex = id.nominal('Sex', categories=['M', 'F'])
-weight = id.numeric()
+weight = id.numeric('Weight')
 
+tea.data(data_path, id)
 tea.define_observational_study(contributor_variables=[sport, sex], outcome_variables=[weight])
-
-# Object class of assumptions -> initialize with specific variables
-tea.assupmtion(groups_normally_distributed=[sport,weight], type_I_Error_Rate=0.05)
-
-tea.hypothesis(weight, sport['Wrestling'].greaterThan(sport['Swimming']))
-tea.hypothesis(weight, sex['F'].lessThan(sex['M']))
+tea.assume(false_positive_error_rate=0.05)
+tea.hypothesize(weight, [sport['Wrestling'].greaterThan(sport['Swimming'])])
+tea.hypothesize(weight, [sex['F'].lessThan(sex['M'])])
 
 
 '''

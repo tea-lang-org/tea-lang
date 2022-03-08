@@ -92,18 +92,18 @@ def define_variables(vars: Dict[str, str]):
         vars_objs.append(v_obj)
 
 
-def define_study(study_type, ivs, dvs):
+def __define_study(study_type, ivs_name, ivs, dvs_name, dvs):
     global study_design
     study_design = dict()
     study_design['study type'] = study_type
-    study_design['independent variables'] = [var.name for var in ivs]
-    study_design['dependent variables'] = [var.name for var in dvs]
+    study_design[ivs_name] = [var.name for var in ivs]
+    study_design[dvs_name] = [var.name for var in dvs]
 
-def define_experiment(ivs:list, dvs: list):
-    define_study('experiment', ivs, dvs)
+def define_experiment(independent_variables:list, dependent_variables: list):
+    __define_study('experiment', 'independent variables', independent_variables, 'dependent variables', dependent_variables)
 
-def define_observational_study(ivs:list, dvs:list):
-    define_study('observational study', ivs, dvs)
+def define_observational_study(contributor_variables:list, outcome_variables: list):
+    __define_study('observational study', 'contributor variables', contributor_variables, 'outcome variables', outcome_variables)
 
 def define_study_design(design: Dict[str, str]):
     global study_design, dataset_id, uid, alpha
@@ -131,14 +131,17 @@ Parameters
 -----------
 false_postive_error_rate: alpha level
 '''
-def assume(false_positive_error_rate:float=0.05, mode=None):
+def assume(groups_normally_distributed = None, false_positive_error_rate:float=0.05, mode=None):
+    tea_logger = TeaLogger.get_logger()
     global alpha
     global assumptions
     global MODE
 
-    alpha =false_positive_error_rate
+    alpha = false_positive_error_rate
+    
     assumptions['alpha'] = alpha
-    tea_logger = TeaLogger.get_logger()
+    if groups_normally_distributed != None:
+        assumptions['groups normally distributed'] = groups_normally_distributed
 
     if mode and mode == 'relaxed':
         MODE = mode
@@ -152,19 +155,15 @@ def assume(false_positive_error_rate:float=0.05, mode=None):
         tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
 
+def hypothesize(var, predictions: list):
+    vars = set()
+    vars.add(var.name)
+    for pred in predictions:
+        vars.add(pred.split(':')[0])
+    return __hypothesize(list(vars), predictions)
+    
 
-# param 1: Variable the hypothesis concerns
-# param 2: statement/condition
-# TODO: Check if the statemnt is true for the given variable. 
-
-
-'''
-    TODO: New grammar hypothesize 
-'''
-# def hypothesize(var, statement):
-#     pass
-
-def hypothesize(vars: list, prediction: list = None):
+def __hypothesize(vars: list, prediction: list = None):
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
     global assumptions, all_results
     global MODE

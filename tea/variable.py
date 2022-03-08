@@ -5,10 +5,40 @@ from tea.build import nominal, ordinal, ratio
 from .global_vals import *
 import typing
 
-'''
-TODO: Add realtion operators to every type. For hypothesize new syntax. 
-'''
+class Comparison():    
+    def __getitem__(self, item):
+        if not hasattr(self, 'items'):
+            self.items = list()
+        self.items.append(item)
+        return self
+    
+    def __compare_helper(self, other, comparator):
+        assert type(self) == type(other)
+        return str(self.name) + ':' + str(self.items.pop(0)) + comparator  + str(self.items.pop(0))
 
+    def greaterThan(self, other):
+        return self.__compare_helper(other, ' > ')
+
+    def lessThan(self, other):
+        return self.__compare_helper(other, ' < ')
+
+class Nominal(tsvars.Nominal, Comparison):
+    def __init__(self, name: str, categories:list, data=None, **kwargs):
+        super().__init__(name, data, **kwargs)
+        self.categories = categories
+        vars_objs.append(nominal(name, categories))
+
+class Ordinal(tsvars.Ordinal, Comparison):
+    def __init__(self, name: str, order: list, cardinality: int = None, data=None):
+        super().__init__(name, order, cardinality, data)
+        vars_objs.append(ordinal(name, order))
+
+class Numeric(tsvars.Numeric, Comparison):
+    def __init__(self, name: str, data=None, range=None):
+        super().__init__(name, data)
+        self.range = range
+        vars_objs.append(ratio(name, range))
+        
 class Unit(tsvars.Unit):
     def __init__(self, name: str, data=None, cardinality: int = None, **kwargs):
         super().__init__(name, data, cardinality, **kwargs)
@@ -54,30 +84,3 @@ class Unit(tsvars.Unit):
         self._has(measure=measure, number_of_instances=number_of_instances)
         # Return handle to measure
         return measure
-
-
-class Nominal(tsvars.Nominal):
-    def __init__(self, name: str, categories:list, data=None, **kwargs):
-        super().__init__(name, data, **kwargs)
-        self.categories = categories
-        vars_objs.append(nominal(name, categories))
-    
-    def greaterThan(self, other):
-        if type(other) is not type(self):
-            raise Exception("Nominal variable must be compared to another nominal variable")
-        assert(self.data is not None)
-
-class Ordinal(tsvars.Ordinal):
-    def __init__(self, name: str, order: list, cardinality: int = None, data=None):
-        super().__init__(name, order, cardinality, data)
-        vars_objs.append(ordinal(name, order))
-
-class Numeric(tsvars.Numeric):
-    def __init__(self, name: str, data=None, range=None):
-        super().__init__(name, data)
-        self.range = range
-        vars_objs.append(ratio(name, range))
-
-
-
-

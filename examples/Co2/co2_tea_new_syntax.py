@@ -1,23 +1,15 @@
 import tea
 import pandas as pd
-import tisane as ts
 
 data_path = "./co2.csv"
-
-df = pd.read_csv(data_path) #DF is never loaded -> Question: Where to load DF
-
-id = ts.Unit('id') #Tisane unit lacks data type definitions
+df = pd.read_csv(data_path)
+id = tea.Unit('id')
 plant = id.nominal('Plant', categories=['Qn1', 'Qn2', 'Qn3', 'Qc1', 'Qc2', 'Qc3'])
 uptake = id.numeric('uptake')
-
+tea.data(data_path, key=id)
 tea.define_observational_study(contributor_variables=[plant], outcome_variables=[uptake])
-
-tea.assumption(type_I_error_rate=0.05)
-
-hyp_1 = (uptake, plant['Qn1'].lessThan(plant['Qc2']))
-hyp_2 = (uptake, plant['Qn2'].lessThan(plant['Qc3']))
-
-tea.hypothesis([hyp_1, hyp_2])
+tea.assume(false_positive_error_rate=0.05)
+tea.hypothesize(uptake, [plant['Qn1'].lessThan(plant['Qc2']), plant['Qn2'].lessThan(plant['Qc3'])])
 
 
 '''

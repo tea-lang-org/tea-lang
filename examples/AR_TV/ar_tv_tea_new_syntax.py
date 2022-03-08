@@ -12,8 +12,7 @@ tea.assume(false_positive_error_rate=0.01969)
 
 
 # Old Tea Syntax
-results = tea.hypothesize(['Score', 'Condition'], ['Condition:AR > TV'])
-
+# results = tea.hypothesize(['Score', 'Condition'], ['Condition:AR > TV'])
 
 # New Tea Syntax
-# results = tea.hypothesize(score, condition['AR'].greaterThan (condition['TV']))
+results = tea.hypothesize(score, [condition['AR'].greaterThan(condition['TV'])])

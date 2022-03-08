@@ -38,7 +38,7 @@ study_design = {
 }
 
 assumptions = {
-    # 'groups normally distributed': [['Sport', 'Weight']],
+    'groups normally distributed': [['Sport', 'Weight']],
     'Type I (False Positive) Error Rate': 0.05,
 }
 
