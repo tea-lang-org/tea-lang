@@ -76,6 +76,7 @@ class VarDataFactory:
         metadata = dataset.get_variable_data(expr.name)  # (dtype, categories)
         # if expr.name == 'strategy':
         #     import pdb; pdb.set_trace()
+        metadata['sample_size'] = len(dataset.data)
         metadata['var_name'] = expr.name
         metadata['query'] = ''
         return VarData(metadata)

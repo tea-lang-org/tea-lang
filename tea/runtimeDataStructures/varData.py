@@ -9,6 +9,7 @@ import attr
 @attr.s(init=True)
 class VarData(Value):
     # dataframe: Any
+    # TODO: See if sample size is in global 
     metadata = attr.ib()
     properties = attr.ib(default=dict())
     role = attr.ib(default=None)
@@ -31,7 +32,8 @@ class VarData(Value):
         return self.metadata[data_type] is DataType.ORDINAL
     
     def get_sample_size(self): 
-        return self.properties[sample_size]
+        # return self.properties[sample_size]
+        return self.metadata['sample_size']
     
     def get_number_categories(self): 
         if num_categories in self.properties: 

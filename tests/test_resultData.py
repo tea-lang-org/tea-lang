@@ -76,6 +76,7 @@ class ResultDataTests(unittest.TestCase):
         
         self.assertIsInstance(results, ResultData)
         self.assertEqual(len(results.test_to_results), 2)
+
         # Check Kendall's Tau 
         self.assertIn('kendalltau_corr', results.test_to_results.keys())
         kendalltau_corr_result = results.test_to_results['kendalltau_corr']
@@ -83,16 +84,27 @@ class ResultDataTests(unittest.TestCase):
         chart.show()
         self.assertIsNotNone(chart)
         self.assertIsInstance(chart, alt.Chart)
+        print(kendalltau_corr_result.generate_template_text())
         # TODO: Add something in here to check more about the Chart internals
         # TODO: Could also print/display in an HTML to manually verify that the Chart is correct
+
         # Check Spearman's Rho
         spearman_corr_result = results.test_to_results['spearman_corr']
         chart = spearman_corr_result.generate_visualization()
         chart.show()
         self.assertIsNotNone(chart)
         self.assertIsInstance(chart, alt.Chart)
+        print(spearman_corr_result.generate_template_text())
 
-        # TODO: Add a check/test for Pearson's correlation
+        # Check Pearson's Correlation 
+        # TODO: Modify input data so that pearson_corr is selected. Currently, only spearman and kendall are 
+        # print(results.test_to_results)
+        # pearson_corr_result = results.test_to_results['pearson_corr']
+        # chart = pearson_corr_result.generate_visualization()
+        # chart.show()
+        # self.assertIsNotNone(chart)
+        # self.assertIsInstance(chart, alt.Chart)
+        # print(pearson_corr_result.generate_template_text())
 
     def test_result_data_t_tests(self):
         raise NotImplementedError

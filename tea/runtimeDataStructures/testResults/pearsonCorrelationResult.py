@@ -5,6 +5,14 @@ from tea.ast import Relationship
 
 from typing import Any, Dict, List
 import altair as alt
+from scipy import stats
+import numpy as np
+
+# poetry run pytest tests/  run all tests 
+# poetry run pytest tests/<file name>   specific file 
+# use Python debugger (pdb): import pdb; pdb.set_trace() 
+# Create classes in files for each statistical result in runtimeDataStructures 
+    # Inherit from TestResult, implement a constructor, generate viz, generate template 
 
 class PearsonCorrelationResult(TestResult): 
     
@@ -13,8 +21,44 @@ class PearsonCorrelationResult(TestResult):
         super().__init__(name, test_statistic, p_value, prediction, alpha, dof, dataset, vars, x, y, adjusted_p_value, corrected_p_value, table, group_descriptive_statistics)
 
     def generate_template_text(self):
-        return "text"
-        raise NotImplementedError
+        x = self.dataset[self.vars[0]]
+        y = self.dataset[self.vars[1]]
+        df = len(x) - 2 # Determine degrees of freedom 
+        r_val, p_val = stats.pearsonr(x, y)
+
+        significance = "did not"
+        if p_val < 0.05:
+            significance = "did"
+
+        # Calculate confidence interval
+        # https://zhiyzuo.github.io/Pearson-Correlation-CI-in-Python/
+        r_z = np.arctanh(r_val)
+        stdev = 1/np.sqrt(len(x)-3)
+        alpha = 0.05
+        z = stats.norm.ppf(1-alpha/2)
+        ci = np.tanh((r_z-z*stdev, r_z+z*stdev))
+
+        p_string = "p = " + "{0:.3f}".format(p_val).lstrip('0')
+        if p_val < 0.001:
+            p_string = "p < .001"
+
+        r_string = "{0:.2f}".format(abs(r_val)).lstrip('0')
+        if r_val < 0:
+            r_string = "-" + r_string
+        r_string = "r(" + str(df) + ") = " + r_string
+
+        ci_1_string = "{0:.2f}".format(abs(ci[0])).lstrip('0')
+        if ci[0] < 0:
+            ci_1_string = "-" + ci_1_string 
+        ci_2_string = "{0:.2f}".format(abs(ci[1])).lstrip('0')
+        if ci[1] < 0:
+            ci_2_string = "-" + ci_2_string 
+
+        ci_string = "[" + ci_1_string + ", " + ci_2_string + "]"
+
+        return "The Pearson correlation " + significance + " detect a significant correlation between " \
+                + str(self.vars[0]) + " and " + str(self.vars[1]) + ", " + r_string +  ", " \
+                + ci_string + ", " + p_string
 
     def generate_visualization(self):
         # Visualize statistical test result using Franconceri recommendations

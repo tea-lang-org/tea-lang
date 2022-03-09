@@ -5,6 +5,8 @@ from tea.ast import Relationship
 
 from typing import Any, Dict, List
 import altair as alt
+from scipy import stats
+import numpy as np
 
 class SpearmanCorrelationResult(TestResult): 
     
@@ -13,8 +15,41 @@ class SpearmanCorrelationResult(TestResult):
         super().__init__(name, test_statistic, p_value, prediction, alpha, dof, dataset, vars, x, y, adjusted_p_value, corrected_p_value, table, group_descriptive_statistics)
 
     def generate_template_text(self):
-        return "text"
-        raise NotImplementedError
+        x = self.vars[0]
+        y = self.vars[1]
+        df = self.vars[0].get_sample_size() - 2 # Determine degrees of freedom 
+        rho, p_val = stats.spearmanr(x, y)
+
+        significance = "did not"
+        if p_val < 0.05:
+            significance = "did"
+
+        # Calculate confidence interval
+        stderr = 1.0 / np.sqrt(self.vars[0].get_sample_size() - 3)
+        delta = stderr * 1.96
+        ci = np.tanh(np.arctanh(rho) - delta), np.tanh(np.arctanh(rho) + delta)
+
+        p_string = "p = " + "{0:.3f}".format(p_val).lstrip('0')
+        if p_val < 0.001:
+            p_string = "p < .001"
+
+        r_string = "{0:.2f}".format(abs(rho)).lstrip('0')
+        if rho < 0:
+            r_string = "-" + r_string
+        r_string = "r(" + str(df) + ") = " + r_string
+
+        ci_1_string = "{0:.2f}".format(abs(ci[0])).lstrip('0')
+        if ci[0] < 0:
+            ci_1_string = "-" + ci_1_string 
+        ci_2_string = "{0:.2f}".format(abs(ci[1])).lstrip('0')
+        if ci[1] < 0:
+            ci_2_string = "-" + ci_2_string 
+
+        ci_string = "[" + ci_1_string + ", " + ci_2_string + "]"
+
+        print("The Spearman's rho correlation " + significance + " detect a significant correlation between " \
+            + str(self.vars[0]) + " and " + str(self.vars[1]) + ", " + r_string +  ", " \
+            + ci_string + ", " + p_string)
 
     def generate_visualization(self):
         # Visualize statistical test result using Franconceri recommendations
