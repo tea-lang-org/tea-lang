@@ -8,7 +8,7 @@ import altair as alt
 from scipy import stats
 import numpy as np
 
-class KendallTauCorrelationResult(TestResult): 
+class PointBiserialCorrelationResult(TestResult): 
     
     def __init__(self, name: str, test_statistic: Any, p_value: float, prediction: Relationship, alpha: float, dof: int, dataset: Dataset, vars: List[VarData], x: VarData = None, y: VarData = None, adjusted_p_value: float = None, corrected_p_value: float = None, table: Any = None, group_descriptive_statistics: Dict = None):
         assert(len(vars) == 2)
@@ -16,8 +16,7 @@ class KendallTauCorrelationResult(TestResult):
 
     def generate_template_text(self):
         p_val = self.p_value
-        tau = self.test_statistic
-        # print('HERE', self.dof) Works here but is NoneType later???
+        r_val = self.test_statistic
         self.dof = self.vars[0].get_sample_size() - 2
 
         significance = "did not"
@@ -25,18 +24,20 @@ class KendallTauCorrelationResult(TestResult):
             significance = "did"
 
         # Calculate confidence interval
-        stderr = 1.0 / np.sqrt(self.vars[0].get_sample_size() - 3)
-        delta = stderr * 1.96
-        ci = np.tanh(np.arctanh(tau) - delta), np.tanh(np.arctanh(tau) + delta)
+        r_z = np.arctanh(r_val)
+        stdev = 1/np.sqrt(self.vars[0].get_sample_size() - 3)
+        alpha = 0.05
+        z = stats.norm.ppf(1-alpha/2)
+        ci = np.tanh((r_z-z*stdev, r_z+z*stdev))
 
         p_string = "p = " + "{0:.3f}".format(p_val).lstrip('0')
         if p_val < 0.001:
             p_string = "p < .001"
 
-        t_string = "{0:.2f}".format(abs(tau)).lstrip('0')
-        if tau < 0:
-            t_string = "-" + t_string
-        t_string = "r(" + str(self.dof) + ") = " + t_string
+        r_string = "{0:.2f}".format(abs(r_val)).lstrip('0')
+        if r_val < 0:
+            r_string = "-" + r_string
+        r_string = "r(" + str(self.dof) + ") = " + r_string
 
         ci_1_string = "{0:.2f}".format(abs(ci[0])).lstrip('0')
         if ci[0] < 0:
@@ -47,9 +48,9 @@ class KendallTauCorrelationResult(TestResult):
 
         ci_string = "[" + ci_1_string + ", " + ci_2_string + "]"
 
-        return "The Kendall's Tau correlation " + significance + " detect a significant correlation between " \
-            + str(self.vars[0].get_name()) + " and " + str(self.vars[1].get_name()) + ", " + t_string +  ", " \
-            + ci_string + ", " + p_string
+        print("The Point Biserial correlation " + significance + " detect a significant correlation between " \
+                + str(self.vars[0].get_name()) + " and " + str(self.vars[1].get_name()) + ", " + r_string +  ", " \
+                + ci_string + ", " + p_string)
 
     def generate_visualization(self):
         var_0 = self.vars[0] 

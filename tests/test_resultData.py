@@ -72,6 +72,8 @@ class ResultDataTests(unittest.TestCase):
 
         results = tea.hypothesize(['Illiteracy', 'Life Exp'], [
                                 'Illiteracy ~ Life Exp'])
+
+        print('here', results)
         
         
         self.assertIsInstance(results, ResultData)
