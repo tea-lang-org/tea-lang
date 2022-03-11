@@ -109,6 +109,5 @@ venv.bak/
 
 .Rproj.user
 
-
-# mac os files
-.DS_Store
+# macOS stuff
+*.DS_Store 

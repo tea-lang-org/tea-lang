@@ -137,6 +137,10 @@ def assume(groups_normally_distributed = None, false_positive_error_rate:float=0
     global assumptions
     global MODE
 
+    if not isinstance(groups_normally_distributed, list) or \
+        not all(isinstance(x, list) for x in groups_normally_distributed):
+        raise Exception('groups normally distributed must be a list of pairs')
+
     alpha = false_positive_error_rate
     
     assumptions['alpha'] = alpha

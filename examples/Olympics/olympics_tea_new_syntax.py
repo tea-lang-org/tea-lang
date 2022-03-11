@@ -17,7 +17,7 @@ weight = id.numeric('Weight')
 
 tea.data(data_path, id)
 tea.define_observational_study(contributor_variables=[sport, sex], outcome_variables=[weight])
-tea.assume(false_positive_error_rate=0.05)
+tea.assume(groups_normally_distributed =[['Sport', 'Weight']], false_positive_error_rate=0.05)
 tea.hypothesize(weight, [sport['Wrestling'].greaterThan(sport['Swimming'])])
 tea.hypothesize(weight, [sex['F'].lessThan(sex['M'])])
 
