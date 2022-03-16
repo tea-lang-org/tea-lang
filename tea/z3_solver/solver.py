@@ -1008,28 +1008,30 @@ def assume_properties(stat_var_map, assumptions: Dict[str,str], solver, dataset,
                                 raise ValueError(f"Invalid MODE: {MODE}")
                         else: 
                             assert isinstance(var, list)
-                            stat_vars = [stat_var_map[v] for v in var]
-                            ap = prop(*stat_vars)
-                            assumed_props.append(ap)
+                            # Checks that only the assumptions pertaining to the hypothesis are checked and added
+                            if all(v in stat_var_map for v in var):
+                                stat_vars = [stat_var_map[v] for v in var]
+                                ap = prop(*stat_vars)
+                                assumed_props.append(ap)
 
-                            # CHECK ASSUMPTIONS HERE
-                            val = verify_prop(dataset, combined_data, ap)
-                            if MODE == 'strict': 
-                                tea_logger.log_debug(f"Running under STRICT mode.")
-                                if val: 
-                                    tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                # CHECK ASSUMPTIONS HERE
+                                val = verify_prop(dataset, combined_data, ap)
+                                if MODE == 'strict': 
+                                    tea_logger.log_debug(f"Running under STRICT mode.")
+                                    if val: 
+                                        tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                    else: 
+                                        tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.")
+                                    solver.add(ap.__z3__ == z3.BoolVal(val))
+                                elif MODE == 'relaxed': 
+                                    tea_logger.log_debug(f"Running under RELAXED mode.")
+                                    if val: 
+                                        tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
+                                    else: 
+                                        tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
+                                    solver.add(ap.__z3__ == z3.BoolVal(True)) # override user
                                 else: 
-                                    tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. Tea will override user assertion.")
-                                solver.add(ap.__z3__ == z3.BoolVal(val))
-                            elif MODE == 'relaxed': 
-                                tea_logger.log_debug(f"Running under RELAXED mode.")
-                                if val: 
-                                    tea_logger.log_debug(f"User asserted property: {prop.name} is supported by statistical checking. Tea agrees with the user.")
-                                else: 
-                                    tea_logger.log_debug(f"User asserted property: {prop.name}, but is NOT supported by statistical checking. User assertion will be considered true.")
-                                solver.add(ap.__z3__ == z3.BoolVal(True)) # override user
-                            else: 
-                                raise ValueError(f"Invalid MODE: {MODE}")
+                                    raise ValueError(f"Invalid MODE: {MODE}")
         else:
             pass
     return assumed_props

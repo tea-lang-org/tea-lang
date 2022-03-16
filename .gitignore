@@ -108,3 +108,6 @@ venv.bak/
 .mypy_cache/
 
 .Rproj.user
+
+# macOS stuff
+*.DS_Store
