@@ -90,6 +90,7 @@ class ResultData(Value):
     def _pretty_print(self):
         output = "\nResults:\n--------------"
         for test_name, results in self.test_to_results.items():
+            import pdb; pdb.set_trace()
             output += f"\nTest: {test_name}\n"
             test_assumptions = "None"
             if test_name in self.test_to_assumptions:

@@ -13,12 +13,17 @@ class KendallTauCorrelationResult(TestResult):
     def __init__(self, name: str, test_statistic: Any, p_value: float, prediction: Relationship, alpha: float, dof: int, dataset: Dataset, vars: List[VarData], x: VarData = None, y: VarData = None, adjusted_p_value: float = None, corrected_p_value: float = None, table: Any = None, group_descriptive_statistics: Dict = None):
         assert(len(vars) == 2)
         super().__init__(name, test_statistic, p_value, prediction, alpha, dof, dataset, vars, x, y, adjusted_p_value, corrected_p_value, table, group_descriptive_statistics)
+        self.set_dof()
+
+    def set_dof(self):
+        import pdb; pdb.set_trace()
+        self.dof = self.vars[0].get_sample_size() - 2
 
     def generate_template_text(self):
         p_val = self.p_value
         tau = self.test_statistic
-        # print('HERE', self.dof) Works here but is NoneType later???
-        self.dof = self.vars[0].get_sample_size() - 2
+
+        assert(isinstance(self.dof, int))
 
         significance = "did not"
         if p_val < 0.05:

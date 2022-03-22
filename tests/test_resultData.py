@@ -73,11 +73,10 @@ class ResultDataTests(unittest.TestCase):
         results = tea.hypothesize(['Illiteracy', 'Life Exp'], [
                                 'Illiteracy ~ Life Exp'])
 
-        print('here', results)
-        
         
         self.assertIsInstance(results, ResultData)
         self.assertEqual(len(results.test_to_results), 2)
+        import pdb; pdb.set_trace()
 
         # Check Kendall's Tau 
         self.assertIn('kendalltau_corr', results.test_to_results.keys())
@@ -87,6 +86,8 @@ class ResultDataTests(unittest.TestCase):
         self.assertIsNotNone(chart)
         self.assertIsInstance(chart, alt.Chart)
         print(kendalltau_corr_result.generate_template_text())
+        # TODO: Verification ideas:
+        # Similar class to DataForTests in test_api to check generated string 
         # TODO: Add something in here to check more about the Chart internals
         # TODO: Could also print/display in an HTML to manually verify that the Chart is correct
 
@@ -108,11 +109,11 @@ class ResultDataTests(unittest.TestCase):
         # self.assertIsInstance(chart, alt.Chart)
         # print(pearson_corr_result.generate_template_text())
 
-    def test_result_data_t_tests(self):
-        raise NotImplementedError
+    # def test_result_data_t_tests(self):
+    #     raise NotImplementedError
 
-    def test_output_builder(self): 
-        raise NotImplementedError
+    # def test_output_builder(self): 
+    #     raise NotImplementedError
 
-    def test_output_formatter(self): 
-        raise NotImplementedError
+    # def test_output_formatter(self): 
+    #     raise NotImplementedError

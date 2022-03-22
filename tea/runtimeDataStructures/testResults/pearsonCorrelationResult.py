@@ -24,7 +24,7 @@ class PearsonCorrelationResult(TestResult):
         x = self.dataset[self.vars[0]]
         y = self.dataset[self.vars[1]]
         df = len(x) - 2 # Determine degrees of freedom 
-        r_val, p_val = stats.pearsonr(x, y)
+        r_val, p_val = stats.pearsonr(x, y) # NO dont do this; see kendallTauCorrelation
 
         significance = "did not"
         if p_val < 0.05:
