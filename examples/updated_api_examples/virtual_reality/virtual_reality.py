@@ -17,6 +17,6 @@ tea.data(data_path, key=id)
 tea.define_experiment([emotion, agency], [condition, presence])
 
 
-# h1 = tea.hypothesize() # The intensity of the dominant emotion in each VE (Inten-sity) will correlate positively with Presence.
-h2 = tea.hypothesize(presence, [agency['Y'].greaterThan(agency['N'])])
+h1 = tea.hypothesize([emotion, presence], [emotion.linearRelationship(presence)]) # The intensity of the dominant emotion in each VE (Inten-sity) will correlate positively with Presence.
+h2 = tea.hypothesize([presence, agency], [agency['Y'].greaterThan(agency['N'])])
 # h3 = tea.hypothesize()

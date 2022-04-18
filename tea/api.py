@@ -161,7 +161,7 @@ def assume(groups_normally_distributed = None, false_positive_error_rate:float=0
 
 
 def hypothesize(vars:list, predictions: list):
-    vars_names = set(x.name for x in vars)
+    vars_names = list(x.name for x in vars)
     return __hypothesize(vars_names, predictions)
     
 
