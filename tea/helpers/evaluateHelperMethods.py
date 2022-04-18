@@ -1572,6 +1572,7 @@ def execute_test(dataset, design, predictions, combined_data: CombinedData, test
     if test_func is rm_one_way_anova:
         stat_result = test_func(dataset, predictions, design, combined_data)
     else:
+        print(combined_data)
         stat_result = test_func(dataset, predictions, combined_data)
 
     # Calculate the effect size

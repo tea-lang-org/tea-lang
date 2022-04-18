@@ -160,12 +160,9 @@ def assume(groups_normally_distributed = None, false_positive_error_rate:float=0
         tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
 
-def hypothesize(var, predictions: list):
-    vars = set()
-    vars.add(var.name)
-    for pred in predictions:
-        vars.add(pred.split(':')[0])
-    return __hypothesize(list(vars), predictions)
+def hypothesize(vars:list, predictions: list):
+    vars_names = set(x.name for x in vars)
+    return __hypothesize(vars_names, predictions)
     
 
 def __hypothesize(vars: list, prediction: list = None):

@@ -46,7 +46,7 @@ tea.assume(assumptions)
 tea.hypothesize(['drug', 'wedsBDI'], ['drug:Ecstasy > Alcohol'])
 tea.hypothesize(['sundayBDI', 'BDIchange'], ['sundayBDI ~ BDIchange'])
 
-'''
+'''1
 Results:
 --------------
 Test: pointbiserial_corr_a

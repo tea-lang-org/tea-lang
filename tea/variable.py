@@ -14,7 +14,10 @@ class Comparison():
     
     def __compare_helper(self, other, comparator):
         assert type(self) == type(other)
-        return str(self.name) + ':' + str(self.items.pop(0)) + comparator  + str(self.items.pop(0))
+        if hasattr(self, 'items'):
+            return str(self.name) + ':' + str(self.items.pop(0)) + comparator  + str(self.items.pop(0))
+        else:
+            return str(self.name) + comparator + str(other.name)
 
     def greaterThan(self, other):
         return self.__compare_helper(other, ' > ')
