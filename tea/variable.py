@@ -21,6 +21,9 @@ class Comparison():
 
     def lessThan(self, other):
         return self.__compare_helper(other, ' < ')
+    
+    def linearRelationship(self, other):
+        return self.__compare_helper(other, ' ~ ')
 
 class Nominal(tsvars.Nominal, Comparison):
     def __init__(self, name: str, categories:list, data=None, **kwargs):
