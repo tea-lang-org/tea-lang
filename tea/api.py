@@ -62,7 +62,7 @@ def data(file, key=None):
     # Require that the path to the data must be a string or a Path object
     assert isinstance(file, (str, Path, pd.DataFrame))
     dataset_path = file
-    dataset_id = key.name
+    dataset_id = key.name if key is not None else None
 
 
 def define_variables(vars: Dict[str, str]):
@@ -92,20 +92,26 @@ def define_variables(vars: Dict[str, str]):
         vars_objs.append(v_obj)
 
 
-def __define_study(study_type, ivs_name, ivs, dvs_name, dvs):
-    global study_design
-    study_design = dict()
-    study_design['study type'] = study_type
-    study_design[ivs_name] = [var.name for var in ivs]
-    study_design[dvs_name] = [var.name for var in dvs]
+def __define_study(study_type, ivs_name, ivs, dvs_name, dvs, btw_subjs_lst, within_subjs_lst):
+    study_dict = dict()
+    study_dict['study type'] = study_type
+    study_dict[ivs_name] = [var.name for var in ivs]
+    study_dict[dvs_name] = [var.name for var in dvs]
+    if btw_subjs_lst is not None:
+        study_dict[btw_subj] = [subj.name for subj in btw_subjs_lst]
+    if within_subjs_lst is not None:
+        study_dict[within_subj] = [subj.name for subj in within_subjs_lst]
+    __define_study_design(study_dict)
 
-def define_experiment(independent_variables:list, dependent_variables: list):
-    __define_study('experiment', 'independent variables', independent_variables, 'dependent variables', dependent_variables)
 
-def define_observational_study(contributor_variables:list, outcome_variables: list):
-    __define_study('observational study', 'contributor variables', contributor_variables, 'outcome variables', outcome_variables)
+def define_experiment(independent_variables:list, dependent_variables: list, between_subjects: list = None, within_subjects: list = None):
+    __define_study('experiment', 'independent variables', independent_variables, 'dependent variables', dependent_variables, between_subjects, within_subjects)
 
-def define_study_design(design: Dict[str, str]):
+def define_observational_study(contributor_variables:list, outcome_variables: list, between_subjects: list = None, within_subjects: list = None):
+    __define_study('observational study', 'contributor variables', contributor_variables, 'outcome variables', outcome_variables, between_subjects, within_subjects)
+
+
+def __define_study_design(design: Dict[str, str]):
     global study_design, dataset_id, uid, alpha
     global btw_subj, within_subj
 
@@ -131,7 +137,7 @@ Parameters
 -----------
 false_postive_error_rate: alpha level
 '''
-def assume(groups_normally_distributed = None, false_positive_error_rate:float=0.05, mode=None):
+def assume(groups_normally_distributed:list = None, false_positive_error_rate:float=0.05, mode=None, equal_variance:list = None):
     tea_logger = TeaLogger.get_logger()
     global alpha
     global assumptions
@@ -142,11 +148,15 @@ def assume(groups_normally_distributed = None, false_positive_error_rate:float=0
         not all(isinstance(x, list) for x in groups_normally_distributed)):
         raise Exception('groups normally distributed must be a list of pairs')
 
-    alpha = false_positive_error_rate
-    
-    assumptions['alpha'] = alpha
     if groups_normally_distributed != None:
-        assumptions['groups normally distributed'] = groups_normally_distributed
+        assumptions['groups normally distributed'] = []
+        for group in groups_normally_distributed:
+            assumptions['groups normally distributed'].append(list(x.name for x in group))
+    
+    assumptions[alpha_keywords[1]] = false_positive_error_rate
+
+    if equal_variance is not None:
+        assumptions['equal variance'] = equal_variance
 
     if mode and mode == 'relaxed':
         MODE = mode
@@ -160,7 +170,7 @@ def assume(groups_normally_distributed = None, false_positive_error_rate:float=0
         tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
 
-def hypothesize(vars:list, predictions: list):
+def hypothesize(vars:list, predictions: list = None):
     vars_names = list(x.name for x in vars)
     return __hypothesize(vars_names, predictions)
     

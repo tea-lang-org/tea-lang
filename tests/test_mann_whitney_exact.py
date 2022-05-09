@@ -13,29 +13,35 @@ TeaLogger.initialize_logger(configuration)
 def test_mann_whitney_0():
     tea.data('./tests/data/real_stats_3.csv')
 
-    variables = [
-        {
-            'name': 'Treatment',
-            'data type': 'nominal',
-            'categories': ['Control', 'Drug']
-        },
-        {
-            'name': 'Score',
-            'data type': 'ratio'
-        }
-    ]
-    experimental_design = {
-        'study type': 'experiment',
-        'independent variables': 'Treatment',
-        'dependent variables': 'Score'
-    }
-    assumptions = {
-        'Type I (False Positive) Error Rate': 0.05
-    }
+    # variables = [
+    #     {
+    #         'name': 'Treatment',
+    #         'data type': 'nominal',
+    #         'categories': ['Control', 'Drug']
+    #     },
+    #     {
+    #         'name': 'Score',
+    #         'data type': 'ratio'
+    #     }
+    # ]
+    # experimental_design = {
+    #     'study type': 'experiment',
+    #     'independent variables': 'Treatment',
+    #     'dependent variables': 'Score'
+    # }
+    # assumptions = {
+    #     'Type I (False Positive) Error Rate': 0.05
+    # }
 
+    treatment = tea.Nominal('Treatment', categories=['Control', 'Drug'])
+    score = tea.Numeric('Score')
+    tea.define_experiment([treatment], [score])
+    tea.assume(false_positive_error_rate=0.05)
 
-    tea.define_variables(variables)
-    # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
-    tea.define_study_design(experimental_design)
-    tea.assume(assumptions)
-    tea.hypothesize(['Treatment', 'Score'], ['Treatment:Control != Drug'])
+    # tea.define_variables(variables)
+    # # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
+    # tea.define_study_design(experimental_design)
+    # tea.assume(assumptions)
+    # tea.hypothesize(['Treatment', 'Score'], ['Treatment:Control != Drug'])
+
+    tea.hypothesize([treatment, score], [treatment['Control'].notEquals(treatment['Drug'])])
