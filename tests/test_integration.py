@@ -273,10 +273,9 @@ def test_pointbiserial_corr():
     # tea.define_study_design(experimental_design)
     # tea.assume(assumptions)
 
-    unit = tea.Unit()
-    time = unit.numeric('time')
-    gender = unit.nominal('gender', categories=[0, 1])
-    recode = unit.nominal('recode', categories=[0,1])
+    time = tea.Numeric('time')
+    gender = tea.Nominal('gender', categories=[0, 1])
+    recode = tea.Nominal('recode', categories=[0,1])
 
     tea.data(data_path)
     tea.define_observational_study([gender, recode], [time])
