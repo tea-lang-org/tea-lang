@@ -1,8 +1,9 @@
 from tea.ast import DataType
 import tea.api
-from tea.api import define_variables
+from tea.api import define_variables, hypothesize
 import unittest
 from importlib import reload
+from tea.variable import Ratio, Nominal, Ordinal, Interval
 
 
 class ApiTests(unittest.TestCase):
@@ -11,7 +12,11 @@ class ApiTests(unittest.TestCase):
         reload(tea.api)
 
     def test_define_variables_should_give_correct_length(self):
-        define_variables(DataForTests.variables_to_define)
+        RatioT = Ratio('ratioT')
+        NominalT = Nominal('nominalT', ['Nominal0'])
+        OrdinalT = Ordinal('OrdinalT', ['Ordinal1', 'Ordinal2', 'Ordinal3'])
+        IntervalT = Interval('IntervalT')
+        hypothesize([RatioT, NominalT, OrdinalT, IntervalT])
 
         # ASSERT
         from tea.api import vars_objs as vars_to_test
@@ -21,20 +26,30 @@ class ApiTests(unittest.TestCase):
         from tea.api import vars_objs as vars_to_test
         self.assertEqual(len(vars_to_test), 0)
 
+    # Define variables using new api/syntax. Call hypothesis, then check var_objs
     def test_define_variables_should_have_correct_names(self):
         expected_names = ['NominalT', 'IntervalT', 'OrdinalT', 'RatioT']
 
         # ACT
-        define_variables(DataForTests.variables_to_define)
+        RatioT = Ratio('ratioT')
+        NominalT = Nominal('nominalT', ['Nominal0'])
+        OrdinalT = Ordinal('OrdinalT', ['Ordinal1', 'Ordinal2', 'Ordinal3'])
+        IntervalT = Interval('IntervalT')
+        hypothesize([RatioT, NominalT, OrdinalT, IntervalT])
         from tea.api import vars_objs as vars_to_test
         real_names = [var.name for var in vars_to_test]
 
         # ASSERT
         self.assertCountEqual(real_names, expected_names)
 
+    # Define variables using new api/syntax. Call hypothesis, then check var_objs
     def test_define_variables_should_have_correct_types(self):
 
-        define_variables(DataForTests.variables_to_define)
+        RatioT = Ratio('ratioT')
+        NominalT = Nominal('nominalT', ['Nominal0'])
+        OrdinalT = Ordinal('OrdinalT', ['Ordinal1', 'Ordinal2', 'Ordinal3'])
+        IntervalT = Interval('IntervalT')
+        hypothesize([RatioT, NominalT, OrdinalT, IntervalT])
         from tea.api import vars_objs as vars_to_test
         sorted_vars = sorted(vars_to_test, key=lambda x: x.name)
 

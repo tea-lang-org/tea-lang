@@ -10,4 +10,4 @@ from tea.api import (
                     divine_properties
                 )
 
-from tea.variable import Unit, Nominal, Ordinal, Numeric, Interval
+from tea.variable import Unit, Nominal, Ordinal, Ratio, Interval

@@ -68,12 +68,12 @@ def test_wilcoxon_signed_rank_0():
 
     person = tea.Unit('Person')
     side = person.nominal('Side', ['Right', 'Left'])
-    score = person.numeric('Score')
+    score = person.ratio('Score')
     
     tea.data('./tests/data/real_stats_0.csv', key=person)
     tea.define_experiment([side], [score], within_subjects=[side])
     tea.assume(false_positive_error_rate=0.05)
-    
+     
     # tea.define_variables(variables)
     # # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     # tea.define_study_design(experimental_design)
@@ -112,9 +112,9 @@ def test_wilcoxon_signed_rank_1():
     #     'Type I (False Positive) Error Rate': 0.05
     # }
 
-    subject = tea.Numeric('Subject')
+    subject = tea.Ratio('Subject')
     source = tea.Nominal('Source', ['Memory', 'Median'])
-    score = tea.Numeric('Score')
+    score = tea.Ratio('Score')
 
     tea.define_experiment([source], [score], within_subjects=[source])
     tea.assume(false_positive_error_rate=0.05)
@@ -159,7 +159,7 @@ def test_wilcoxon_signed_rank_2():
 
     couple = tea.Unit('Couple')
     person = couple.nominal('Person', ['Wife', 'Husband'])
-    score = couple.numeric('Score')
+    score = couple.ratio('Score')
 
 
     tea.data('./tests/data/real_stats_2.csv', key=couple)

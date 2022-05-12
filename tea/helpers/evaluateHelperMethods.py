@@ -559,8 +559,28 @@ def mann_whitney_exact(group0, group1, alternative):
         assert(len(freq) == len(prob) == len(cum_prob))
         
         # Get test statistic and p-value
+        print(smaller_arr)
         u_statistic = np.sum(smaller_arr)
-        p_value = cum_prob[u_statistic]
+
+        '''
+            *Assumption*: ranks, as reffered to by the rank() funciton @456, are integers
+
+            u_statistic comes from smaller_arr
+            smaller_arr is declared on line 501, where smaller_arr = arr0
+            arr_0 is derived from the array split_ranks
+            split_ranks comes from the array combined_ranks
+            combined_ranks is the return value of the function rank on line 456
+            From the rank function comments -  @returns a list containing the ranks of each elt (zero-indexed)
+            since ranks are all whole numbers, we know the sum of combined_ranks will be all whole numbers
+            Now, split_ranks comes by splitting combined rank into smaller sub arrays, thus the sum is still an integer
+            arr0 and arr1 are twoe of the sub array from split_ranks, so sum of these two arrays is an integer
+            smaller_arr is set to either arr0 or arr1
+            Thus, smaller_arr sum must also be an integer
+            u_statistic is the sum of smaller_arr
+            It follows, u_statistic must be an integer
+            Thus, it is safe to cast u_statistic to an int
+        '''
+        p_value = cum_prob[int(u_statistic)]
 
         if alternative == "two-sided":
             p_value *= 2

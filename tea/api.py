@@ -1,3 +1,4 @@
+from numpy import isin
 from tea.logging.tea_logger import TeaLogger
 from tea.helpers.study_type_determiner import StudyTypeDeterminer
 import pandas as pd
@@ -18,8 +19,10 @@ import tea.runtimeDataStructures
 import tea.z3_solver
 from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.z3_solver.solver import set_mode
+from tisane.variable import Measure
+from tea.variable import Nominal, Ordinal, Ratio, Interval, Unit
 
-from typing import Dict
+from typing import Dict, List
 from .global_vals import *
 from pathlib import Path
 
@@ -65,28 +68,26 @@ def data(file, key=None):
     dataset_id = key.name if key is not None else None
 
 
-def define_variables(vars: Dict[str, str]):
+def define_variables(vars: List[Measure]):
     global vars_objs
 
-    # reset the variables
-    vars_objs = []
-
+    vars_objs = list()
     for var in vars:
-        name = var['name']
-        if (var[var_dtype] == 'nominal'):
-            categories = var[var_categories]
+        name = var.name
+        if (isinstance(var, Nominal)):
+            categories = var.categories
             v_obj = nominal(name, categories)
-        elif (var[var_dtype] == 'ordinal'):
-            categories = var[var_categories]
+        elif (isinstance(var, Ordinal)):
+            categories = var.ordered_cat
             v_obj = ordinal(name, categories)
-        elif (var[var_dtype] == 'interval'):
+        elif (isinstance(var, Interval)):
             drange = None
-            if var_drange in var:
+            if var.range is not None:
                 drange = var[var_drange]
             v_obj = interval(name, drange)
         else:
-            assert (var[var_dtype] == 'ratio')
-            drange = var[var_drange] if var_drange in var else None
+            assert (isinstance(var, Ratio) or isinstance(var, Unit))
+            drange = var.range if var.range is not None else None
             v_obj = ratio(name, drange)
 
         vars_objs.append(v_obj)
@@ -170,7 +171,8 @@ def assume(groups_normally_distributed:list = None, false_positive_error_rate:fl
         tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
 
-def hypothesize(vars:list, predictions: list = None):
+def hypothesize(vars:List[Measure], predictions: list = None):
+    define_variables(vars=vars) # define variables globally by setting vars_objs
     vars_names = list(x.name for x in vars)
     return __hypothesize(vars_names, predictions)
     

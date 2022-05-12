@@ -37,17 +37,17 @@ def test_pearson_corr():
     # data_path2 = get_data_path('statex87.csv')
 
     # Declare and annotate the variables of interest
-    # variables = [
-    #     {
-    #         'name': 'Illiteracy',
-    #         'data type': 'interval',
-    #         'categories': [0, 100]
-    #     },
-    #     {
-    #         'name': 'Life Exp',
-    #         'data type': 'ratio',
-    #     }
-    # ]
+    variables = [
+        {
+            'name': 'Illiteracy',
+            'data type': 'interval',
+            'categories': [0, 100]
+        },
+        {
+            'name': 'Life Exp',
+            'data type': 'ratio',
+        }
+    ]
     # experimental_design = {
     #     'study type': 'observational study',
     #     'contributor variables': ['Illiteracy', 'Life Exp'],
@@ -60,7 +60,7 @@ def test_pearson_corr():
 
     # tea.data(data_path)
     # # tea.data(data_path2)
-    # tea.define_variables(variables)
+    
     # # Allows for using multiple study designs for the same dataset (could lead to phishing but also practical for saving analyses and reusing as many parts of analyses as possible)
     # tea.define_study_design(experimental_design)
     # tea.assume(assumptions, 'strict')
@@ -72,7 +72,9 @@ def test_pearson_corr():
 
     state = tea.Unit("")
     illiteracy = state.interval('Illiteracy', [0, 100])
-    life_exp = state.numeric('Life Exp')
+    life_exp = state.ratio('Life Exp')
+
+    # tea.define_variables(variables)
 
     tea.data(data_path, key=state)
     tea.define_observational_study([illiteracy, life_exp], [])
@@ -117,10 +119,10 @@ def test_pearson_corr_2():
     # }
 
     s_no = tea.Unit("")
-    exam = s_no.numeric('Exam', range=[0, 100])
+    exam = s_no.ratio('Exam', range=[0, 100])
     anxiety = s_no.interval('Anxiety', range=[0, 100])
     gender = s_no.nominal('Gender', categories=['Male', 'Female'])
-    revise = s_no.numeric('Revise')
+    revise = s_no.ratio('Revise')
 
     tea.data(data_path, key=s_no)
     tea.define_observational_study([anxiety, gender, revise], [exam])
@@ -273,7 +275,7 @@ def test_pointbiserial_corr():
     # tea.define_study_design(experimental_design)
     # tea.assume(assumptions)
 
-    time = tea.Numeric('time')
+    time = tea.Ratio('time')
     gender = tea.Nominal('gender', categories=[0, 1])
     recode = tea.Nominal('recode', categories=[0,1])
 
@@ -320,7 +322,7 @@ def test_indep_t_test():
     # }
 
     so = tea.Nominal('So', [0,1])
-    prob = tea.Numeric('Prob', range=[0,1])
+    prob = tea.Ratio('Prob', range=[0,1])
     
     tea.define_observational_study([so], [prob])
     tea.assume(groups_normally_distributed=[[prob, so]], false_positive_error_rate=0.05)
@@ -372,7 +374,7 @@ def test_paired_t_test():
     # tea.hypothesize(['Group', 'Anxiety'], ['Group:Real Spider > Picture'])
 
     group = tea.Nominal('Group', categories=['Picture', 'Real Spider'])
-    anxiety = tea.Numeric('Anxiety')
+    anxiety = tea.Ratio('Anxiety')
     tea.define_experiment([group], [anxiety], within_subjects=[group])
     
     tea.data(data_path)
@@ -423,7 +425,7 @@ def test_wilcoxon_signed_rank():
 
     drug = tea.Nominal('drug', ['Alcohol'])
     day = tea.Nominal('day', ['sundayBDI', 'wedsBDI'])
-    value = tea.Numeric('value')
+    value = tea.Ratio('value')
 
     tea.define_experiment(independent_variables=[day], dependent_variables=[value], within_subjects=[day])
     tea.assume(false_positive_error_rate=0.05)
@@ -465,7 +467,7 @@ def test_f_test():
 
     # Declare Variables
     trt = tea.Nominal('trt', ['1time', '2times', '4times', 'drugD', 'drugE'])
-    response = tea.Numeric('response')
+    response = tea.Ratio('response')
 
     tea.define_experiment([trt], [response], [trt])
     tea.assume(false_positive_error_rate=0.05)
