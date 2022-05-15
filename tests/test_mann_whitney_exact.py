@@ -34,7 +34,7 @@ def test_mann_whitney_0():
     # }
 
     treatment = tea.Nominal('Treatment', categories=['Control', 'Drug'])
-    score = tea.Numeric('Score')
+    score = tea.Ratio('Score')
     tea.define_experiment([treatment], [score])
     tea.assume(false_positive_error_rate=0.05)
 
