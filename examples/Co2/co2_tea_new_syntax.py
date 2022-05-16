@@ -5,7 +5,7 @@ data_path = "./co2.csv"
 df = pd.read_csv(data_path)
 id = tea.Unit('id')
 plant = id.nominal('Plant', categories=['Qn1', 'Qn2', 'Qn3', 'Qc1', 'Qc2', 'Qc3'])
-uptake = id.numeric('uptake')
+uptake = id.ratio('uptake')
 tea.data(data_path, key=id)
 tea.define_observational_study(contributor_variables=[plant], outcome_variables=[uptake])
 tea.assume(false_positive_error_rate=0.05)

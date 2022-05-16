@@ -9,9 +9,9 @@ data_path = './vr_data.csv' # CSV with headers
 
 id = tea.Unit('ID');
 condition = id.nominal('Condition', categories=['FA', 'FNA', 'HA', 'HNA'])
-emotion = id.numeric('Emotion')
+emotion = id.ratio('Emotion')
 agency = id.nominal('Agency', categories=['Y', 'N'])
-presence = id.numeric('Presence')
+presence = id.ratio('Presence')
 
 tea.data(data_path, key=id)
 tea.define_experiment([emotion, agency], [condition, presence])

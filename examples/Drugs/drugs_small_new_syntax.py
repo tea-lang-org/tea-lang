@@ -12,9 +12,9 @@ df = pd.DataFrame(d)
 
 id = tea.Unit('id')
 drug = id.nominal('drug', categories=['Ecstasy', 'Alcohol'])
-sundayBDI = id.numeric('sundayBDI')
-wedsBDI = id.numeric('wedsBDI')
-BDIchange = id.numeric('BDIchange')
+sundayBDI = id.ratio('sundayBDI')
+wedsBDI = id.ratio('wedsBDI')
+BDIchange = id.ratio('BDIchange')
 
 tea.data(df, id)
 

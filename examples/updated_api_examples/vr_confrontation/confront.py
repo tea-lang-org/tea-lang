@@ -4,10 +4,10 @@ data = './vr_confront_data.csv'
 
 id = tea.Unit('id')
 type = id.nominal('type', categories=['VR', '2D'])
-pre = id.numeric('pre_anxiety')
-post = id.numeric('post_anxiety')
-elevation = id.numeric('elevation')
-space = id.numeric('space')
+pre = id.ratio('pre_anxiety')
+post = id.ratio('post_anxiety')
+elevation = id.ratio('elevation')
+space = id.ratio('space')
 
 tea.data(data, key=id)
 tea.define_experiment([type], [pre, post, elevation, space])

@@ -13,7 +13,7 @@ df = pd.read_csv(data_path)
 id = tea.Unit('ID')
 sport = id.nominal('Sport', categories=['Swimming', 'Wrestling'])
 sex = id.nominal('Sex', categories=['M', 'F'])
-weight = id.numeric('Weight')
+weight = id.ratio('Weight')
 
 tea.data(data_path, id)
 tea.define_observational_study(contributor_variables=[sport, sex], outcome_variables=[weight])
