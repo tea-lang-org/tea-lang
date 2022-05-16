@@ -60,6 +60,15 @@ def download_data(url, file_name):
 
 # @sets global dataset_path and dataaset_obj (of type Dataset)
 def data(file, key=None):
+    """
+    Sets the data to read to the given file or data frime
+
+    Parameters
+    --------------
+    - file: Specifies the location of data.
+          Can be a string specifying the path to a csv file, a Path object, or a Pandas DataFrame
+    - key: optional, the Key value in the given data
+    """
     global dataset_path, dataset_obj, dataset_id
 
     # Require that the path to the data must be a string or a Path object
@@ -68,7 +77,7 @@ def data(file, key=None):
     dataset_id = key.name if key is not None else None
 
 
-def define_variables(vars: List[Measure]):
+def __define_variables(vars: List[Measure]):
     global vars_objs
 
     vars_objs = list()
@@ -106,9 +115,29 @@ def __define_study(study_type, ivs_name, ivs, dvs_name, dvs, btw_subjs_lst, with
 
 
 def define_experiment(independent_variables:list, dependent_variables: list, between_subjects: list = None, within_subjects: list = None):
+    """
+        Defines an experiment type study
+
+        Parameters
+        ------------
+        - independent_variables: list of independent variables in experiment
+        - dependent_variables: list of dependent variables in experiment
+        - between_subjects: optional, list of pairs of variables that describes a between subjects relationship for all variables in a given pair
+        - within_subjects : optional, list of pairs of variables that describes a within subjects relationship for all variables in a given pair
+    """
     __define_study('experiment', 'independent variables', independent_variables, 'dependent variables', dependent_variables, between_subjects, within_subjects)
 
 def define_observational_study(contributor_variables:list, outcome_variables: list, between_subjects: list = None, within_subjects: list = None):
+    """
+        Defines an observational study
+
+        Parameters
+        ------------
+        - contributor_variables : list of contributor variables in experiment
+        - outcome_variables: list of outcome variables in experiment
+        - between_subjects: optional, list of pairs of variables that describes a between subjects relationship for all variables in a given pair
+        - within_subjects : optional, list of pairs of variables that describes a within subjects relationship for all variables in a given pair
+    """
     __define_study('observational study', 'contributor variables', contributor_variables, 'outcome variables', outcome_variables, between_subjects, within_subjects)
 
 
@@ -138,7 +167,17 @@ Parameters
 -----------
 false_postive_error_rate: alpha level
 '''
-def assume(groups_normally_distributed:list = None, false_positive_error_rate:float=0.05, mode=None, equal_variance:list = None):
+def assume(groups_normally_distributed:list = None, false_positive_error_rate:float=0.05, mode='strict', equal_variance:list = None):
+    """
+        Sets the assumptions to make during Tea analysis
+
+        Parameters
+        ----------------
+         - groups_normally_distributed: list, optional. List of pairs where variables in the same pair are normally distributed
+         - false_positive_error_rate: default = 0.05, optional. False positive error rate to assume. Also known as the alpha level
+         - mode: default = 'strict'. The mode to run tea analysis in. By default, Tea runs under STRICT mode. set mode to "relaxed" to change this 
+         - equal_variance: list, optional. List of pairs where variables in the same pair have equal variance
+    """
     tea_logger = TeaLogger.get_logger()
     global alpha
     global assumptions
@@ -172,7 +211,15 @@ def assume(groups_normally_distributed:list = None, false_positive_error_rate:fl
 
 
 def hypothesize(vars:List[Measure], predictions: list = None):
-    define_variables(vars=vars) # define variables globally by setting vars_objs
+    """
+        Hypotheses to analyze during tea analysis
+
+        Parameters
+        ------------
+        - vars: List of variables that are mentioned in the predictions
+        - predictions: List of predictions to analyse 
+    """
+    __define_variables(vars=vars) # define variables globally by setting vars_objs
     vars_names = list(x.name for x in vars)
     return __hypothesize(vars_names, predictions)
     
