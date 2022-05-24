@@ -150,9 +150,10 @@ def hypothesize(vars: list, prediction: list = None):
     global MODE
 
     if isinstance(dataset_path, (str, Path)):
-        assert (dataset_path)
+        assert (dataset_path) # assert not an empty string
     elif isinstance(dataset_path, pd.DataFrame):
-        assert not dataset_path.empty
+        # assert not dataset_path.empty
+        pass
     else:
         raise ValueError(f"dataset_path must be DataFrame, str, or Path. Not: {type(dataset_path)}")
     assert (vars_objs)
