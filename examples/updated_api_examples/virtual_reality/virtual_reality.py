@@ -14,9 +14,10 @@ agency = id.nominal('Agency', categories=['Y', 'N'])
 presence = id.ratio('Presence')
 
 tea.data(data_path, key=id)
+tea.assume(false_positive_error_rate=0.05)
 tea.define_experiment([emotion, agency], [condition, presence])
 
 
-h1 = tea.hypothesize([emotion, presence], [emotion.linearRelationship(presence)]) # The intensity of the dominant emotion in each VE (Inten-sity) will correlate positively with Presence.
+# h1 = tea.hypothesize([emotion, presence], [emotion.linearRelationship(presence)]) # The intensity of the dominant emotion in each VE (Inten-sity) will correlate positively with Presence.
 h2 = tea.hypothesize([presence, agency], [agency['Y'].greaterThan(agency['N'])])
 # h3 = tea.hypothesize()

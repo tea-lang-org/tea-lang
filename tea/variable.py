@@ -1,5 +1,6 @@
 import tisane.variable as tsvars
 from tisane.variable import AbstractVariable, AtMost
+import tea.build as build
 from tea.build import interval, nominal, ordinal, ratio
 from .global_vals import *
 import typing
@@ -133,12 +134,20 @@ class Unit(tsvars.Unit):
 
         Parameters
         ---------------
-        name: Name of the unit value, as found in data
-        
+        - name: Name of the unit value, as found in data
+        - type: str: Type of unit. One of 'ratio', 'nominal', 'ordinal' or 'interval'.
     """
-    def __init__(self, name: str, data=None, cardinality: int = None, **kwargs):
-        super().__init__(name, data, cardinality, **kwargs)
-        v_obj = ratio(name, None)
+
+    '''
+        TODO: Remove type's default argument. 
+    '''
+    def __init__(self, name: str, type: str = 'ratio' , **kwargs):
+        type = type.lower()
+        if type not in ['ratio', 'nominal', 'ordinal', 'interval']:
+            raise ValueError('Unit\'s type parameter must be one of \'ratio\', \'nominal\', \'ordinal\' or \'interval\'')
+        # Setting data and cardinality parameters to Non
+        super().__init__(name, None, None, **kwargs)
+        v_obj = getattr(build, type)(name)
     
     def nominal(
         self, 

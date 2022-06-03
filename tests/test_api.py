@@ -1,6 +1,6 @@
 from tea.ast import DataType
 import tea.api
-from tea.api import define_variables, hypothesize
+from tea.api import hypothesize
 import unittest
 from importlib import reload
 from tea.variable import Ratio, Nominal, Ordinal, Interval

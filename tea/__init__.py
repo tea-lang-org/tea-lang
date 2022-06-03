@@ -1,7 +1,6 @@
 from tea.api import (
                     data,
                     define_experiment, 
-                    define_variables, 
                     define_experiment,
                     define_observational_study,
                     assume,
