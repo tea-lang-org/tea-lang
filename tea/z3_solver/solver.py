@@ -1073,7 +1073,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     solver = z3.Solver()
     # s = Tactic('qflia').solver()
     assumed_props = assume_properties(stat_var_map, assumptions, solver, dataset, combined_data)
-    # import pdb; pdb.set_trace()
 
     # Update the arity of test-level properties
     for prop in test_props: 
@@ -1091,7 +1090,6 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
     for test in all_tests():
         tea_logger.log_debug(f"\nCurrently considering {test.name}")
         solver.add(test.__z3__ == z3.And(*test.query()))
-        # import pdb; pdb.set_trace()
         solver.add(test.__z3__ == z3.BoolVal(True))
 
         # Check the model 
@@ -1122,25 +1120,25 @@ def synthesize_tests(dataset: Dataset, assumptions: Dict[str,str], combined_data
                         tea_logger.log_debug(f"Testing assumption: {prop._name}.")
                     
                         # Does this property need to hold for the test to be valid?
-                        # If so, verify that the property does hold
-                        if model and z3.is_true(model.evaluate(prop.__z3__)):
-                            val = verify_prop(dataset, combined_data, prop)
-                            if val: 
-                                tea_logger.log_debug(f"Property holds.")
-                            else: # The property does not verify
-                                assert (val == False)
-                                tea_logger.log_debug(f"Property FAILS")
-                                # if not test_invalid: 
-                                solver.pop() # remove the last test
-                                test_invalid = True
-                                model = None
-                                # else: # test is already invalid. Going here just for completeness of logging
-                                #     tea_logger.log_debug(f"EVER GET HERE?")
-                            solver.add(prop.__z3__ == z3.BoolVal(val))
+                        # Is there data to evaluate properties?
+                        if not dataset.data.empty: 
+                            # If so, verify that the property does hold
+                            if model and z3.is_true(model.evaluate(prop.__z3__)):
+                                val = verify_prop(dataset, combined_data, prop)
+                                if val: 
+                                    tea_logger.log_debug(f"Property holds.")
+                                else: # The property does not verify
+                                    assert (val == False)
+                                    tea_logger.log_debug(f"Property FAILS")
+                                    # if not test_invalid: 
+                                    solver.pop() # remove the last test
+                                    test_invalid = True
+                                    model = None
+                                    # else: # test is already invalid. Going here just for completeness of logging
+                                    #     tea_logger.log_debug(f"EVER GET HERE?")
+                                solver.add(prop.__z3__ == z3.BoolVal(val))
         solver.push() # Push latest state as backtracking point
 
-
-        
         
     solver.check()
     model = solver.model() # final model

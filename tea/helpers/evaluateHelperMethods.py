@@ -234,8 +234,6 @@ def compute_combined_data_properties(dataset, combined_data: CombinedData, study
 NormalTest = namedtuple('NormalTest', ('W', 'p_value'))
 
 def compute_normal_distribution(data):
-    # norm_test = stats.normaltest(data, axis=0)
-    # return (norm_test[0], norm_test[1])
     w, p_value = stats.shapiro(data)
     return NormalTest(w, p_value)
     # TODO: may want to compute/find the best distribution if not normal
@@ -637,8 +635,12 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
             t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
             # changed to less to comply with new Scipy argument
+<<<<<<< HEAD
             t_stat, p_val = stats.mannwhitneyu(
                 data[0], data[1], alternative="less")
+=======
+            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="less")
+>>>>>>> origin/master
         else: 
             t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
 

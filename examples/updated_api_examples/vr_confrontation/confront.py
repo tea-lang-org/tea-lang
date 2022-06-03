@@ -15,4 +15,4 @@ tea.assume(false_positive_error_rate=0.05)
 
 h1 = tea.hypothesize([type, elevation], [type['VR'].linearRelationship(type['2D'])])
 
-# h2 = tea.hypothesize([type, space], [type['VR'].greaterThan(type['2D'])])
+h2 = tea.hypothesize([type, space], [type['VR'].greaterThan(type['2D'])])

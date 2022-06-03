@@ -44,7 +44,7 @@ tea.define_variables(variables)
 tea.define_study_design(study_design)
 tea.assume(assumptions)
 tea.hypothesize(['drug', 'wedsBDI'], ['drug:Ecstasy > Alcohol'])
-tea.hypothesize(['sundayBDI', 'BDIchange'], ['sundayBDI ~ BDIchange'])
+# tea.hypothesize(['sundayBDI', 'BDIchange'], ['sundayBDI ~ BDIchange'])
 
 '''1
 Results:
