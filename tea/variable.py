@@ -137,17 +137,8 @@ class Unit(tsvars.Unit):
         - name: Name of the unit value, as found in data
         - type: str: Type of unit. One of 'ratio', 'nominal', 'ordinal' or 'interval'.
     """
-
-    '''
-        TODO: Remove type's default argument. 
-    '''
-    def __init__(self, name: str, type: str = 'ratio' , **kwargs):
-        type = type.lower()
-        if type not in ['ratio', 'nominal', 'ordinal', 'interval']:
-            raise ValueError('Unit\'s type parameter must be one of \'ratio\', \'nominal\', \'ordinal\' or \'interval\'')
-        # Setting data and cardinality parameters to Non
-        super().__init__(name, None, None, **kwargs)
-        v_obj = getattr(build, type)(name)
+    def __init__(self, name: str , **kwargs):
+        self.name = name
     
     def nominal(
         self, 

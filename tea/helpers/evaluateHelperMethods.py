@@ -635,12 +635,7 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
             t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
         elif isinstance(prediction, LessThan): 
             # changed to less to comply with new Scipy argument
-<<<<<<< HEAD
-            t_stat, p_val = stats.mannwhitneyu(
-                data[0], data[1], alternative="less")
-=======
             t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="less")
->>>>>>> origin/master
         else: 
             t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
 

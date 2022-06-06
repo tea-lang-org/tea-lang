@@ -70,9 +70,8 @@ def test_pearson_corr():
     # print("\nfrom Kabacoff")
     # print("Expected outcome: Pearson")
 
-    state = tea.Unit("")
-    illiteracy = state.interval('Illiteracy', [0, 100])
-    life_exp = state.ratio('Life Exp')
+    illiteracy = tea.Interval('Illiteracy', [0, 100])
+    life_exp = tea.Ratio('Life Exp')
 
     # tea.define_variables(variables)
 
@@ -118,11 +117,10 @@ def test_pearson_corr_2():
     #     'Type I (False Positive) Error Rate': 0.05,
     # }
 
-    s_no = tea.Unit("")
-    exam = s_no.ratio('Exam', range=[0, 100])
-    anxiety = s_no.interval('Anxiety', range=[0, 100])
-    gender = s_no.nominal('Gender', categories=['Male', 'Female'])
-    revise = s_no.ratio('Revise')
+    exam = tea.ratio('Exam', range=[0, 100])
+    anxiety = tea.interval('Anxiety', range=[0, 100])
+    gender = tea.nominal('Gender', categories=['Male', 'Female'])
+    revise = tea.ratio('Revise')
 
     tea.data(data_path, key=s_no)
     tea.define_observational_study([anxiety, gender, revise], [exam])
