@@ -18,6 +18,7 @@ import tea.runtimeDataStructures
 import tea.z3_solver
 from tea.helpers.constants.default_values import DEFAULT_ALPHA_PARAMETER
 from tea.z3_solver.solver import set_mode
+from tea.output.tea_console import console
 
 from typing import Dict
 from .global_vals import *
@@ -186,8 +187,7 @@ def hypothesize(vars: list, prediction: list = None):
     # Make multiple comparison correction
     result.bonferroni_correction(num_comparisons)
     
-    print(f"\n{result}")
-    return result
+    result.output()
 
     # Use assumptions and hypotheses for interpretation/reporting back to user
     # Make result human_readable

@@ -6,6 +6,7 @@ from tea.ast import DataType, LessThan, GreaterThan, Literal, Relationship
 
 # Other
 import attr
+from rich.table import Table
 
 
 # Need to be reset for each test
@@ -117,6 +118,7 @@ class TestResult(Value):
                 else: 
                     self.adjusted_p_value = self.p_value
 
+
     def bonferroni_correction(self, num_comparisons):
         assert(num_comparisons >= 1)
         
@@ -203,8 +205,6 @@ class TestResult(Value):
         else:
             assert False, "test_statistic = 0 and it's not a one-sided test. Not sure under what conditions this is possible."
 
-
-        # TODO Maybe the "means" part could be replacable....
         self.interpretation = f"t({self.dof}) = {'%.5f'%(self.test_statistic)}, p = {'%.5f'%(self.adjusted_p_value)}. " if self.dof else ""
         if ttest_result == ttest_result.not_significant:
             self.interpretation += f"Fail to reject the null hypothesis at alpha = {self.alpha}. "
@@ -311,6 +311,64 @@ class TestResult(Value):
         return True if self.name in __two_group_outcome_tests__ and \
                         (isinstance(self.prediction, GreaterThan) or isinstance(self.prediction, LessThan)) \
                 else False
+
+    def get_results_table(self):
+        # Construct table 
+        tbl = Table(title="Statistical results", title_justify="left")
+        
+        # Construct row columns and row entry incrementally
+        row_values = list()
+        if (self.dof): 
+            tbl.add_column("Degrees of freedom")
+            row_values.append(self.dof)
+        if (self.test_statistic): 
+            tbl.add_column("Test statistic")
+            row_values.append(self.test_statistic)
+        if (self.p_value): 
+            tbl.add_column("p-value")
+            row_values.append(self.p_value)
+            # TODO: Color p-value/display based on proximity to alpha value (absolute value)
+        if (self.adjusted_p_value): 
+            if self.p_value != self.adjusted_p_value:
+                tbl.add_column("Adjusted p-value")
+                row_values.append(self.adjusted_p_value)
+        if ('effect_size' in self.__dict__ and self.effect_size): 
+            tbl.add_column("Effect size")
+
+            row_values.append(self.effect_size['A12'])
+        
+        # Cast all row_values into strings for Rich
+        row_values = [str(v) for v in row_values]
+
+        # Add row_values
+        tbl.add_row(*row_values)
+
+        return tbl
+        
+    def get_interpretation_table(self): 
+        tbl = Table(title="Interpretation of results", title_justify="left")
+        
+        row_values = list()
+        if (self.null_hypothesis): 
+            tbl.add_column("Null hypothesis tested")
+            row_values.append(self.null_hypothesis)
+        if (self.alpha): 
+            tbl.add_column("Alpha")
+            row_values.append(self.alpha)
+        if (self.interpretation): 
+            tbl.add_column("Interpretation")
+            row_values.append(self.interpretation)
+
+        # Cast all row_values into strings for Rich
+        row_values = [str(v) for v in row_values]
+        # Add row_values 
+        tbl.add_row(*row_values)
+
+        return tbl
+
+        
+
+
 
 
 class Significance(Enum): 

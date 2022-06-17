@@ -6,6 +6,10 @@ from tea.z3_solver.solver import all_tests
 from tea.runtimeDataStructures.value import Value
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.global_vals import *
+from tea.output.tea_console import console
+from rich.console import Group
+from rich.panel import Panel
+from rich.markdown import Markdown
 
 import attr
 
@@ -52,69 +56,30 @@ class ResultData(Value):
             value.bonferroni_correction(num_comparisons)
         return self
 
-    def _pretty_print(self):
-        output = "\nResults:\n--------------"
+    def output(self):
+        console.rule("[bold blue] Results")
         for test_name, results in self.test_to_results.items():
-            output += f"\nTest: {test_name}\n"
-            test_assumptions = "None"
-            if test_name in self.test_to_assumptions:
-                test_assumptions = ('\n').join(self.test_to_assumptions[test_name])
-            output += f"***Test assumptions:\n{test_assumptions}\n\n"
-            output += "***Test results:\n"
-
-            if hasattr(results, '__dict__'):
-
-                if results.name:
-                    output += f"name = {results.name}\n"
-                if results.test_statistic:
-                    if isinstance(results.test_statistic, dict):
-                        output += f"test_statistic = {results.test_statistic}\n"
-                    else:
-                        output += f"test_statistic = {'%.5f'%(results.test_statistic)}\n"
-                if results.p_value:
-                    if isinstance(results.p_value, str):
-                        output += f"p_value = {results.p_value}\n"
-                    else:
-                        output += f"p_value = {'%.5f'%(results.p_value)}\n"
-                if results.adjusted_p_value:
-                    output += f"adjusted_p_value = {'%.5f'%(results.adjusted_p_value)}\n"
-                if results.alpha:
-                    output += f"alpha = {results.alpha}\n"
-                if results.dof:
-                    output += f"dof = {results.dof}\n"
-                if results.table is not None:
-                    output += f"table = {results.table}\n"
-                if "effect_size" in results.__dict__:
-                    effect_sizes = results.effect_size.items()
-                    output += f"Effect size:\n"
-                    for effect_size_name, effect_size_value in effect_sizes:
-                        output += f"{effect_size_name} = {'%.5f'%(effect_size_value)}\n"
-                if results.null_hypothesis:
-                    output += f"Null hypothesis = {results.null_hypothesis}\n"
-                if results.interpretation:
-                    output += f"Interpretation = {results.interpretation}\n"
-
-            else: 
-                output += f"{str(results)}\n"
-        
+            
+            res_tbl = results.get_results_table()
+            interp_tbl = results.get_interpretation_table()
+            panel_group = Group(
+                Markdown(f"""# Statistical test: {results.name}"""),
+                res_tbl, 
+                interp_tbl
+            )
+            console.print(Panel(panel_group))
+            # console.print(res_tbl)
+            # console.print(interp_tbl)
+            
         if hasattr(self, 'follow_up_results'): # not empty
             for res in self.follow_up_results:
                 print("\nFollow up for multiple comparisons: \n")
                 print(res)    
 
-        return output
-
     def add_follow_up(self, follow_up_res_data: list):
         if len(follow_up_res_data) >= 1:
             setattr(self, 'follow_up_results', follow_up_res_data)
 
-
-    # def __repr__(self):
-    #     # return self._pretty_print()
-    #     return self
-
-    def __str__(self):  # Maybe what the user sees?
-        return self._pretty_print()
 
     def as_html(self):
         html_out = io.StringIO()
