@@ -7,6 +7,7 @@ from tea.ast import DataType, LessThan, GreaterThan, Literal, Relationship
 # Other
 import attr
 from rich.table import Table
+from rich.markdown import Markdown
 
 
 # Need to be reset for each test
@@ -25,27 +26,27 @@ __test_to_statistic_of_interest__ = {
 }
 
 __stats_tests_to_null_hypotheses__ = {
-    PEARSON_NAME:  'There is no relationship between {} and {}.',
-    KENDALLTAU_NAME: 'There is no relationship between {} and {}.',
-    SPEARMAN_NAME: 'There is no monotonic relationship between {} and {}.',
-    POINTBISERIAL_NAME: 'There is no association between {} and {}.',
+    PEARSON_NAME:  'There is no relationship between {} and {}',
+    KENDALLTAU_NAME: 'There is no relationship between {} and {}',
+    SPEARMAN_NAME: 'There is no monotonic relationship between {} and {}',
+    POINTBISERIAL_NAME: 'There is no association between {} and {}',
 
-    STUDENTS_T_NAME : 'There is no difference in {}s between {} and {} on {}.',
-    WELCHS_T_NAME : 'There is no difference in {}s between {} and {} on {}.',
-    MANN_WHITNEY_NAME : 'There is no difference in {}s between {} and {} on {}.',
-    PAIRED_STUDENTS_NAME : 'There is no difference in {}s between {} and {} on {}.',
-    WILCOXON_SIGNED_RANK_NAME : 'There is no difference in {}s between {} and {} on {}.',
+    STUDENTS_T_NAME : 'There is no difference in {}s between {} and {} on {}',
+    WELCHS_T_NAME : 'There is no difference in {}s between {} and {} on {}',
+    MANN_WHITNEY_NAME : 'There is no difference in {}s between {} and {} on {}',
+    PAIRED_STUDENTS_NAME : 'There is no difference in {}s between {} and {} on {}',
+    WILCOXON_SIGNED_RANK_NAME : 'There is no difference in {}s between {} and {} on {}',
 
-    CHI_SQUARE_NAME : 'There is no association between {} and {} on {}.',
-    FISHER_EXACT_NAME : 'There is no association between {} and {} on {}.',
+    CHI_SQUARE_NAME : 'There is no association between {} and {} on {}',
+    FISHER_EXACT_NAME : 'There is no association between {} and {} on {}',
 
     # Regression or anova?
-    F_TEST_NAME : 'The variances of the groups ({}) are{}equal.',
-    KRUSKALL_WALLIS_NAME : 'There is no difference in {}s between {} on {}.',
+    F_TEST_NAME : 'The variances of the groups ({}) are{}equal',
+    KRUSKALL_WALLIS_NAME : 'There is no difference in {}s between {} on {}',
     # This isn't very descriptive…
     "Friedman" : f'There is no difference between the groups',
-    FACTORIAL_ANOVA_NAME : 'There is no difference in {}s between {} on {}.',
-    RM_ONE_WAY_ANOVA_NAME : 'The means of all groups/conditions ({}) are{}equal.',
+    FACTORIAL_ANOVA_NAME : 'There is no difference in {}s between {} on {}',
+    RM_ONE_WAY_ANOVA_NAME : 'The means of all groups/conditions ({}) are{}equal',
 
     # Does this depend on the statistic being calculated?
     "Bootstrap" : f''
@@ -93,6 +94,7 @@ class TestResult(Value):
     adjusted_p_value = attr.ib(default=None)
     corrected_p_value = attr.ib(default=None) # for multiple comparisons
     null_hypothesis = attr.ib(default=None)
+    decision = attr.ib(default=None)
     interpretation = attr.ib(default=None)
     table = attr.ib(default=None)
     x = attr.ib(default=None)
@@ -205,14 +207,16 @@ class TestResult(Value):
         else:
             assert False, "test_statistic = 0 and it's not a one-sided test. Not sure under what conditions this is possible."
 
-        self.interpretation = f"t({self.dof}) = {'%.5f'%(self.test_statistic)}, p = {'%.5f'%(self.adjusted_p_value)}. " if self.dof else ""
+        self.interpretation = ""
+        self.decision = ""
         if ttest_result == ttest_result.not_significant:
-            self.interpretation += f"Fail to reject the null hypothesis at alpha = {self.alpha}. "
+            self.decision += f"Fail to reject the null hypothesis at alpha = {self.alpha}. "
             self.interpretation += self.null_hypothesis
+
             # self.interpretation = f"The difference in means of {y.metadata[name]} for {x.metadata[name]} = {self.prediction.lhs.value} " \
             #     f"and {x.metadata[name]} = {self.prediction.rhs.value} is not significant."
         elif ttest_result == ttest_result.significantly_different:
-            self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
+            self.decision += f"Reject the null hypothesis at alpha = {self.alpha}. "
             if self.name in __two_group_tests__:
                 var1, var2 = self._calculate_two_group_vars()
                 self.interpretation += f"There is a relationship between {var1} and {var2}."
@@ -232,7 +236,7 @@ class TestResult(Value):
                 self.interpretation += f"There is an association between {var1} and {var2} on {self.y.metadata[name]}."
 
         elif ttest_result == ttest_result.significantly_greater:
-            self.interpretation += f"Reject the null hypothesis at alpha = {self.alpha}. "
+            self.decision += f"Reject the null hypothesis at alpha = {self.alpha}. "
             stat = __test_to_statistic_of_interest__[self.name]
             var1, var2 = self._calculate_two_group_outcome_vars()
             self.interpretation += f"The {stat} of {self.y.metadata[name]} for {self.x.metadata[name]} = {var1} is significantly" \
@@ -245,6 +249,8 @@ class TestResult(Value):
                 f" less than the {stat} for {self.x.metadata[name]} = {var2}. "
         else:
             assert False, "ttest_result case without an associated self.interpretation."
+
+        self.interpretation += ", " + (f"t({self.dof}) = {'%.5f'%(self.test_statistic)}, p = {'%.5f'%(self.adjusted_p_value)}" if self.dof else "") + "."
 
     # def adjust_p_val(self, correction): 
     #     self.self.adjusted_p_value = attr.ib()
@@ -262,6 +268,7 @@ class TestResult(Value):
             self.effect_size = {name: effect_size}
 
     def add_effect_size_to_interpretation(self):
+        import pdb; pdb.set_trace()
         effect_sizes = ""
         for effect_size_name, effect_size_value in self.effect_size.items():
             effect_sizes += f"{effect_size_name} = {'%.5f' % effect_size_value}, "
@@ -345,7 +352,7 @@ class TestResult(Value):
 
         return tbl
         
-    def get_interpretation_table(self): 
+    def get_decision_table(self): 
         tbl = Table(title="Interpretation of results", title_justify="left")
         
         row_values = list()
@@ -353,11 +360,12 @@ class TestResult(Value):
             tbl.add_column("Null hypothesis tested")
             row_values.append(self.null_hypothesis)
         if (self.alpha): 
-            tbl.add_column("Alpha")
-            row_values.append(self.alpha)
+            if self.name != "Bootstrap": 
+                tbl.add_column("Alpha")
+                row_values.append(self.alpha)
         if (self.interpretation): 
-            tbl.add_column("Interpretation")
-            row_values.append(self.interpretation)
+            tbl.add_column("Decision")
+            row_values.append(self.decision)
 
         # Cast all row_values into strings for Rich
         row_values = [str(v) for v in row_values]
@@ -366,10 +374,12 @@ class TestResult(Value):
 
         return tbl
 
-        
+    def get_interpretation(self): 
+        if ('effect_size' in self.__dict__ and self.effect_size): 
+            self.add_effect_size_to_interpretation()
+        mkd = Markdown(f"{self.interpretation}")
 
-
-
+        return mkd
 
 class Significance(Enum): 
         not_significant = 0

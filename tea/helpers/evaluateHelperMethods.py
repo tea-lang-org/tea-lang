@@ -1554,8 +1554,8 @@ def add_effect_size(dataset, predictions, combined_data, test_func, stat_result)
         stat_result.add_effect_size('A12', a12)
         added_effect_size = True
 
-    if added_effect_size:
-        stat_result.add_effect_size_to_interpretation()
+    # if added_effect_size:
+        # stat_result.add_effect_size_to_interpretation()
 
 
 def add_dof(dataset, predictions, combined_data, test_func, stat_result):

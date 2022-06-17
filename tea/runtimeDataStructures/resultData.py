@@ -61,11 +61,13 @@ class ResultData(Value):
         for test_name, results in self.test_to_results.items():
             
             res_tbl = results.get_results_table()
-            interp_tbl = results.get_interpretation_table()
+            dec_tbl = results.get_decision_table()
+            interp_mkd = results.get_interpretation()
             panel_group = Group(
                 Markdown(f"""# Statistical test: {results.name}"""),
                 res_tbl, 
-                interp_tbl
+                dec_tbl,
+                interp_mkd
             )
             console.print(Panel(panel_group))
             # console.print(res_tbl)
