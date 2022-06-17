@@ -268,7 +268,6 @@ class TestResult(Value):
             self.effect_size = {name: effect_size}
 
     def add_effect_size_to_interpretation(self):
-        import pdb; pdb.set_trace()
         effect_sizes = ""
         for effect_size_name, effect_size_value in self.effect_size.items():
             effect_sizes += f"{effect_size_name} = {'%.5f' % effect_size_value}, "
