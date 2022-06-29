@@ -12,6 +12,15 @@ from rich.panel import Panel
 from rich.markdown import Markdown
 
 import attr
+from typing import List, Any, Union
+import os
+import http.server
+import socketserver
+import pathlib
+import tempfile
+import webbrowser
+import time
+
 
 @attr.s(init=False, repr=False, str=False)
 class ResultData(Value):
@@ -76,7 +85,60 @@ class ResultData(Value):
         if hasattr(self, 'follow_up_results'): # not empty
             for res in self.follow_up_results:
                 print("\nFollow up for multiple comparisons: \n")
-                print(res)    
+                print(res)  
+    
+    def start_output_gui(self):
+        PORT = 8080 # Default if not provided
+
+        # Silence web server output by overriding logging messages.
+        class NoLogs(http.server.SimpleHTTPRequestHandler):
+            def log_message(
+                self, format: str, *args: List[Any]
+            ) -> None:
+                return
+
+            def log_request(
+                self,
+                code: Union[int, str] = 0,
+                size: Union[int, str] = 0,
+            ) -> None:
+                return
+
+        Handler = NoLogs
+        socketserver.TCPServer.allow_reuse_address = True
+        with socketserver.TCPServer(("", PORT), Handler) as httpd:
+            import threading
+
+            t = threading.Thread(target=httpd.serve_forever)
+            # Copy files into a new directory and then point the tab there.
+            import shutil
+
+            webgui_dir = pathlib.Path(
+                tempfile.mkdtemp(prefix="tea-output-gui")
+            )
+            # dir = os.path.dirname(__file__)
+            # os.pardir(__file__)
+            parent_dir = os.path.dirname(os.path.dirname(__file__))
+            shutil.copytree(
+                os.path.join(
+                    parent_dir, "tea-output-gui"
+                ),
+                os.path.join(webgui_dir, "tea-output-gui"),
+            )
+            shutil.copy(
+                "output.json",
+                os.path.join(webgui_dir, "tea-output-gui"),
+            )
+            os.chdir(os.path.join(webgui_dir, "tea-output-gui"))
+            t.start()
+            os.environ["LD_PRELOAD"] = ""
+            os.environ["DYLD_INSERT_LIBRARIES"] = ""
+            result = webbrowser.open_new_tab(
+                    f"http://localhost:{PORT}/index.html"
+                )
+            # Wait long enough for the server to serve the page, and then shut down the server.
+            time.sleep(5)
+            httpd.shutdown()
 
     def add_follow_up(self, follow_up_res_data: list):
         if len(follow_up_res_data) >= 1:

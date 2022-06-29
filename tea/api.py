@@ -189,6 +189,8 @@ def hypothesize(vars: list, prediction: list = None):
     
     result.output()
 
+    result.start_output_gui()
+
     # Use assumptions and hypotheses for interpretation/reporting back to user
     # Make result human_readable
     # output = translate(result)
