@@ -20,6 +20,7 @@ import pathlib
 import tempfile
 import webbrowser
 import time
+import json
 
 
 @attr.s(init=False, repr=False, str=False)
@@ -65,13 +66,25 @@ class ResultData(Value):
             value.bonferroni_correction(num_comparisons)
         return self
 
+    def output_json(self): 
+        output = dict()
+
+        for test_name, results in self.test_to_results.items():
+            output[test_name] = dict()
+            output[test_name]['result'] = results.get_results_json()
+            output[test_name]['decision'] = results.get_decision_json()
+            output[test_name]['interpretation'] = results.get_interpretation()
+
+            with open('output.json', 'w') as f: 
+                json.dump(output, f)
+
     def output(self):
         console.rule("[bold blue] Results")
         for test_name, results in self.test_to_results.items():
             
             res_tbl = results.get_results_table()
             dec_tbl = results.get_decision_table()
-            interp_mkd = results.get_interpretation()
+            interp_mkd = results.get_interpretation_markdown()
             panel_group = Group(
                 Markdown(f"""# Statistical test: {results.name}"""),
                 res_tbl, 

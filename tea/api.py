@@ -189,6 +189,7 @@ def hypothesize(vars: list, prediction: list = None):
     
     result.output()
 
+    result.output_json()
     result.start_output_gui()
 
     # Use assumptions and hypotheses for interpretation/reporting back to user

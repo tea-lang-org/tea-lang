@@ -318,6 +318,40 @@ class TestResult(Value):
                         (isinstance(self.prediction, GreaterThan) or isinstance(self.prediction, LessThan)) \
                 else False
 
+    def get_results_json(self): 
+        result = dict()
+    
+        if (self.dof): 
+            result['dof'] = str(self.dof)
+        if (self.test_statistic): 
+            result['test_statistic'] = str(self.test_statistic)
+        if (self.p_value): 
+            result['p_value'] = str(self.p_value)
+        if (self.adjusted_p_value): 
+            if self.p_value != self.adjusted_p_value:
+                result['adjusted_p_value'] = str(self.adjusted_p_value)
+        if ('effect_size' in self.__dict__ and self.effect_size): 
+
+            result['effect_size'] = str(self.effect_size)
+        
+        return result
+
+    def get_decision_json(self): 
+        decision = dict()
+        
+        if (self.null_hypothesis): 
+            decision['null_hypothseis'] = str(self.null_hypothesis)
+        if (self.alpha): 
+            if self.name != "Bootstrap": 
+                decision['alpha'] = str(self.alpha)
+        if (self.decision): 
+            decision['decision'] = str(self.decision)
+
+        return decision
+
+    def get_interpretation(self): 
+        return str(self.interpretation)
+
     def get_results_table(self):
         # Construct table 
         tbl = Table(title="Statistical results", title_justify="left")
@@ -373,7 +407,7 @@ class TestResult(Value):
 
         return tbl
 
-    def get_interpretation(self): 
+    def get_interpretation_markdown(self): 
         if ('effect_size' in self.__dict__ and self.effect_size): 
             self.add_effect_size_to_interpretation()
         mkd = Markdown(f"{self.interpretation}")
