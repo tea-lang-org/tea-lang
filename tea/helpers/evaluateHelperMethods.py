@@ -557,12 +557,26 @@ def mann_whitney_exact(group0, group1, alternative):
         assert(len(freq) == len(prob) == len(cum_prob))
         
         # Get test statistic and p-value
-        u_statistic = np.sum(smaller_arr)
+        rank_sum = np.sum(smaller_arr)
+        # Convert rank sum to U statistic: U = R - n*(n+1)/2
+        u_statistic = rank_sum - (smaller_n * (smaller_n + 1)) / 2
         # import pdb; pdb.set_trace()
-        p_value = cum_prob[int(u_statistic)]
+        # Note: p-value is calculated from rank_sum distribution, not U statistic distribution
+        # cum_prob[i] = P(rank_sum <= i)
 
-        if alternative == "two-sided":
-            p_value *= 2
+        if alternative == "greater":
+            # P(rank_sum >= observed) = 1 - P(rank_sum < observed) = 1 - P(rank_sum <= observed-1)
+            p_value = 1 - cum_prob[int(rank_sum) - 1]
+        elif alternative == "lesser":
+            # P(rank_sum <= observed)
+            p_value = cum_prob[int(rank_sum)]
+        elif alternative == "two-sided":
+            # For two-sided, use 2 * min(left_tail, right_tail)
+            left_tail = cum_prob[int(rank_sum)]
+            right_tail = 1 - cum_prob[int(rank_sum) - 1]
+            p_value = 2 * min(left_tail, right_tail)
+        else:
+            raise ValueError(f"Invalid alternative: {alternative}")
     
         # Return the stat and the p-value
         return (u_statistic, p_value)
@@ -598,27 +612,14 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     else:
         prediction = None
 
-    # TODO
-    total_sample_size = len(data[0]) + len(data[1])
-    # For small samples, calculate Mann Whitney U and p-value exaclty
-    if total_sample_size <= 20:
-        if isinstance(prediction, GreaterThan): 
-            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="greater")
-        elif isinstance(prediction, LessThan): 
-            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="lesser")
-        else: 
-            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="two-sided")
-        #TODO: compare the output from our calculation and Scipy
-    # For larger  samples, calculate Mann Whitney U and p-value using normality approximation 
+    # Use scipy's mannwhitneyu for all sample sizes (uses asymptotic method by default)
+    # This matches the standard statistical practice and scipy's default behavior
+    if isinstance(prediction, GreaterThan):
+        t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
+    elif isinstance(prediction, LessThan):
+        t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="less")
     else:
-        assert(total_sample_size >= 20)
-        if isinstance(prediction, GreaterThan): 
-            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
-        elif isinstance(prediction, LessThan): 
-            # changed to less to comply with new Scipy argument
-            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="less")
-        else: 
-            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
+        t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
 
     dof = len(data[0]) # TODO This might not be correct
     test_result = TestResult(
