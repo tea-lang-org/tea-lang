@@ -559,7 +559,7 @@ def mann_whitney_exact(group0, group1, alternative):
         # Get test statistic and p-value
         u_statistic = np.sum(smaller_arr)
         # import pdb; pdb.set_trace()
-        p_value = cum_prob[u_statistic]
+        p_value = cum_prob[int(u_statistic)]
 
         if alternative == "two-sided":
             p_value *= 2

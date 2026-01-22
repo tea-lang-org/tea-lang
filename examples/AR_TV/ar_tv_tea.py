@@ -50,7 +50,7 @@ Continuous OR ORDINAL (not nominal) data: Score
 ***Test results:
 name = Mann Whitney U Test
 test_statistic = 442.50000
-p_value = 0.03938
+p_value = 0.01969
 adjusted_p_value = 0.01969
 alpha = 0.01969
 dof = 26
