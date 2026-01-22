@@ -953,9 +953,9 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
         prediction = None
     if len(data[0]) == len(data[1]): # Scipy requires that groups have equal sizes even though this is not technically a requirement of the Pointbiserial correlation
         corr, p_val = stats.pointbiserialr(data[0], data[1])
-    else: 
+    else:
         # Compute pointbiserial correlation on our own
-        data_all = data[0].append(data[1])
+        data_all = pd.concat([data[0], data[1]], ignore_index=True)
         
         group_0_mean = np.mean(data[0])
         group_0_size = len(data[0])
@@ -1494,7 +1494,7 @@ def vda(dataset, predictions, combined_data: CombinedData):
 
     m = len(lhs)
     n = len(rhs)
-    concat = lhs.append(rhs)
+    concat = pd.concat([lhs, rhs], ignore_index=True)
     r = stats.rankdata(concat)
     r1 = sum(r[range(0,m)])
 
