@@ -108,13 +108,13 @@ class TestResult(Value):
         else:
             print("No prediction specified.")
 
-    def adjust_p_val(self): 
+    def adjust_p_val(self):
         # Adjust p value if it has not already been adjusted
-        if not self.adjusted_p_value:
+        if self.adjusted_p_value is None:
             if self.prediction or (self.x and self.y):
                 if self._is_one_sided():
                     self.adjusted_p_value = self.p_value/2
-                else: 
+                else:
                     self.adjusted_p_value = self.p_value
 
     def bonferroni_correction(self, num_comparisons):
@@ -172,26 +172,42 @@ class TestResult(Value):
             From the example on this site:
             If t is negative and we are checking a less than relationship, use p/2 as the adjusted p-value.
             If t is negative and we are checking a greater than relationship, use 1 - p/2 as the adjusted p-value.
+
+            Note: For Mann-Whitney U and Wilcoxon signed rank tests, scipy's alternative parameter
+            already returns the correct one-sided p-value, so we compare adjusted_p_value directly to alpha.
         """
 
         # import pdb; pdb.set_trace()
         # one_sided = True if self.adjusted_p_value else False
         one_sided = self._is_one_sided()
 
+        # For Mann-Whitney U and Wilcoxon, scipy's alternative parameter returns the correct p-value
+        uses_scipy_alternative = self.name in {MANN_WHITNEY_NAME, WILCOXON_SIGNED_RANK_NAME}
+
         # Start interpretation
         ttest_result = Significance.not_significant
         if self.test_statistic > 0:
             if one_sided and isinstance(self.prediction, GreaterThan) and self.adjusted_p_value < self.alpha:
                 ttest_result = Significance.significantly_greater
-            elif one_sided and isinstance(self.prediction, LessThan) and 1 - self.adjusted_p_value < self.alpha:
-                ttest_result = Significance.significantly_less
-            elif not one_sided and self.adjusted_p_value and self.adjusted_p_value < self.alpha:
+            elif one_sided and isinstance(self.prediction, LessThan):
+                # For tests using scipy's alternative parameter, compare p-value directly
+                if uses_scipy_alternative and self.adjusted_p_value < self.alpha:
+                    ttest_result = Significance.significantly_less
+                # For t-tests, use the 1 - p adjustment
+                elif not uses_scipy_alternative and 1 - self.adjusted_p_value < self.alpha:
+                    ttest_result = Significance.significantly_less
+            elif not one_sided and self.adjusted_p_value is not None and self.adjusted_p_value < self.alpha:
                 ttest_result = Significance.significantly_different
             else:
                 ttest_result = Significance.not_significant
         elif self.test_statistic < 0:
-            if one_sided and isinstance(self.prediction, LessThan) and  1 - self.adjusted_p_value < self.alpha:
-                ttest_result = Significance.significantly_less
+            if one_sided and isinstance(self.prediction, LessThan):
+                # For tests using scipy's alternative parameter, compare p-value directly
+                if uses_scipy_alternative and self.adjusted_p_value < self.alpha:
+                    ttest_result = Significance.significantly_less
+                # For t-tests, use the 1 - p adjustment
+                elif not uses_scipy_alternative and 1 - self.adjusted_p_value < self.alpha:
+                    ttest_result = Significance.significantly_less
             elif one_sided and isinstance(self.prediction, GreaterThan) and self.adjusted_p_value < self.alpha:
                 ttest_result = Significance.significantly_greater
             elif not one_sided and self.adjusted_p_value < self.alpha:

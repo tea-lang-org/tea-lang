@@ -557,12 +557,26 @@ def mann_whitney_exact(group0, group1, alternative):
         assert(len(freq) == len(prob) == len(cum_prob))
         
         # Get test statistic and p-value
-        u_statistic = np.sum(smaller_arr)
+        rank_sum = np.sum(smaller_arr)
+        # Convert rank sum to U statistic: U = R - n*(n+1)/2
+        u_statistic = rank_sum - (smaller_n * (smaller_n + 1)) / 2
         # import pdb; pdb.set_trace()
-        p_value = cum_prob[u_statistic]
+        # Note: p-value is calculated from rank_sum distribution, not U statistic distribution
+        # cum_prob[i] = P(rank_sum <= i)
 
-        if alternative == "two-sided":
-            p_value *= 2
+        if alternative == "greater":
+            # P(rank_sum >= observed) = 1 - P(rank_sum < observed) = 1 - P(rank_sum <= observed-1)
+            p_value = 1 - cum_prob[int(rank_sum) - 1]
+        elif alternative == "lesser":
+            # P(rank_sum <= observed)
+            p_value = cum_prob[int(rank_sum)]
+        elif alternative == "two-sided":
+            # For two-sided, use 2 * min(left_tail, right_tail)
+            left_tail = cum_prob[int(rank_sum)]
+            right_tail = 1 - cum_prob[int(rank_sum) - 1]
+            p_value = 2 * min(left_tail, right_tail)
+        else:
+            raise ValueError(f"Invalid alternative: {alternative}")
     
         # Return the stat and the p-value
         return (u_statistic, p_value)
@@ -583,13 +597,6 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
 
-    for c in cat:
-        if isinstance(c, str):
-            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-        else: 
-            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
-        data.append(cat_data)
-
     if predictions:
         if isinstance(predictions[0], list):
             prediction = predictions[0][0]
@@ -598,29 +605,28 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     else:
         prediction = None
 
-    # TODO
-    total_sample_size = len(data[0]) + len(data[1])
-    # For small samples, calculate Mann Whitney U and p-value exaclty
-    if total_sample_size <= 20:
-        if isinstance(prediction, GreaterThan): 
-            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="greater")
-        elif isinstance(prediction, LessThan): 
-            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="lesser")
-        else: 
-            t_stat, p_val = mann_whitney_exact(data[0], data[1], alternative="two-sided")
-        #TODO: compare the output from our calculation and Scipy
-    # For larger  samples, calculate Mann Whitney U and p-value using normality approximation 
-    else:
-        assert(total_sample_size >= 20)
-        if isinstance(prediction, GreaterThan): 
-            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
-        elif isinstance(prediction, LessThan): 
-            # changed to less to comply with new Scipy argument
-            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="less")
-        else: 
-            t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
+    # Extract lhs and rhs data based on prediction categories
+    lhs = None
+    rhs = None
+    for c in cat:
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else:
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
+        if prediction and c == prediction.lhs.value:
+            lhs = cat_data
+        if prediction and c == prediction.rhs.value:
+            rhs = cat_data
+        data.append(cat_data)
 
-    dof = len(data[0]) # TODO This might not be correct
+    if isinstance(prediction, GreaterThan):
+        t_stat, p_val = stats.mannwhitneyu(lhs, rhs, alternative="greater")
+    elif isinstance(prediction, LessThan):
+        t_stat, p_val = stats.mannwhitneyu(lhs, rhs, alternative="less")
+    else:
+        t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
+
+    dof = len(data[0]) + len(data[1]) - 2
     test_result = TestResult(
                         name = MANN_WHITNEY_NAME,
                         test_statistic = t_stat,
@@ -813,7 +819,7 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         else: 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
      
-    dof = len(data[0]) # TODO This might not be correct
+    dof = len(data[0]) + len(data[1]) - 2
     test_result = TestResult(
                         name = WILCOXON_SIGNED_RANK_NAME,
                         test_statistic = t_stat,
@@ -953,9 +959,9 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
         prediction = None
     if len(data[0]) == len(data[1]): # Scipy requires that groups have equal sizes even though this is not technically a requirement of the Pointbiserial correlation
         corr, p_val = stats.pointbiserialr(data[0], data[1])
-    else: 
+    else:
         # Compute pointbiserial correlation on our own
-        data_all = data[0].append(data[1])
+        data_all = pd.concat([data[0], data[1]], ignore_index=True)
         
         group_0_mean = np.mean(data[0])
         group_0_size = len(data[0])
@@ -1307,7 +1313,7 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
     else:
         prediction = None
     t_stat, p_val = stats.kruskal(*data)
-    dof = len(data[0]) # TODO This might not be correct
+    dof = len(data) - 1  # k-1 where k is the number of groups
     test_result = TestResult(
                         name = KRUSKALL_WALLIS_NAME,
                         test_statistic = t_stat,
@@ -1349,7 +1355,7 @@ def friedman(dataset: Dataset, predictions, combined_data: CombinedData):
     else:
         prediction = None
     test_statistic, p_val = stats.friedmanchisquare(*data)
-    dof = len(data[0]) # TODO This might not be correct
+    dof = len(data) - 1  # k-1 where k is the number of groups
     test_result = TestResult(
                         name = "Kruskall Wallis Test",
                         test_statistic = test_statistic,
@@ -1494,7 +1500,7 @@ def vda(dataset, predictions, combined_data: CombinedData):
 
     m = len(lhs)
     n = len(rhs)
-    concat = lhs.append(rhs)
+    concat = pd.concat([lhs, rhs], ignore_index=True)
     r = stats.rankdata(concat)
     r1 = sum(r[range(0,m)])
 

@@ -6,6 +6,7 @@ from tea.z3_solver.solver import all_tests
 from tea.runtimeDataStructures.value import Value
 from tea.runtimeDataStructures.combinedData import CombinedData
 from tea.global_vals import *
+from tea.helpers.constants.test_names import MANN_WHITNEY_NAME, WILCOXON_SIGNED_RANK_NAME
 
 import attr
 
@@ -71,16 +72,17 @@ class ResultData(Value):
                         output += f"test_statistic = {results.test_statistic}\n"
                     else:
                         output += f"test_statistic = {'%.5f'%(results.test_statistic)}\n"
-                if results.p_value:
+                if results.p_value is not None:
                     if isinstance(results.p_value, str):
                         output += f"p_value = {results.p_value}\n"
                     else:
                         output += f"p_value = {'%.5f'%(results.p_value)}\n"
-                if results.adjusted_p_value:
+                if results.adjusted_p_value is not None:
                     output += f"adjusted_p_value = {'%.5f'%(results.adjusted_p_value)}\n"
                 if results.alpha:
                     output += f"alpha = {results.alpha}\n"
-                if results.dof:
+                # Skip printing dof for tests that don't have degrees of freedom
+                if results.dof and results.name not in [MANN_WHITNEY_NAME, WILCOXON_SIGNED_RANK_NAME]:
                     output += f"dof = {results.dof}\n"
                 if results.table is not None:
                     output += f"table = {results.table}\n"
@@ -146,16 +148,17 @@ class ResultData(Value):
                             print(dl_pair("test_statistic", results.test_statistic))
                         else:
                             print(dl_pair("test_statistic", f"{results.test_statistic:.5f}"))
-                    if results.p_value:
+                    if results.p_value is not None:
                         if isinstance(results.p_value, str):
                             print(dl_pair("p_value", results.p_value))
                         else:
                             print(dl_pair("p_value", f"{results.p_value:.5f}"))
-                    if results.adjusted_p_value:
+                    if results.adjusted_p_value is not None:
                         print(dl_pair("adjusted_p_value", f"{results.adjusted_p_value:.5f}"))
                     if results.alpha:
                         print(dl_pair("alpha", results.alpha))
-                    if results.dof:
+                    # Skip printing dof for tests that don't have degrees of freedom
+                    if results.dof and results.name not in [MANN_WHITNEY_NAME, WILCOXON_SIGNED_RANK_NAME]:
                         print(dl_pair("dof", results.dof))
                     if results.table is not None:
                         print(dl_pair("table", results.table))

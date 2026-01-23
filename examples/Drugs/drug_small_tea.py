@@ -44,29 +44,11 @@ tea.define_variables(variables)
 tea.define_study_design(study_design)
 tea.assume(assumptions)
 tea.hypothesize(['drug', 'wedsBDI'], ['drug:Ecstasy > Alcohol'])
-# tea.hypothesize(['sundayBDI', 'BDIchange'], ['sundayBDI ~ BDIchange'])
+tea.hypothesize(['sundayBDI', 'BDIchange'], ['sundayBDI ~ BDIchange'])
 
 '''
 Results:
 --------------
-Test: pointbiserial_corr_a
-***Test assumptions:
-Exactly two variables involved in analysis: drug, wedsBDI
-Continuous (not categorical) data: wedsBDI
-Normal distribution: wedsBDI: NormalTest(W=0.7817826867103577, p_value=0.04004703089594841)
-Variable is categorical: drug
-Variable has two categories: drug
-Equal variance: drug, wedsBDI
-
-***Test results:
-name = Pointbiserial Correlation
-test_statistic = 0.53028
-p_value = 0.64417
-adjusted_p_value = 0.64417
-alpha = 0.01
-Null hypothesis = There is no association between Ecstasy and Alcohol.
-Interpretation = Fail to reject the null hypothesis at alpha = 0.01. There is no association between Ecstasy and Alcohol.
-
 Test: mannwhitney_u
 ***Test assumptions:
 Exactly one explanatory variable: drug
@@ -79,7 +61,7 @@ Continuous OR ORDINAL (not nominal) data: wedsBDI
 ***Test results:
 name = Mann Whitney U Test
 test_statistic = 8.00000
-p_value = 0.18404
+p_value = 0.09202
 adjusted_p_value = 0.09202
 alpha = 0.01
 dof = 3
