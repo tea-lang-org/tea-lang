@@ -597,13 +597,6 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     cat = [k for k,v in x.metadata[categories].items()]
     data = []
 
-    for c in cat:
-        if isinstance(c, str):
-            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
-        else: 
-            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
-        data.append(cat_data)
-
     if predictions:
         if isinstance(predictions[0], list):
             prediction = predictions[0][0]
@@ -612,16 +605,28 @@ def mannwhitney_u(dataset, predictions, combined_data: BivariateData):
     else:
         prediction = None
 
-    # Use scipy's mannwhitneyu for all sample sizes (uses asymptotic method by default)
-    # This matches the standard statistical practice and scipy's default behavior
+    # Extract lhs and rhs data based on prediction categories
+    lhs = None
+    rhs = None
+    for c in cat:
+        if isinstance(c, str):
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == '{c}'"])
+        else:
+            cat_data = dataset.select(y.metadata[name], where=[f"{x.metadata[name]} == {c}"])
+        if prediction and c == prediction.lhs.value:
+            lhs = cat_data
+        if prediction and c == prediction.rhs.value:
+            rhs = cat_data
+        data.append(cat_data)
+
     if isinstance(prediction, GreaterThan):
-        t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="greater")
+        t_stat, p_val = stats.mannwhitneyu(lhs, rhs, alternative="greater")
     elif isinstance(prediction, LessThan):
-        t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative="less")
+        t_stat, p_val = stats.mannwhitneyu(lhs, rhs, alternative="less")
     else:
         t_stat, p_val = stats.mannwhitneyu(data[0], data[1], alternative='two-sided')  
 
-    dof = len(data[0]) # TODO This might not be correct
+    dof = len(data[0]) + len(data[1]) - 2
     test_result = TestResult(
                         name = MANN_WHITNEY_NAME,
                         test_statistic = t_stat,
@@ -814,7 +819,7 @@ def wilcoxon_signed_rank(dataset: Dataset, predictions, combined_data: CombinedD
         else: 
             t_stat, p_val = stats.wilcoxon(data[0], data[1], alternative="two-sided")
      
-    dof = len(data[0]) # TODO This might not be correct
+    dof = len(data[0]) + len(data[1]) - 2
     test_result = TestResult(
                         name = WILCOXON_SIGNED_RANK_NAME,
                         test_statistic = t_stat,
@@ -1308,7 +1313,7 @@ def kruskall_wallis(dataset: Dataset, predictions, combined_data: CombinedData):
     else:
         prediction = None
     t_stat, p_val = stats.kruskal(*data)
-    dof = len(data[0]) # TODO This might not be correct
+    dof = len(data) - 1  # k-1 where k is the number of groups
     test_result = TestResult(
                         name = KRUSKALL_WALLIS_NAME,
                         test_statistic = t_stat,
@@ -1350,7 +1355,7 @@ def friedman(dataset: Dataset, predictions, combined_data: CombinedData):
     else:
         prediction = None
     test_statistic, p_val = stats.friedmanchisquare(*data)
-    dof = len(data[0]) # TODO This might not be correct
+    dof = len(data) - 1  # k-1 where k is the number of groups
     test_result = TestResult(
                         name = "Kruskall Wallis Test",
                         test_statistic = test_statistic,
