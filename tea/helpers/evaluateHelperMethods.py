@@ -955,7 +955,7 @@ def pointbiserial(dataset: Dataset, predictions, combined_data: CombinedData):
         corr, p_val = stats.pointbiserialr(data[0], data[1])
     else: 
         # Compute pointbiserial correlation on our own
-        data_all = data[0].append(data[1])
+        data_all = pd.concat([data[0], data[1]])
         
         group_0_mean = np.mean(data[0])
         group_0_size = len(data[0])
@@ -1494,7 +1494,7 @@ def vda(dataset, predictions, combined_data: CombinedData):
 
     m = len(lhs)
     n = len(rhs)
-    concat = lhs.append(rhs)
+    concat = pd.concat([lhs, rhs])
     r = stats.rankdata(concat)
     r1 = sum(r[range(0,m)])
 

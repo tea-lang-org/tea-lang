@@ -1,41 +1,10 @@
-import pandas as pd
-
 import tea
-import os
 
 from tea.logging import TeaLoggerConfiguration, TeaLogger
 import logging
 configuration = TeaLoggerConfiguration()
 configuration.logging_level = logging.DEBUG
 TeaLogger.initialize_logger(configuration)
-
-
-base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv',
-              'pbcorr.csv', 'spiderLong_within.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
-data_paths = [None] * len(file_names)
-
-
-def load_data():
-    global base_url, data_paths, file_names
-    global drug_path
-
-    for i in range(len(data_paths)):
-        csv_name = file_names[i]
-
-        csv_url = os.path.join(base_url, csv_name)
-        data_paths[i] = tea.download_data(csv_url, csv_name)
-
-
-def get_data_path(filename):
-    load_data()
-    try:
-        data_idx = file_names.index(filename)
-    except:
-        raise ValueError(f"File is not found!:{filename}")
-    data_path = data_paths[data_idx]
-
-    return data_path
 
 # This example is adapted from http://www.real-statistics.com/non-parametric-tests/wilcoxon-signed-ranks-test/
 def test_wilcoxon_signed_rank_0():

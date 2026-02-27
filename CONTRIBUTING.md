@@ -1,23 +1,39 @@
-## FILES
-
 ## How do I use Tea?
-Make sure that you have Python 3.7, pip (for Python 3.7), and pipenv (for Python 3.7) installed. 
-Start a pipenv: `pipenv shell`
-From inside your environment, download all dependencies from Pipfile (`pipenv update`). This will take awhile because it builds Z3.
-Add Tea to your Python path by creating `.env` file that has the following one-liner in it: `PYTHONPATH=${PYTHONPATH}:${PWD}`
-To run tests and see output, run: `pytest tests/test_integration.py -s`
 
-The main code base is written in Python and lives in the `tea` directory. The `tests` directory is used for developing and debugging and uses datasets in the `datasets` directory. Not all the datasets used in `tests/test_tea.py` are included in the `datasets` repository. 
-`tea/solver.py` contains the constraint solving module for both tests -> properties and properties -> tests.
-`tea/ast.py` implements Tea's Abstract Syntax Tree (AST). 
-`tea/build.py` builds up Tea's AST for programs.
-`tea/dataset.py` contains a runtime data structure that represents and contains the data the user provides. 
-`tea/evaluate.py` is the main interpreter file.
-`tea/evaluate_helper_methods.py` contains the helper methods for `evaluate.py`.
-`tea/evaluate_data_structures.py` contains the data structuers used in `evaluate.py` and `evaluate_helper_methods.py`.
-`tea/errors.py` is empty. It will contain some code for providing helpful error messages.
+Make sure that you have Python 3.10+ and [Poetry](https://python-poetry.org/) installed.
+
+Install all dependencies:
+```
+poetry install
+```
+
+To run all tests:
+```
+poetry run pytest tests/ -v
+```
+
+To run tests with coverage:
+```
+poetry run pytest --cov=tea tests/
+```
+
+## Project Structure
+
+The main code base lives in the `tea` directory. The `tests` directory contains
+test suites using datasets stored locally in `tests/data/` (see
+`tests/data/README.md` for dataset sources and attribution).
+
+- `tea/api.py` — User-facing API functions (`data`, `define_variables`, `hypothesize`, etc.)
+- `tea/ast.py` — Tea's Abstract Syntax Tree (AST) definitions
+- `tea/build.py` — Builds Tea's AST for programs
+- `tea/z3_solver/solver.py` — Constraint solving module (tests &harr; properties)
+- `tea/runtimeDataStructures/dataset.py` — Runtime data structure for user-provided data
+- `tea/helpers/evaluateHelperMethods.py` — Statistical test execution helpers
+- `tea/vardata_factory.py` — Factory for creating VarData from AST nodes
 
 ## Can I use external datasets to create additional tests, documentation, and examples?
-Yes! Try and use Tea with real data, that's what we hope for. :) If you do decide to include external datasets in Tea tests, documentation, and examples, please make sure to attribute credit to the sources in your files and add them to the list in [`SOURCES.md`](./SOURCES.MD).
 
-**All of the above are still changing!**
+Yes! Try and use Tea with real data, that's what we hope for. If you do decide
+to include external datasets in Tea tests, documentation, and examples, please
+make sure to attribute credit to the sources in your files and add them to the
+list in [`SOURCES.md`](./SOURCES.md) and `tests/data/README.md`.
