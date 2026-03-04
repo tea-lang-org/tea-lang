@@ -1,4 +1,4 @@
-# tea-lang [![Build Status](https://travis-ci.com/tea-lang-org/tea-lang.svg?branch=master)](https://travis-ci.com/tea-lang-org/tea-lang) [![Coverage Status](https://coveralls.io/repos/github/tea-lang-org/tea-lang/badge.svg?branch=master)](https://coveralls.io/github/tea-lang-org/tea-lang?branch=master)
+# tea-lang [![CI](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml/badge.svg)](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml)
 
 # [WIP] Tea: A High-level Language and Runtime System for Automating Statistical Analyses
 

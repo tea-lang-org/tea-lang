@@ -1,6 +1,6 @@
 init:
-	pip install pipenv
-	pipenv install --dev
+	pip install poetry
+	poetry install
 
 test:
-	pipenv run pytest --cov=tea ./tests/
+	poetry run pytest --cov=tea ./tests/

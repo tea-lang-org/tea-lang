@@ -3,32 +3,26 @@ import pandas as pd
 import tea
 import os
 
-base_url = 'https://homes.cs.washington.edu/~emjun/tea-lang/datasets/'
-file_names = ['UScrime.csv', 'statex77.csv', 'catsData.csv', 'cholesterol.csv', 'soya.csv', 'co2.csv', 'exam.csv', 'liar.csv',
-              'pbcorr.csv', 'spiderLong_within.csv', 'drug.csv', 'alcohol.csv', 'ecstasy.csv', 'gogglesData.csv', 'gogglesData_dummy.csv']
-data_paths = [None] * len(file_names)
+# Test data is stored locally in tests/data/
+# Dataset sources:
+#   - Kabacoff (2011). R: In Action.
+#     statex77.csv (R's state.x77), UScrime.csv (R's MASS package)
+#   - Field, Miles & Field (2012). Discovering Statistics Using R.
+#     catsData.csv, exam.csv, liar.csv, pbcorr.csv, spiderLong_within.csv,
+#     soya.csv, gogglesData.csv, gogglesData_dummy.csv, drug.csv, alcohol.csv,
+#     ecstasy.csv
+#   - Westfall, Tobias, Rom, Wolfinger & Hochberg (1999).
+#     cholesterol.csv (R's multcomp package)
+#   - R's built-in CO2 dataset: co2.csv
 
-
-def load_data():
-    global base_url, data_paths, file_names
-    global drug_path
-
-    for i in range(len(data_paths)):
-        csv_name = file_names[i]
-
-        csv_url = os.path.join(base_url, csv_name)
-        data_paths[i] = tea.download_data(csv_url, csv_name)
+DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
 def get_data_path(filename):
-    load_data()
-    try:
-        data_idx = file_names.index(filename)
-    except:
-        raise ValueError(f"File is not found!:{filename}")
-    data_path = data_paths[data_idx]
-
-    return data_path
+    path = os.path.join(DATA_DIR, filename)
+    if not os.path.exists(path):
+        raise ValueError(f"Test fixture not found: {path}")
+    return path
 
 # Example from Kabacoff
 # Expected outcome: Pearson correlation
