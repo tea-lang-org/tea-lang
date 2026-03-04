@@ -1,0 +1,34 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+
+
+Results:
+--------------
+Test: wilcoxon_signed_rank
+***Test assumptions:
+Exactly two variables involved in analysis: day, value
+Exactly one explanatory variable: day
+Exactly one explained variable: value
+Paired observations: day
+Variable is categorical: day
+Variable has two categories: day
+Continuous (not categorical) data: value
+
+***Test results:
+name = Wilcoxon Signed Rank Test
+test_statistic = 8.00000
+p_value = 0.04883
+adjusted_p_value = 0.04883
+alpha = 0.05
+dof = 10
+Effect size:
+A12 = 0.84000
+Null hypothesis = There is no difference in medians between day = sundayBDI and day = wedsBDI on value.
+Interpretation = t(10) = 8.00000, p = 0.04883. Reject the null hypothesis at alpha = 0.05. The difference in medians of value for day = sundayBDI and day = wedsBDI is significant. The effect size is A12 = 0.84000. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
+

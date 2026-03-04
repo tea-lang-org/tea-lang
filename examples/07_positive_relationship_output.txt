@@ -1,0 +1,41 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+
+
+Results:
+--------------
+Test: kendalltau_corr
+***Test assumptions:
+Exactly two variables involved in analysis: Illiteracy, Life Exp
+Continuous OR ORDINAL (not nominal) data: Illiteracy
+Continuous OR ORDINAL (not nominal) data: Life Exp
+
+***Test results:
+name = Kendall's Tau Correlation
+test_statistic = -0.42852
+p_value = 0.00002
+adjusted_p_value = 0.00002
+alpha = 0.05
+Null hypothesis = There is no relationship between Illiteracy and Life Exp.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is a relationship between Illiteracy and Life Exp.
+
+Test: spearman_corr
+***Test assumptions:
+Exactly two variables involved in analysis: Illiteracy, Life Exp
+Continuous OR ORDINAL (not nominal) data: Illiteracy
+Continuous OR ORDINAL (not nominal) data: Life Exp
+
+***Test results:
+name = Spearman's R Correlation
+test_statistic = -0.55537
+p_value = 0.00003
+adjusted_p_value = 0.00003
+alpha = 0.05
+Null hypothesis = There is no monotonic relationship between Illiteracy and Life Exp.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is a relationship between Illiteracy and Life Exp.
+

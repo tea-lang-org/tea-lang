@@ -1,0 +1,52 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+
+
+Results:
+--------------
+Test: mannwhitney_u
+***Test assumptions:
+Exactly one explanatory variable: gender
+Exactly one explained variable: time
+Independent (not paired) observations: gender
+Variable is categorical: gender
+Variable has two categories: gender
+Continuous OR ORDINAL (not nominal) data: time
+
+***Test results:
+name = Mann Whitney U Test
+test_statistic = 262.00000
+p_value = 0.99719
+adjusted_p_value = 0.99719
+alpha = 0.05
+dof = 32
+Effect size:
+A12 = 0.70759
+Null hypothesis = There is no difference in medians between gender = 0 and gender = 1 on time.
+Interpretation = t(32) = 262.00000, p = 0.99719. Fail to reject the null hypothesis at alpha = 0.05. There is no difference in medians between gender = 0 and gender = 1 on time.The effect size is A12 = 0.70759. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
+
+Test: kruskall_wallis
+***Test assumptions:
+Independent (not paired) observations: gender
+Exactly one explanatory variable: gender
+Exactly one explained variable: time
+Continuous (not categorical) data: time
+Variable is categorical: gender
+Variable has two or more categories: gender
+
+***Test results:
+name = Kruskall Wallis
+test_statistic = 7.62943
+p_value = 0.00574
+adjusted_p_value = 0.00574
+alpha = 0.05
+dof = 32
+Null hypothesis = There is no difference in medians between gender = 0, 1 on time.
+Interpretation = t(32) = 7.62943, p = 0.00574. Reject the null hypothesis at alpha = 0.05. There is a difference in medians of time for at least one of gender = 0, 1.
+
