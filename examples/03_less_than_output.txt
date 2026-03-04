@@ -1,0 +1,52 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+/Users/emjun/Library/Caches/pypoetry/virtualenvs/tealang-PnKRjpGR-py3.12/lib/python3.12/site-packages/scipy/stats/_axis_nan_policy.py:586: UserWarning: scipy.stats.shapiro: For N > 5000, computed p-value may not be accurate. Current N is 141449.
+  res = hypotest_fun_out(*samples, **kwds)
+
+
+Results:
+--------------
+Test: mannwhitney_u
+***Test assumptions:
+Exactly one explanatory variable: Sex
+Exactly one explained variable: Weight
+Independent (not paired) observations: Sex
+Variable is categorical: Sex
+Variable has two categories: Sex
+Continuous OR ORDINAL (not nominal) data: Weight
+
+***Test results:
+name = Mann Whitney U Test
+test_statistic = 7704479516.00000
+p_value = 1.00000
+adjusted_p_value = 1.00000
+alpha = 0.05
+dof = 141449
+Effect size:
+A12 = 0.15910
+Null hypothesis = There is no difference in medians between Sex = M and Sex = F on Weight.
+Interpretation = t(141449) = 7704479516.00000, p = 1.00000. Reject the null hypothesis at alpha = 0.05. The median of Weight for Sex = F is significantly less than the median for Sex = M. The effect size is A12 = 0.15910. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
+
+Test: kruskall_wallis
+***Test assumptions:
+Independent (not paired) observations: Sex
+Exactly one explanatory variable: Sex
+Exactly one explained variable: Weight
+Continuous (not categorical) data: Weight
+Variable is categorical: Sex
+Variable has two or more categories: Sex
+
+***Test results:
+name = Kruskall Wallis
+test_statistic = 61996.35428
+alpha = 0.05
+dof = 141449
+Null hypothesis = There is no difference in medians between Sex = M, F on Weight.
+Interpretation = t(141449) = 61996.35428, p = 0.00000. Fail to reject the null hypothesis at alpha = 0.05. There is no difference in medians between Sex = M, F on Weight.
+

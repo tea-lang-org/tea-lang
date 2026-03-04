@@ -1,0 +1,78 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+/Users/emjun/Git/tea-lang/tea/helpers/evaluateHelperMethods.py:253: SmallSampleWarning: One or more sample arguments is too small; all returned values will be NaN. See documentation for sample size requirements.
+  levene_test = stats.levene(*groups_data)
+
+
+Results:
+--------------
+Test: welchs_t
+***Test assumptions:
+Exactly two variables involved in analysis: So, Prob
+Exactly one explanatory variable: So
+Exactly one explained variable: Prob
+Independent (not paired) observations: So
+Variable is categorical: So
+Variable has two categories: So
+Continuous (not categorical) data: Prob
+Groups are normally distributed: So, Prob: NormalTest(W=np.float64(0.899746434106391), p_value=np.float64(0.07962094630866196))
+
+***Test results:
+name = Welch's T Test
+test_statistic = 3.89537
+p_value = 0.00065
+adjusted_p_value = 0.00033
+alpha = 0.05
+dof = 15
+Effect size:
+A12 = 0.83669
+Null hypothesis = There is no difference in means between So = 0 and So = 1 on Prob.
+Interpretation = t(15) = 3.89537, p = 0.00033. Reject the null hypothesis at alpha = 0.05. The mean of Prob for So = 1 is significantly greater than the mean for So = 0. The effect size is A12 = 0.83669. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
+
+Test: mannwhitney_u
+***Test assumptions:
+Exactly one explanatory variable: So
+Exactly one explained variable: Prob
+Independent (not paired) observations: So
+Variable is categorical: So
+Variable has two categories: So
+Continuous OR ORDINAL (not nominal) data: Prob
+
+***Test results:
+name = Mann Whitney U Test
+test_statistic = 81.00000
+p_value = 0.99992
+adjusted_p_value = 0.99992
+alpha = 0.05
+dof = 31
+Effect size:
+A12 = 0.83669
+Null hypothesis = There is no difference in medians between So = 0 and So = 1 on Prob.
+Interpretation = t(31) = 81.00000, p = 0.99992. Fail to reject the null hypothesis at alpha = 0.05. There is no difference in medians between So = 0 and So = 1 on Prob.The effect size is A12 = 0.83669. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
+
+Test: kruskall_wallis
+***Test assumptions:
+Independent (not paired) observations: So
+Exactly one explanatory variable: So
+Exactly one explained variable: Prob
+Continuous (not categorical) data: Prob
+Variable is categorical: So
+Variable has two or more categories: So
+
+***Test results:
+name = Kruskall Wallis
+test_statistic = 14.05696
+p_value = 0.00018
+adjusted_p_value = 0.00018
+alpha = 0.05
+dof = 31
+Null hypothesis = There is no difference in medians between So = 0, 1 on Prob.
+Interpretation = t(31) = 14.05696, p = 0.00018. Reject the null hypothesis at alpha = 0.05. There is a difference in medians of Prob for at least one of So = 0, 1.
+

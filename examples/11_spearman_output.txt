@@ -1,0 +1,41 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+
+
+Results:
+--------------
+Test: kendalltau_corr
+***Test assumptions:
+Exactly two variables involved in analysis: Creativity, Position
+Continuous OR ORDINAL (not nominal) data: Creativity
+Continuous OR ORDINAL (not nominal) data: Position
+
+***Test results:
+name = Kendall's Tau Correlation
+test_statistic = -0.30024
+p_value = 0.00126
+adjusted_p_value = 0.00126
+alpha = 0.05
+Null hypothesis = There is no relationship between 1 and 6.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is a relationship between 1 and 6.
+
+Test: spearman_corr
+***Test assumptions:
+Exactly two variables involved in analysis: Creativity, Position
+Continuous OR ORDINAL (not nominal) data: Creativity
+Continuous OR ORDINAL (not nominal) data: Position
+
+***Test results:
+name = Spearman's R Correlation
+test_statistic = 0.37322
+p_value = 0.00172
+adjusted_p_value = 0.00172
+alpha = 0.05
+Null hypothesis = There is no monotonic relationship between 1 and 6.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is a relationship between 1 and 6.
+

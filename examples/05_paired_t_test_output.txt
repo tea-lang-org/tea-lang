@@ -1,0 +1,105 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+
+
+Results:
+--------------
+Test: paired_students_t
+***Test assumptions:
+Exactly two variables involved in analysis: Group, Anxiety
+Exactly one explanatory variable: Group
+Exactly one explained variable: Anxiety
+Paired observations: Group
+Variable is categorical: Group
+Variable has two categories: Group
+Continuous (not categorical) data: Anxiety
+Groups are normally distributed: Group, Anxiety: NormalTest(W=np.float64(0.948872904266226), p_value=np.float64(0.6205694317893411))
+Equal variance: Group, Anxiety
+
+***Test results:
+name = Paired Student's T Test
+test_statistic = -2.47253
+p_value = 0.03098
+adjusted_p_value = 0.01549
+alpha = 0.05
+dof = 11.0
+Effect size:
+Cohen's d = 0.68641
+A12 = 0.68056
+Null hypothesis = There is no difference in means between Group = Picture and Group = Real Spider on Anxiety.
+Interpretation = t(11.0) = -2.47253, p = 0.01549. Reject the null hypothesis at alpha = 0.05. The mean of Anxiety for Group = Real Spider is significantly greater than the mean for Group = Picture. The effect size is Cohen's d = 0.68641, A12 = 0.68056. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
+
+Test: wilcoxon_signed_rank
+***Test assumptions:
+Exactly two variables involved in analysis: Group, Anxiety
+Exactly one explanatory variable: Group
+Exactly one explained variable: Anxiety
+Paired observations: Group
+Variable is categorical: Group
+Variable has two categories: Group
+Continuous (not categorical) data: Anxiety
+
+***Test results:
+name = Wilcoxon Signed Rank Test
+test_statistic = 8.00000
+p_value = 0.02441
+adjusted_p_value = 0.02441
+alpha = 0.05
+dof = 12
+Effect size:
+A12 = 0.68056
+Null hypothesis = There is no difference in medians between Group = Picture and Group = Real Spider on Anxiety.
+Interpretation = t(12) = 8.00000, p = 0.02441. Reject the null hypothesis at alpha = 0.05. The median of Anxiety for Group = Real Spider is significantly greater than the median for Group = Picture. The effect size is A12 = 0.68056. The effect size is the magnitude of the difference, which gives a holistic view of the results [1].
+[1] Sullivan, G. M., & Feinn, R. (2012). Using effect size—or why the P value is not enough. Journal of graduate medical education, 4(3), 279-282.
+
+Test: rm_one_way_anova
+***Test assumptions:
+Paired observations: Group
+Exactly one explanatory variable: Group
+Exactly one explained variable: Anxiety
+Continuous (not categorical) data: Anxiety
+Variable is categorical: Group
+Variable has two or more categories: Group
+Groups are normally distributed: Group, Anxiety: NormalTest(W=np.float64(0.948872904266226), p_value=np.float64(0.6205694317893411))
+Equal variance: Group, Anxiety
+
+***Test results:
+name = Repeated Measures One Way ANOVA
+test_statistic = 6.11342
+p_value = 0.03098
+adjusted_p_value = 0.03098
+alpha = 0.05
+dof = (np.float64(1.0), np.float64(11.0))
+table =         F Value  Num DF  Den DF    Pr > F
+Group  6.113422     1.0    11.0  0.030982
+Null hypothesis = The means of all groups/conditions (Group = Picture, Real Spider) are equal.
+Interpretation = t((np.float64(1.0), np.float64(11.0))) = 6.11342, p = 0.03098. Reject the null hypothesis at alpha = 0.05. The means of all groups/conditions (Group = Picture, Real Spider) are not equal.
+
+Test: factorial_ANOVA
+***Test assumptions:
+Exactly one explained variable: Anxiety
+Continuous (not categorical) data: Anxiety
+Variable is categorical: Group
+Variable has two or more categories: Group
+Groups are normally distributed: Group, Anxiety: NormalTest(W=np.float64(0.948872904266226), p_value=np.float64(0.6205694317893411))
+Equal variance: Group, Anxiety
+
+***Test results:
+name = Factorial ANOVA
+test_statistic = 2.82692
+p_value = 0.10684
+adjusted_p_value = 0.10684
+alpha = 0.05
+dof = 1.0
+table =             df  sum_sq  mean_sq         F    PR(>F)
+C(Group)   1.0   294.0    294.0  2.826923  0.106839
+Residual  22.0  2288.0    104.0       NaN       NaN
+Null hypothesis = There is no difference in means between Group = Picture, Real Spider on Anxiety.
+Interpretation = t(1.0) = 2.82692, p = 0.10684. Fail to reject the null hypothesis at alpha = 0.05. There is no difference in means between Group = Picture, Real Spider on Anxiety.
+

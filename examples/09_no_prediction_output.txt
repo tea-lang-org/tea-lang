@@ -1,0 +1,48 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+
+
+Results:
+--------------
+Test: chi_square
+***Test assumptions:
+Exactly two variables involved in analysis: Training, Dance
+Independent (not paired) observations: Training
+Has a large sample size: Training, Dance
+Variable is categorical: Training
+Variable is categorical: Dance
+Variable has two or more categories: Training
+Variable has two or more categories: Dance
+
+***Test results:
+name = Chi Square Test
+test_statistic = 25.35569
+p_value = 0.00000
+adjusted_p_value = 0.00000
+alpha = 0.05
+Null hypothesis = There is no association between Food as Reward and Affection as Reward on Dance.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is an association between Food as Reward and Affection as Reward on Dance.
+
+Test: fishers_exact
+***Test assumptions:
+Exactly two variables involved in analysis: Training, Dance
+Independent (not paired) observations: Training
+Variable is categorical: Training
+Variable is categorical: Dance
+Variable has two categories: Training
+Variable has two categories: Dance
+
+***Test results:
+name = Fisher's Exact Test
+test_statistic = 6.65000
+p_value = 0.00000
+adjusted_p_value = 0.00000
+alpha = 0.05
+Null hypothesis = There is no association between Food as Reward and Affection as Reward on Dance.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is an association between Food as Reward and Affection as Reward on Dance.
+

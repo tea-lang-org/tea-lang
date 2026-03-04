@@ -1,0 +1,41 @@
+Logger was initialized with default configuration.
+Use TeaLogger.initialize_logger to change it.
+
+Running under STRICT mode.
+
+This means that user assertions will be checked. Should they fail, Tea will override user assertions.
+
+
+
+Results:
+--------------
+Test: kendalltau_corr
+***Test assumptions:
+Exactly two variables involved in analysis: Prob, Ineq
+Continuous OR ORDINAL (not nominal) data: Prob
+Continuous OR ORDINAL (not nominal) data: Ineq
+
+***Test results:
+name = Kendall's Tau Correlation
+test_statistic = 0.39611
+p_value = 0.00009
+adjusted_p_value = 0.00009
+alpha = 0.05
+Null hypothesis = There is no relationship between Ineq and Prob.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is a relationship between Ineq and Prob.
+
+Test: spearman_corr
+***Test assumptions:
+Exactly two variables involved in analysis: Prob, Ineq
+Continuous OR ORDINAL (not nominal) data: Prob
+Continuous OR ORDINAL (not nominal) data: Ineq
+
+***Test results:
+name = Spearman's R Correlation
+test_statistic = 0.55087
+p_value = 0.00006
+adjusted_p_value = 0.00006
+alpha = 0.05
+Null hypothesis = There is no monotonic relationship between Ineq and Prob.
+Interpretation = Reject the null hypothesis at alpha = 0.05. There is a relationship between Ineq and Prob.
+
