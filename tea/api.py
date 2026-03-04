@@ -13,6 +13,8 @@ from .build import (load_data, load_data_from_url, const,
                     get_var_from_list
                     )
 from .vardata_factory import VarDataFactory
+from .hypotheses import _RelationshipSpec
+from .ast import Relate, Relationship, PositiveRelationship, NegativeRelationship
 import tea.helpers
 import tea.runtimeDataStructures
 import tea.z3_solver
@@ -144,6 +146,34 @@ def assume(user_assumptions: Dict[str, str], mode=None):
         tea_logger.log_info(f"This means that user assertions will be checked. Should they fail, Tea will override user assertions.\n")
 
 
+def _is_structured(prediction):
+    """Return True if prediction uses the structured API (not string-based)."""
+    return prediction is not None and len(prediction) > 0 and not isinstance(prediction[0], str)
+
+
+def _build_structured_relate(v_objs, predictions):
+    """Build a Relate node from structured prediction objects."""
+    resolved = []
+    for pred in predictions:
+        if isinstance(pred, list):
+            # From compare() — already contains AST nodes, wrap for categorical shape
+            resolved.append(pred)
+        elif isinstance(pred, _RelationshipSpec):
+            var1 = get_var_from_list(pred.var1_name, v_objs)
+            var2 = get_var_from_list(pred.var2_name, v_objs)
+            if var1 is None:
+                raise ValueError(f"Variable {pred.var1_name!r} not found")
+            if var2 is None:
+                raise ValueError(f"Variable {pred.var2_name!r} not found")
+            if pred.direction == 'positive':
+                resolved.append(PositiveRelationship(Relationship(var1), Relationship(var2)))
+            else:
+                resolved.append(NegativeRelationship(Relationship(var1), Relationship(var2)))
+        else:
+            raise ValueError(f"Unsupported prediction object: {pred!r}")
+    return Relate(v_objs, resolved)
+
+
 def hypothesize(vars: list, prediction: list = None):
     global dataset_path, vars_objs, study_design, dataset_obj, dataset_id
     global assumptions, all_results
@@ -166,7 +196,10 @@ def hypothesize(vars: list, prediction: list = None):
         v_objs.append(get_var_from_list(v, vars_objs))  # may want to use Dataset instance method instead
 
     # Create and get back handle to AST node
-    relationship = relate(v_objs, prediction)
+    if _is_structured(prediction):
+        relationship = _build_structured_relate(v_objs, prediction)
+    else:
+        relationship = relate(v_objs, prediction)
     num_comparisons = len(relationship.predictions) if len(relationship.predictions) > 0 else 1 # use for multiple comparison correction
 
     # Interpret AST node, Returns ResultData object <-- this may need to change
