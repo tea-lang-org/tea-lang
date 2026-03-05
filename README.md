@@ -1,4 +1,9 @@
-# tea-lang [![CI](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml/badge.svg)](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml)
+# tea-lang
+
+[![CI](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml/badge.svg)](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/tealang)](https://pypi.org/project/tealang/)
+[![Python](https://img.shields.io/pypi/pyversions/tealang)](https://pypi.org/project/tealang/)
+[![License](https://img.shields.io/github/license/tea-lang-org/tea-lang)](https://github.com/tea-lang-org/tea-lang/blob/master/LICENSE)
 
 # Tea: A High-level Language and Runtime System for Automating Statistical Analyses
 
