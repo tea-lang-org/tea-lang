@@ -1,6 +1,6 @@
 # tea-lang [![CI](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml/badge.svg)](https://github.com/tea-lang-org/tea-lang/actions/workflows/ci.yml)
 
-# [WIP] Tea: A High-level Language and Runtime System for Automating Statistical Analyses
+# Tea: A High-level Language and Runtime System for Automating Statistical Analyses
 
 ## What is Tea?
 Tea is a domain specific programming language that automates statistical test
@@ -22,10 +22,9 @@ assumptions they make about the data (e.g., normal distribution, equal
 variance between groups, etc.) hold. Tea then finally executes the valid tests.
 
 ## What kinds of statistical analyses are possible with Tea?
-Tea currently provides a module to conduct Null Hypothesis Significance
-Testing (NHST). 
+Tea currently provides a module to conduct **Null Hypothesis Significance Testing (NHST).**
 
-*We are actively working on expanding the kinds of analyses Tea can support. Some ideas we have: linear modeling and Bayesian inference.*
+Since Tea, we have developed [Tisane for generalized mixed-effects models](https://github.com/tea-lang-org/tisane) (for Python) and [rTisane for generalized models](https://github.com/tea-lang-org/rTisane) (for R). Both author statistical models from higher-level conceptual models. The latest DSL for supporting generalized mixed-effects models that combines insights from both Tisane and rTisane is [rTisanePy](https://github.com/tea-lang-org/rTisanePy) (for Python). Tea and the lessons we learned from developing and using it informed all of the above!
 
 ## How can I use Tea?
 <a href='https://pypi.org/project/tealang/'>Tea is available on pip!</a>
@@ -49,26 +48,23 @@ article{JunEtAl2019:Tea,
 ```
 
 ## How reliable is Tea?
-Tea is currently a research prototype. Our constraint solver is based on
+Our constraint solver is based on
 statistical texts (see <a href='http://tea-lang.org/index_files/tea_UIST2019.pdf'>our paper</a> for more info). 
 
-If you find any bugs, please let us know (email Eunice at emjun [at] cs.washington.edu)!
+If you find any bugs, please create a Github issue or let us know (email Eunice at emjun [at] cs.ucla.edu)!
+
+## Where can I learn more about Tea?
+Please find more information at <a href='https://tea-lang.org'>our website</a>. Tea is a research prototype we have been trying our best to maintain and improve since 2019. 
 
 ## I want to collaborate! Where do I begin?
 This is great! We're excited to have new collaborators. :) 
 
-To contribute *code*, please see <a href='./CONTRIBUTING.md'> docs and
-gudielines</a> and open an issue or pull request. 
+To contribute *code*, please see <a href='./CONTRIBUTING.md'> docs and gudielines</a> and open an issue or pull request. 
 
-If you want to use Tea for a
-project, talk about Tea's design, or anything else, please get in touch: emjun [at] cs.washington.edu!
-
-## Where can I learn more about Tea?
-Please find more information at <a href='https://tea-lang.org'>our website</a>. 
+If you want to use Tea for a project, talk about Tea's design, or anything else, please get in touch: emjun [at] cs.ucla.edu!
 
 ## I have ideas. I want to chat. 
-Please reach out! We are nice :) Email Eunice at emjun [at] cs.washington.edu!
-
+Please reach out! We are nice :) Email Eunice at emjun [at] cs.ucla.edu!
 
 ## FAQs
 ### By the way, why Python?
